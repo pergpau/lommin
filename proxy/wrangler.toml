@@ -1,0 +1,15 @@
+name = "proxy"
+main = "worker.ts"
+compatibility_date = "2024-01-01"
+
+# Comma-separated list of SPA origins allowed to use this proxy.
+# localhost / 127.0.0.1 are always permitted for development.
+# Set the deployed SPA origin(s) here. For local tunnels (e.g. ngrok), put the
+# tunnel origin in proxy/.dev.vars (gitignored) — it overrides this for `wrangler dev`.
+[vars]
+ALLOWED_ORIGINS = ""
+
+# Per-IP rate limiting (fixed window). Without a bound KV, rate limiting is skipped.
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "46df682c24ab42b3bed6cc88ca3a0da1"

@@ -1,0 +1,24 @@
+# Secrets — never commit
+*.pem
+.session.json
+.wrangler/
+proxy/.wrangler/
+.dev.vars
+.env.local
+
+# Dependencies / build
+node_modules
+dist
+dist-ssr
+
+# Local / editor
+*.local
+.DS_Store
+*.log
+
+# Local imports
+*.csv
+*.zip
+
+# AI
+PLAN.MD
