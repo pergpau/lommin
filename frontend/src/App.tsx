@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import Account from "./pages/Account";
 import Settings from "./pages/Settings";
 import { loadKey } from "./lib/keystore";
+import { getAccounts } from "./lib/store";
 import Spinner from "./components/ui/Spinner";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Privacy from "./pages/Privacy";
@@ -16,7 +17,9 @@ import OAuthCallback from "./pages/OAuthCallback";
 function RequireKey({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<"loading" | "ok" | "missing">("loading");
   useEffect(() => {
-    loadKey().then((kv) => setStatus(kv ? "ok" : "missing"));
+    Promise.all([loadKey(), getAccounts()]).then(([kv, accounts]) =>
+      setStatus(kv || accounts.length > 0 ? "ok" : "missing"),
+    );
   }, []);
   if (status === "loading")
     return (

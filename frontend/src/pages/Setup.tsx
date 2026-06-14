@@ -14,8 +14,15 @@ import {
   UploadIcon,
 } from "../components/ui/icons";
 import { loadEncryptedFile } from "../lib/cryptoFile";
+import {
+  DriveAuthError,
+  loadBackupFromDrive,
+  signInWithGoogle,
+} from "../lib/googleDrive";
 import { importPemKey, saveKey } from "../lib/keystore";
 import { importAll, validateImportData } from "../lib/store";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
 const REDIRECT_URL = "https://lommin.no/connect";
 const PRIVACY_URL = "https://lommin.no/privacy";
@@ -150,6 +157,7 @@ function SetupGuide() {
 }
 
 function RestoreForm() {
+  const navigate = useNavigate();
   const [passphrase, setPassphrase] = useState("");
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [msg, setMsg] = useState("");
@@ -169,6 +177,7 @@ function RestoreForm() {
       const txns = data.transactions.length;
       setState("done");
       setMsg(`Gjenopprettet ${accounts} konto(er) og ${txns} transaksjon(er).`);
+      setTimeout(() => navigate("/dashboard"), 1000);
     } catch (e) {
       if ((e as Error).name === "AbortError") {
         setState("idle");
@@ -177,7 +186,7 @@ function RestoreForm() {
       setState("error");
       setMsg(e instanceof Error ? e.message : "Klarte ikke å gjenopprette sikkerhetskopien");
     }
-  }, [passphrase]);
+  }, [passphrase, navigate]);
 
   return (
     <div className="border border-border rounded-xl p-4 animate-fade-in">
@@ -202,6 +211,88 @@ function RestoreForm() {
         {state !== "loading" && <UploadIcon size={13} />}
         Velg fil og gjenopprett
       </Button>
+      {msg && <Alert type={state === "error" ? "error" : "ok"} message={msg} className="mt-3" />}
+    </div>
+  );
+}
+
+function DriveRestoreForm() {
+  const navigate = useNavigate();
+  const [token, setToken] = useState<string | null>(null);
+  const [passphrase, setPassphrase] = useState("");
+  const [state, setState] = useState<"idle" | "connecting" | "loading" | "done" | "error">("idle");
+  const [msg, setMsg] = useState("");
+
+  const connect = useCallback(async () => {
+    if (!GOOGLE_CLIENT_ID) return;
+    setState("connecting");
+    setMsg("");
+    try {
+      const t = await signInWithGoogle(GOOGLE_CLIENT_ID);
+      setToken(t);
+      setState("idle");
+    } catch (e) {
+      setState("error");
+      setMsg(e instanceof Error ? e.message : "Tilkobling feilet");
+    }
+  }, []);
+
+  const load = useCallback(async () => {
+    if (!token) return;
+    setState("loading");
+    setMsg("");
+    try {
+      const data = validateImportData(await loadBackupFromDrive(token, passphrase));
+      await importAll(data);
+      const accounts = data.accounts.length;
+      const txns = data.transactions.length;
+      setState("done");
+      setMsg(`Gjenopprettet ${accounts} konto(er) og ${txns} transaksjon(er).`);
+      setTimeout(() => navigate("/dashboard"), 1000);
+    } catch (e) {
+      if (e instanceof DriveAuthError) setToken(null);
+      setState("error");
+      setMsg(e instanceof Error ? e.message : "Klarte ikke å laste fra Google Drive");
+    }
+  }, [token, passphrase, navigate]);
+
+  return (
+    <div className="border border-border rounded-xl p-4 animate-fade-in">
+      <div className="text-sm font-medium text-text mb-1">Gjenopprett fra Google Drive</div>
+      <p className="text-xs text-muted mb-3">
+        Last ned og dekrypter sikkerhetskopien din fra Google Drive.
+      </p>
+      {!token ? (
+        <Button
+          className="w-full justify-center"
+          loading={state === "connecting"}
+          onClick={connect}
+        >
+          Koble til Google Drive
+        </Button>
+      ) : (
+        <>
+          <Input
+            label="Passord"
+            type="password"
+            placeholder="La stå tomt hvis ingen kryptering…"
+            value={passphrase}
+            onChange={(e) => setPassphrase(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") load();
+            }}
+            className="mb-3"
+          />
+          <Button
+            className="w-full justify-center"
+            loading={state === "loading"}
+            onClick={load}
+          >
+            {state !== "loading" && <UploadIcon size={13} />}
+            Last fra Drive
+          </Button>
+        </>
+      )}
       {msg && <Alert type={state === "error" ? "error" : "ok"} message={msg} className="mt-3" />}
     </div>
   );
@@ -392,10 +483,14 @@ export default function Setup() {
               className="text-xs text-muted hover:text-text transition-colors"
               onClick={() => setShowRestore(true)}
             >
-              Har du en kryptert sikkerhetskopi? <span className="text-accent">Gjenopprett fra fil</span>
+              Har du allerede en fil lagret lokalt eller på Google Drive?{" "}
+              <span className="text-accent">Gjenopprett</span>
             </button>
           ) : (
-            <RestoreForm />
+            <div className="space-y-3">
+              <RestoreForm />
+              {GOOGLE_CLIENT_ID && <DriveRestoreForm />}
+            </div>
           )}
         </div>
 
