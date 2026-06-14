@@ -35,8 +35,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <header className="border-b border-border bg-surface/60 backdrop-blur-sm sticky top-0 z-40">
           <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
             <Link to="/dashboard" className="flex items-center gap-2">
-              <img src="/favicon.svg" alt="Lommin" className="h-7 w-auto" />
-              <span className="mono text-base font-semibold text-text tracking-tight">
+              <span className="mono text-xl font-semibold text-text tracking-tight">
                 lommin<span className="text-accent">.</span>
               </span>
             </Link>
