@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-**Lommin** — a privacy-first, frontend-only personal spending tracker that connects to [Enable Banking](https://enablebanking.com/). No shared backend; all sensitive data stays on-device. The app is deployed as a static SPA to Cloudflare Pages; the only server-side component is a stateless CORS proxy (Cloudflare Worker).
+**Lommin** — a privacy-first, frontend-only personal spending tracker that connects to [Enable Banking](https://enablebanking.com/). No shared backend; all sensitive data stays on-device. The app is deployed as a static SPA to Netlify; the only server-side component is a stateless CORS proxy (Cloudflare Worker).
 
 ## Repository layout
 
@@ -96,6 +96,6 @@ To add a new Enable Banking endpoint, add a regex to `PATH_ALLOWLIST` in `worker
 
 ## Deployment
 
-- **Frontend**: `npm run build` → deploy `frontend/dist/` to Cloudflare Pages.
+- **Frontend**: `npm run build` → deploy `frontend/dist/` to Netlify. The `public/_redirects` catch-all (`/* /index.html 200`) handles SPA routing.
 - **Proxy**: `wrangler deploy` from `proxy/`. Add the new Worker URL to `ALLOWED_ORIGINS` in `wrangler.toml` and to CSP `connect-src` in `frontend/public/_headers`.
 - The redirect URL registered in the Enable Banking control panel must match the deployed SPA URL exactly.
