@@ -6,6 +6,9 @@ import Input from "../components/ui/Input";
 import {
   AlertTriangleIcon,
   CheckIcon,
+  ChevronDownIcon,
+  CopyIcon,
+  ExternalLinkIcon,
   FileUpIcon,
   ShieldIcon,
   UploadIcon,
@@ -13,6 +16,138 @@ import {
 import { loadEncryptedFile } from "../lib/cryptoFile";
 import { importPemKey, saveKey } from "../lib/keystore";
 import { importAll, validateImportData } from "../lib/store";
+
+const REDIRECT_URL = "https://lommin.no/connect";
+const PRIVACY_URL = "https://lommin.no/privacy";
+const TERMS_URL = "https://lommin.no/terms";
+
+function SetupGuide() {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const copy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 1500);
+  };
+
+  const CopyBtn = ({ text, id }: { text: string; id: string }) => (
+    <button
+      onClick={() => copy(text, id)}
+      className="ml-1.5 text-muted hover:text-accent transition-colors"
+      title="Copy"
+    >
+      {copied === id ? <CheckIcon size={11} /> : <CopyIcon size={11} />}
+    </button>
+  );
+
+  const UrlRow = ({ label, value, id }: { label: string; value: string; id: string }) => (
+    <div className="flex items-center justify-between py-1.5 border-b border-border last:border-0">
+      <span className="text-xs text-muted w-28 flex-shrink-0">{label}</span>
+      <span className="mono text-xs text-text/80 truncate">{value}</span>
+      <CopyBtn text={value} id={id} />
+    </div>
+  );
+
+  const Step = ({
+    n,
+    title,
+    children,
+  }: {
+    n: number;
+    title: string;
+    children: React.ReactNode;
+  }) => (
+    <div className="flex gap-3">
+      <div className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center mt-0.5">
+        <span className="text-[10px] font-semibold text-accent leading-none">{n}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium text-text mb-1">{title}</div>
+        <div className="text-xs text-muted space-y-2 leading-relaxed">{children}</div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="mb-6 border border-border rounded-xl overflow-hidden">
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 text-sm text-muted hover:text-text hover:bg-surface/50 transition-colors text-left"
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span>Har du ikke en Enable Banking-nøkkel ennå?</span>
+        <ChevronDownIcon
+          size={14}
+          className={`flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="border-t border-border px-4 pt-4 pb-5 space-y-5 animate-fade-in">
+          <p className="text-xs text-muted">
+            Enable Banking gir deg gratis tilgang til bank-APIer. Følg disse stegene for å hente
+            signeringsnøkkelen din.
+          </p>
+
+          <Step n={1} title="Opprett en gratis konto">
+            <p>
+              Gå til{" "}
+              <a
+                href="https://app.enablebanking.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent hover:underline inline-flex items-center gap-0.5"
+              >
+                app.enablebanking.com
+                <ExternalLinkIcon size={10} />
+              </a>{" "}
+              og registrer deg. Bekreft e-postadressen din før du går videre.
+            </p>
+          </Step>
+
+          <Step n={2} title="Opprett en applikasjon">
+            <p>
+              Klikk <strong className="text-text/80">Applications</strong> i menyen, deretter{" "}
+              <strong className="text-text/80">New application</strong>.
+            </p>
+            <p>Fyll inn skjemaet med disse verdiene:</p>
+            <div className="rounded-lg border border-border bg-surface/50 px-3 py-1 mt-1">
+              <div className="flex items-center justify-between py-1.5 border-b border-border">
+                <span className="text-xs text-muted w-28 flex-shrink-0">Environment</span>
+                <span className="mono text-xs font-semibold text-positive">Production</span>
+                <span className="w-4" />
+              </div>
+              <UrlRow label="Privacy policy" value={PRIVACY_URL} id="privacy" />
+              <UrlRow label="Terms of service" value={TERMS_URL} id="terms" />
+              <UrlRow label="Redirect URL" value={REDIRECT_URL} id="redirect" />
+            </div>
+            <p className="mt-1">
+              Applikasjonsnavnet kan være hva som helst — det vises kun i ditt eget dashboard.
+            </p>
+          </Step>
+
+          <Step n={3} title="Koble til kontoene dine">
+            <p>Link kontoene du vil synkronisere med Lommin.</p>
+          </Step>
+
+          <Step n={4} title="Last ned nøkkelfila">
+            <p>
+              Når du klikker <strong className="text-text/80">Registrer</strong> vil det lastes ned
+              en fil av typen <span className="mono text-text/70">.pem</span>. Ta vare på denne —
+              den kan ikke lastes ned igjen.
+            </p>
+          </Step>
+
+          <Step n={5} title="Dra og slipp .pem-fila her">
+            <p>
+              Slipp fila i feltet nedenfor, eller klikk for å velge den fra datamaskinen din.
+            </p>
+          </Step>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function RestoreForm() {
   const [passphrase, setPassphrase] = useState("");
@@ -22,7 +157,7 @@ function RestoreForm() {
   const restore = useCallback(async () => {
     if (!passphrase) {
       setState("error");
-      setMsg("Enter the passphrase used when saving the backup.");
+      setMsg("Skriv inn passordet du brukte da du lagret sikkerhetskopien.");
       return;
     }
     setState("loading");
@@ -33,29 +168,29 @@ function RestoreForm() {
       const accounts = data.accounts.length;
       const txns = data.transactions.length;
       setState("done");
-      setMsg(`Restored ${accounts} account(s) and ${txns} transaction(s).`);
+      setMsg(`Gjenopprettet ${accounts} konto(er) og ${txns} transaksjon(er).`);
     } catch (e) {
       if ((e as Error).name === "AbortError") {
         setState("idle");
         return;
       }
       setState("error");
-      setMsg(e instanceof Error ? e.message : "Failed to restore backup");
+      setMsg(e instanceof Error ? e.message : "Klarte ikke å gjenopprette sikkerhetskopien");
     }
   }, [passphrase]);
 
   return (
     <div className="border border-border rounded-xl p-4 animate-fade-in">
-      <div className="text-sm font-medium text-text mb-1">Restore from backup</div>
+      <div className="text-sm font-medium text-text mb-1">Gjenopprett fra sikkerhetskopi</div>
       <p className="text-xs text-muted mb-3">
-        Decrypt and merge accounts and transactions from a{" "}
-        <span className="mono text-text/70">.enc</span> backup. You still need to import your
-        signing key above to fetch new data.
+        Dekrypter og flett inn kontoer og transaksjoner fra en{" "}
+        <span className="mono text-text/70">.enc</span>-sikkerhetskopi. Du må fortsatt importere
+        signeringsnøkkelen ovenfor for å hente nye data.
       </p>
       <Input
-        label="Passphrase"
+        label="Passord"
         type="password"
-        placeholder="Enter backup passphrase…"
+        placeholder="Skriv inn passordet til sikkerhetskopien…"
         value={passphrase}
         onChange={(e) => setPassphrase(e.target.value)}
         onKeyDown={(e) => {
@@ -65,7 +200,7 @@ function RestoreForm() {
       />
       <Button className="w-full justify-center" loading={state === "loading"} onClick={restore}>
         {state !== "loading" && <UploadIcon size={13} />}
-        Choose file &amp; restore
+        Velg fil og gjenopprett
       </Button>
       {msg && <Alert type={state === "error" ? "error" : "ok"} message={msg} className="mt-3" />}
     </div>
@@ -94,7 +229,7 @@ export default function Setup() {
         setState("done");
         setTimeout(() => navigate("/dashboard"), 1200);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to import key");
+        setError(e instanceof Error ? e.message : "Klarte ikke å importere nøkkelen");
         setState("error");
       }
     },
@@ -125,13 +260,15 @@ export default function Setup() {
         <div className="mb-8">
           <div className="mono text-accent text-sm mb-3 tracking-widest uppercase">Lommin</div>
           <h1 className="text-2xl font-semibold text-text tracking-tight leading-tight">
-            Import your signing key
+            Importer signeringsnøkkelen din
           </h1>
           <p className="text-muted text-sm mt-2">
-            Drop your Enable Banking <span className="mono text-text/70">.pem</span> private key. It
-            never leaves your device.
+            Slipp inn din Enable Banking <span className="mono text-text/70">.pem</span>-nøkkel. Den
+            forlater aldri enheten din.
           </p>
         </div>
+
+        <SetupGuide />
 
         {state !== "done" && (
           <div
@@ -171,9 +308,9 @@ export default function Setup() {
                 </div>
                 <div>
                   <div className="text-sm text-text font-medium">
-                    {dragging ? "Drop to import" : "Drop .pem file here"}
+                    {dragging ? "Slipp for å importere" : "Slipp .pem-fila her"}
                   </div>
-                  <div className="text-xs text-muted mt-0.5">or click to browse</div>
+                  <div className="text-xs text-muted mt-0.5">eller klikk for å velge fil</div>
                 </div>
               </div>
             )}
@@ -187,9 +324,9 @@ export default function Setup() {
                 <CheckIcon size={16} className="text-positive" />
               </div>
               <div>
-                <div className="text-sm font-medium text-text">Key imported</div>
+                <div className="text-sm font-medium text-text">Nøkkel importert</div>
                 <div className="mono text-xs text-muted mt-1 break-all">{appId}</div>
-                <div className="text-xs text-muted mt-2">Redirecting to dashboard…</div>
+                <div className="text-xs text-muted mt-2">Sender deg til dashbordet…</div>
               </div>
             </div>
           </div>
@@ -203,7 +340,7 @@ export default function Setup() {
               className="text-xs text-muted hover:text-text transition-colors"
               onClick={() => setShowRestore(true)}
             >
-              Have an encrypted backup? <span className="text-accent">Restore from file</span>
+              Har du en kryptert sikkerhetskopi? <span className="text-accent">Gjenopprett fra fil</span>
             </button>
           ) : (
             <RestoreForm />
@@ -214,17 +351,17 @@ export default function Setup() {
           <div className="flex items-start gap-2">
             <ShieldIcon size={14} className="text-muted flex-shrink-0 mt-0.5" />
             <p className="text-xs text-muted leading-relaxed">
-              Your key is stored as a non-extractable <span className="mono">CryptoKey</span> in
-              IndexedDB. Raw bytes are never recoverable by JavaScript after import.
+              Nøkkelen lagres som en ikke-uttrekkbar <span className="mono">CryptoKey</span> i
+              IndexedDB. De rå nøkkelbytene kan ikke leses ut av JavaScript etter import.
             </p>
           </div>
           <div className="flex items-start gap-2">
             <AlertTriangleIcon size={14} className="text-muted flex-shrink-0 mt-0.5" />
             <p className="text-xs text-muted leading-relaxed">
-              <span className="text-text/80">Heads up:</span> bank API calls are relayed through a
-              hosted proxy, which can see your transaction data and short-lived access token in
-              transit (it never receives your key). For full privacy, point{" "}
-              <span className="mono">Settings → CORS Proxy</span> at your own server.
+              <span className="text-text/80">Merk:</span> bank-API-kall sendes via en proxy, som kan
+              se transaksjonsdata og korttidsgyldige tilgangstokener i transitt (den mottar aldri
+              nøkkelen din). For full personvern, pek{" "}
+              <span className="mono">Innstillinger → CORS-proxy</span> mot din egen server.
             </p>
           </div>
         </div>
