@@ -16,10 +16,10 @@ export function initTheme(): Theme {
 }
 
 export function applyTheme(theme: Theme) {
-  if (theme === "light") {
-    document.documentElement.classList.add("light");
+  if (theme === "dark") {
+    document.documentElement.classList.add("dark");
   } else {
-    document.documentElement.classList.remove("light");
+    document.documentElement.classList.remove("dark");
   }
   localStorage.setItem("theme", theme);
 }

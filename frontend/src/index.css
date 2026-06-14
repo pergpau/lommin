@@ -5,22 +5,6 @@
 
 /* ── Theme tokens ─────────────────────────────────────────── */
 :root {
-  color-scheme: dark;
-  --c-bg: 8 11 13;
-  --c-surface: 14 19 23;
-  --c-surface-2: 20 27 33;
-  --c-border: 26 34 41;
-  --c-border-2: 36 48 64;
-  --c-text: 212 221 228;
-  --c-muted: 90 106 118;
-  --c-accent: 59 130 246;
-  --c-accent-dim: 29 78 216;
-  --c-positive: 34 197 94;
-  --c-negative: 239 68 68;
-  --c-warning: 245 158 11;
-}
-
-html.light {
   color-scheme: light;
   --c-bg: 244 246 248;
   --c-surface: 255 255 255;
@@ -34,6 +18,22 @@ html.light {
   --c-positive: 22 163 74;
   --c-negative: 220 38 38;
   --c-warning: 217 119 6;
+}
+
+html.dark {
+  color-scheme: dark;
+  --c-bg: 8 11 13;
+  --c-surface: 14 19 23;
+  --c-surface-2: 20 27 33;
+  --c-border: 26 34 41;
+  --c-border-2: 36 48 64;
+  --c-text: 212 221 228;
+  --c-muted: 90 106 118;
+  --c-accent: 59 130 246;
+  --c-accent-dim: 29 78 216;
+  --c-positive: 34 197 94;
+  --c-negative: 239 68 68;
+  --c-warning: 245 158 11;
 }
 
 /* ── Base ─────────────────────────────────────────────────── */

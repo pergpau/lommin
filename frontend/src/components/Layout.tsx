@@ -21,7 +21,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
     document.documentElement.classList.add("theme-switching");
-    document.documentElement.classList.toggle("light", next === "light");
+    document.documentElement.classList.toggle("dark", next === "dark");
     localStorage.setItem("theme", next);
     setTheme(next);
     requestAnimationFrame(() =>
