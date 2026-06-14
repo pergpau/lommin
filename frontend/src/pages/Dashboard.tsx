@@ -38,7 +38,6 @@ export default function Dashboard() {
   const passphraseRef = useRef<HTMLInputElement>(null);
 
   const handleSaveFile = async () => {
-    if (!savePassphrase) return setSaveMsg({ type: "err", text: "Skriv inn et passord." });
     setSaving(true);
     setSaveMsg(null);
     try {
@@ -351,9 +350,10 @@ export default function Dashboard() {
           onClick={() => setSaveOpen(false)}
         >
           <div className="card p-5 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-sm font-semibold text-text mb-1">Lagre kryptert sikkerhetskopi</h2>
+            <h2 className="text-sm font-semibold text-text mb-1">Lagre sikkerhetskopi</h2>
             <p className="text-xs text-muted mb-4">
-              Dataene krypteres med AES-GCM før de lagres. Passordet forlater aldri enheten.
+              Valgfritt: beskytt filen med et passord. La feltet stå tomt for å lagre uten
+              kryptering.
             </p>
             {saveMsg && (
               <Alert
@@ -365,7 +365,7 @@ export default function Dashboard() {
             <input
               ref={passphraseRef}
               type="password"
-              placeholder="Passord…"
+              placeholder="La stå tomt for ingen kryptering"
               value={savePassphrase}
               onChange={(e) => setSavePassphrase(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSaveFile()}
