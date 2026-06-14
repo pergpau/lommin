@@ -24,19 +24,19 @@ import {
   type Account,
 } from "../lib/store";
 
-const MIN_PASSPHRASE_LENGTH = 8;
-
 export default function Settings() {
   const navigate = useNavigate();
   const [proxyUrl, setProxyUrl] = useState("");
   const [lookbackDays, setLookbackDays] = useState("");
   const [savingLookback, setSavingLookback] = useState(false);
-  const [passphrase, setPassphrase] = useState("");
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState<"save" | "load" | null>(null);
+  const [dialog, setDialog] = useState<"save" | "load" | null>(null);
+  const [dialogPassphrase, setDialogPassphrase] = useState("");
   const [wiping, setWiping] = useState(false);
   const [wipingAccounts, setWipingAccounts] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [backupMsg, setBackupMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   // Spiir import state
   const spiirFileRef = useRef<HTMLInputElement>(null);
@@ -83,42 +83,49 @@ export default function Settings() {
     }
   }, [lookbackDays]);
 
+  const openDialog = useCallback((mode: "save" | "load") => {
+    setDialogPassphrase("");
+    setDialog(mode);
+  }, []);
+
+  const closeDialog = useCallback(() => {
+    setDialog(null);
+    setDialogPassphrase("");
+  }, []);
+
   const saveFile = useCallback(async () => {
-    if (passphrase.length < MIN_PASSPHRASE_LENGTH)
-      return setMsg({
-        type: "err",
-        text: `Bruk minst ${MIN_PASSPHRASE_LENGTH} tegn for å beskytte sikkerhetskopien.`,
-      });
+    setDialog(null);
     setSyncing("save");
-    setMsg(null);
+    setBackupMsg(null);
     try {
       const data = await exportAll();
-      await saveEncryptedFile(data, passphrase);
-      setMsg({ type: "ok", text: "Sikkerhetskopi lagret." });
+      await saveEncryptedFile(data, dialogPassphrase);
+      setBackupMsg({ type: "ok", text: "Sikkerhetskopi lagret." });
     } catch (e) {
       if ((e as Error).name !== "AbortError")
-        setMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
+        setBackupMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
     } finally {
       setSyncing(null);
+      setDialogPassphrase("");
     }
-  }, [passphrase]);
+  }, [dialogPassphrase]);
 
   const loadFile = useCallback(async () => {
-    if (!passphrase)
-      return setMsg({ type: "err", text: "Skriv inn passordet du brukte ved lagring." });
+    setDialog(null);
     setSyncing("load");
-    setMsg(null);
+    setBackupMsg(null);
     try {
-      const data = await loadEncryptedFile(passphrase);
+      const data = await loadEncryptedFile(dialogPassphrase);
       await importAll(data);
-      setMsg({ type: "ok", text: "Data hentet fra sikkerhetskopi." });
+      setBackupMsg({ type: "ok", text: "Data hentet fra sikkerhetskopi." });
     } catch (e) {
       if ((e as Error).name !== "AbortError")
-        setMsg({ type: "err", text: e instanceof Error ? e.message : "Lasting feilet" });
+        setBackupMsg({ type: "err", text: e instanceof Error ? e.message : "Lasting feilet" });
     } finally {
       setSyncing(null);
+      setDialogPassphrase("");
     }
-  }, [passphrase]);
+  }, [dialogPassphrase]);
 
   const forgetKey = useCallback(async () => {
     await clearKey();
@@ -327,24 +334,19 @@ export default function Settings() {
           Eksporter dataene dine til en AES-GCM-kryptert fil. Legg den i Dropbox/Drive for
           synkronisering på tvers av enheter. Passordet forlater aldri enheten.
         </p>
-        <Input
-          label="Passord"
-          type="password"
-          placeholder="Skriv inn passord…"
-          value={passphrase}
-          onChange={(e) => setPassphrase(e.target.value)}
-          className="mb-1"
-        />
-        <p className="text-xs text-muted mb-3">
-          Minst {MIN_PASSPHRASE_LENGTH} tegn. Bruk en lang passfrase – den kan ikke gjenopprettes,
-          og styrken på krypteringen avhenger helt av den.
-        </p>
+        {backupMsg && (
+          <Alert
+            type={backupMsg.type === "ok" ? "ok" : "error"}
+            message={backupMsg.text}
+            className="mb-3"
+          />
+        )}
         <div className="flex gap-2">
           <Button
             className="flex-1 justify-center"
             loading={syncing === "save"}
             disabled={!!syncing}
-            onClick={saveFile}
+            onClick={() => openDialog("save")}
           >
             <DownloadIcon size={13} />
             Lagre sikkerhetskopi
@@ -354,7 +356,7 @@ export default function Settings() {
             className="flex-1 justify-center"
             loading={syncing === "load"}
             disabled={!!syncing}
-            onClick={loadFile}
+            onClick={() => openDialog("load")}
           >
             <UploadIcon size={13} />
             Last inn sikkerhetskopi
@@ -451,6 +453,48 @@ export default function Settings() {
           </>
         )}
       </Card>
+
+      {dialog && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={closeDialog}
+        >
+          <div
+            className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-semibold text-text mb-1">
+              {dialog === "save" ? "Lagre sikkerhetskopi" : "Last inn sikkerhetskopi"}
+            </h3>
+            <p className="text-xs text-muted mb-4">
+              {dialog === "save"
+                ? "Valgfritt: beskytt filen med et passord. La feltet stå tomt for å lagre uten kryptering."
+                : "Skriv inn passordet du brukte ved lagring, eller la feltet stå tomt."}
+            </p>
+            <Input
+              label="Passord (valgfritt)"
+              type="password"
+              placeholder="La stå tomt for ingen kryptering"
+              value={dialogPassphrase}
+              onChange={(e) => setDialogPassphrase(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") dialog === "save" ? saveFile() : loadFile();
+                if (e.key === "Escape") closeDialog();
+              }}
+              className="mb-4"
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost" onClick={closeDialog}>
+                Avbryt
+              </Button>
+              <Button onClick={dialog === "save" ? saveFile : loadFile}>
+                {dialog === "save" ? "Lagre" : "Last inn"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Card className="p-5 border-negative/10">
         <h2 className="text-sm font-semibold text-text mb-1">Faresone</h2>
