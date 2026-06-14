@@ -93,12 +93,12 @@ function SetupGuide() {
             <p>
               Gå til{" "}
               <a
-                href="https://app.enablebanking.com"
+                href="https://enablebanking.com/sign-in/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-accent hover:underline inline-flex items-center gap-0.5"
               >
-                app.enablebanking.com
+                https://enablebanking.com/sign-in/
                 <ExternalLinkIcon size={10} />
               </a>{" "}
               og registrer deg. Bekreft e-postadressen din før du går videre.
@@ -272,11 +272,10 @@ export default function Setup() {
 
         {state !== "done" && (
           <div
-            className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-200 ${
-              dragging
-                ? "border-accent bg-accent/5"
-                : "border-border hover:border-border-2 hover:bg-surface/50"
-            }`}
+            className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-200 ${dragging
+              ? "border-accent bg-accent/5"
+              : "border-border hover:border-border-2 hover:bg-surface/50"
+              }`}
             onDragEnter={(e) => {
               e.preventDefault();
               setDragging(true);
