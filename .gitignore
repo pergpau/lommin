@@ -5,6 +5,7 @@
 proxy/.wrangler/
 .dev.vars
 .env.local
+.env
 
 # Dependencies / build
 node_modules

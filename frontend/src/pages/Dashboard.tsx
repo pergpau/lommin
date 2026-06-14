@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AccountCard from "../components/AccountCard";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import SpendingBreakdown from "../components/charts/SpendingBreakdown";
@@ -13,10 +13,10 @@ import { useAccounts } from "../hooks/useAccounts";
 import { useSyncState } from "../hooks/useSyncState";
 import { useTransactions } from "../hooks/useTransactions";
 import { SUB_CATEGORY_MAP } from "../lib/categories";
-import { saveEncryptedFile } from "../lib/cryptoFile";
-import { exportAll, setCategoryId } from "../lib/store";
+import { setCategoryId } from "../lib/store";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { accounts, loading: accountsLoading, reload } = useAccounts();
   const { transactions, loading: txLoading, refresh } = useTransactions();
   const {
@@ -39,31 +39,6 @@ export default function Dashboard() {
     }
   }, [loading, accounts.length]);
   const [actionsOpen, setActionsOpen] = useState(false);
-  const [saveOpen, setSaveOpen] = useState(false);
-  const [savePassphrase, setSavePassphrase] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [saveMsg, setSaveMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
-  const passphraseRef = useRef<HTMLInputElement>(null);
-
-  const handleSaveFile = async () => {
-    setSaving(true);
-    setSaveMsg(null);
-    try {
-      const data = await exportAll();
-      await saveEncryptedFile(data, savePassphrase);
-      setSaveMsg({ type: "ok", text: "Fil lagret." });
-      setSavePassphrase("");
-      setTimeout(() => {
-        setSaveOpen(false);
-        setSaveMsg(null);
-      }, 1500);
-    } catch (e) {
-      if ((e as Error).name !== "AbortError")
-        setSaveMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
-    } finally {
-      setSaving(false);
-    }
-  };
 
   function txSection(t: (typeof transactions)[0]): "income" | "expense" | "saving" | null {
     if (t.isTransfer) return null;
@@ -182,14 +157,7 @@ export default function Dashboard() {
           <Link to="/connect" className="btn-ghost text-xs">
             + Legg til konto
           </Link>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setSaveOpen(true);
-              setSaveMsg(null);
-              setTimeout(() => passphraseRef.current?.focus(), 50);
-            }}
-          >
+          <Button variant="ghost" onClick={() => navigate("/settings#backup")}>
             <DownloadIcon size={14} />
             Lagre som fil
           </Button>
@@ -225,9 +193,7 @@ export default function Dashboard() {
                 className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
                 onClick={() => {
                   setActionsOpen(false);
-                  setSaveOpen(true);
-                  setSaveMsg(null);
-                  setTimeout(() => passphraseRef.current?.focus(), 50);
+                  navigate("/settings#backup");
                 }}
               >
                 <DownloadIcon size={13} />
@@ -365,47 +331,6 @@ export default function Dashboard() {
         ))
       }
 
-      {
-        saveOpen && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-            onClick={() => setSaveOpen(false)}
-          >
-            <div className="card p-5 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
-              <h2 className="text-sm font-semibold text-text mb-1">Lagre sikkerhetskopi</h2>
-              <p className="text-xs text-muted mb-4">
-                Valgfritt: beskytt filen med et passord. La feltet stå tomt for å lagre uten
-                kryptering.
-              </p>
-              {saveMsg && (
-                <Alert
-                  type={saveMsg.type === "ok" ? "ok" : "error"}
-                  message={saveMsg.text}
-                  className="mb-3"
-                />
-              )}
-              <input
-                ref={passphraseRef}
-                type="password"
-                placeholder="La stå tomt for ingen kryptering"
-                value={savePassphrase}
-                onChange={(e) => setSavePassphrase(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSaveFile()}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-surface text-text placeholder:text-muted focus:outline-none focus:border-accent mb-3"
-              />
-              <div className="flex gap-2 justify-end">
-                <Button variant="ghost" onClick={() => setSaveOpen(false)}>
-                  Avbryt
-                </Button>
-                <Button loading={saving} onClick={handleSaveFile}>
-                  {!saving && <DownloadIcon size={13} />}
-                  Lagre
-                </Button>
-              </div>
-            </div>
-          </div>
-        )
-      }
     </div >
   );
 }

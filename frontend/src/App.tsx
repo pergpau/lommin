@@ -11,6 +11,7 @@ import Spinner from "./components/ui/Spinner";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import OAuthCallback from "./pages/OAuthCallback";
 
 function RequireKey({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<"loading" | "ok" | "missing">("loading");
@@ -72,6 +73,7 @@ export default function App() {
               </RequireKey>
             }
           />
+          <Route path="/oauth/google" element={<OAuthCallback />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<RootRedirect />} />

@@ -6,6 +6,12 @@ import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
 import { DownloadIcon, UploadIcon } from "../components/ui/icons";
 import { loadEncryptedFile, saveEncryptedFile } from "../lib/cryptoFile";
+import {
+  DriveAuthError,
+  loadBackupFromDrive,
+  saveBackupToDrive,
+  signInWithGoogle,
+} from "../lib/googleDrive";
 import { clearKey, loadKey, saveKey } from "../lib/keystore";
 import { getAllSettings, setSetting } from "../lib/settings";
 import {
@@ -23,6 +29,8 @@ import {
   importAll,
   type Account,
 } from "../lib/store";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -46,7 +54,10 @@ export default function Settings() {
   const [savingLookback, setSavingLookback] = useState(false);
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState<"save" | "load" | null>(null);
-  const [dialog, setDialog] = useState<"save" | "load" | null>(null);
+  const [dialog, setDialog] = useState<"save" | "load" | "drive-save" | "drive-load" | null>(null);
+  const [driveToken, setDriveToken] = useState<string | null>(null);
+  const [driveSyncing, setDriveSyncing] = useState<"connect" | "save" | "load" | null>(null);
+  const [driveMsg, setDriveMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [dialogPassphrase, setDialogPassphrase] = useState("");
   const [wiping, setWiping] = useState(false);
   const [wipingAccounts, setWipingAccounts] = useState(false);
@@ -119,7 +130,7 @@ export default function Settings() {
     }
   }, [appId]);
 
-  const openDialog = useCallback((mode: "save" | "load") => {
+  const openDialog = useCallback((mode: "save" | "load" | "drive-save" | "drive-load") => {
     setDialogPassphrase("");
     setDialog(mode);
   }, []);
@@ -162,6 +173,56 @@ export default function Settings() {
       setDialogPassphrase("");
     }
   }, [dialogPassphrase]);
+
+  const connectDrive = useCallback(async () => {
+    if (!GOOGLE_CLIENT_ID) return;
+    setDriveSyncing("connect");
+    setDriveMsg(null);
+    try {
+      const token = await signInWithGoogle(GOOGLE_CLIENT_ID);
+      setDriveToken(token);
+    } catch (e) {
+      setDriveMsg({ type: "err", text: e instanceof Error ? e.message : "Tilkobling feilet" });
+    } finally {
+      setDriveSyncing(null);
+    }
+  }, []);
+
+  const saveDrive = useCallback(async () => {
+    if (!driveToken) return;
+    setDialog(null);
+    setDriveSyncing("save");
+    setDriveMsg(null);
+    try {
+      const data = await exportAll();
+      await saveBackupToDrive(driveToken, data, dialogPassphrase);
+      setDriveMsg({ type: "ok", text: "Sikkerhetskopi lagret til Google Drive." });
+    } catch (e) {
+      if (e instanceof DriveAuthError) setDriveToken(null);
+      setDriveMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
+    } finally {
+      setDriveSyncing(null);
+      setDialogPassphrase("");
+    }
+  }, [driveToken, dialogPassphrase]);
+
+  const loadDrive = useCallback(async () => {
+    if (!driveToken) return;
+    setDialog(null);
+    setDriveSyncing("load");
+    setDriveMsg(null);
+    try {
+      const data = await loadBackupFromDrive(driveToken, dialogPassphrase);
+      await importAll(data);
+      setDriveMsg({ type: "ok", text: "Data hentet fra Google Drive." });
+    } catch (e) {
+      if (e instanceof DriveAuthError) setDriveToken(null);
+      setDriveMsg({ type: "err", text: e instanceof Error ? e.message : "Lasting feilet" });
+    } finally {
+      setDriveSyncing(null);
+      setDialogPassphrase("");
+    }
+  }, [driveToken, dialogPassphrase]);
 
   const forgetKey = useCallback(async () => {
     await clearKey();
@@ -396,39 +457,97 @@ export default function Settings() {
         </div>
       </Card>
 
-      <Card className="p-5 mb-4">
-        <h2 className="text-sm font-semibold text-text mb-1">Kryptert sikkerhetskopi</h2>
+      <Card id="backup" className="p-5 mb-4">
+        <h2 className="text-sm font-semibold text-text mb-1">Lagre og gjenopprett</h2>
         <p className="text-xs text-muted mb-4">
-          Eksporter dataene dine til en AES-GCM-kryptert fil. Legg den i Dropbox/Drive for
-          synkronisering på tvers av enheter. Passordet forlater aldri enheten.
+          Sikkerhetskopier dataene dine kryptert. Passordet forlater aldri enheten.
         </p>
-        {backupMsg && (
-          <Alert
-            type={backupMsg.type === "ok" ? "ok" : "error"}
-            message={backupMsg.text}
-            className="mb-3"
-          />
-        )}
-        <div className="flex gap-2">
-          <Button
-            className="flex-1 justify-center"
-            loading={syncing === "save"}
-            disabled={!!syncing}
-            onClick={() => openDialog("save")}
-          >
-            <DownloadIcon size={13} />
-            Lagre sikkerhetskopi
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex-1 justify-center"
-            loading={syncing === "load"}
-            disabled={!!syncing}
-            onClick={() => openDialog("load")}
-          >
-            <UploadIcon size={13} />
-            Last inn sikkerhetskopi
-          </Button>
+
+        <div className="space-y-4">
+          <div>
+            <p className="text-xs font-medium text-muted mb-2">Google Drive</p>
+            {driveMsg && (
+              <Alert
+                type={driveMsg.type === "ok" ? "ok" : "error"}
+                message={driveMsg.text}
+                className="mb-2"
+              />
+            )}
+            {!GOOGLE_CLIENT_ID ? (
+              <p className="text-xs text-muted">
+                Google Drive er ikke konfigurert.{" "}
+                <span className="mono text-text/70">VITE_GOOGLE_CLIENT_ID</span> mangler i
+                byggemiljøet.
+              </p>
+            ) : !driveToken ? (
+              <Button loading={driveSyncing === "connect"} onClick={connectDrive}>
+                Koble til Google Drive
+              </Button>
+            ) : (
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  className="flex-1 justify-center"
+                  loading={driveSyncing === "save"}
+                  disabled={!!driveSyncing}
+                  onClick={() => openDialog("drive-save")}
+                >
+                  <DownloadIcon size={13} />
+                  Lagre til Drive
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="flex-1 justify-center"
+                  loading={driveSyncing === "load"}
+                  disabled={!!driveSyncing}
+                  onClick={() => openDialog("drive-load")}
+                >
+                  <UploadIcon size={13} />
+                  Last fra Drive
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={!!driveSyncing}
+                  onClick={() => setDriveToken(null)}
+                >
+                  Koble fra
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-border" />
+
+          <div>
+            <p className="text-xs font-medium text-muted mb-2">Lokal fil</p>
+            {backupMsg && (
+              <Alert
+                type={backupMsg.type === "ok" ? "ok" : "error"}
+                message={backupMsg.text}
+                className="mb-2"
+              />
+            )}
+            <div className="flex gap-2">
+              <Button
+                className="flex-1 justify-center"
+                loading={syncing === "save"}
+                disabled={!!syncing}
+                onClick={() => openDialog("save")}
+              >
+                <DownloadIcon size={13} />
+                Lagre fil
+              </Button>
+              <Button
+                variant="ghost"
+                className="flex-1 justify-center"
+                loading={syncing === "load"}
+                disabled={!!syncing}
+                onClick={() => openDialog("load")}
+              >
+                <UploadIcon size={13} />
+                Last inn fil
+              </Button>
+            </div>
+          </div>
         </div>
       </Card>
 
@@ -535,10 +654,16 @@ export default function Settings() {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-sm font-semibold text-text mb-1">
-              {dialog === "save" ? "Lagre sikkerhetskopi" : "Last inn sikkerhetskopi"}
+              {dialog === "save"
+                ? "Lagre sikkerhetskopi"
+                : dialog === "load"
+                  ? "Last inn sikkerhetskopi"
+                  : dialog === "drive-save"
+                    ? "Lagre til Google Drive"
+                    : "Last fra Google Drive"}
             </h3>
             <p className="text-xs text-muted mb-4">
-              {dialog === "save"
+              {dialog === "save" || dialog === "drive-save"
                 ? "Valgfritt: beskytt filen med et passord. La feltet stå tomt for å lagre uten kryptering."
                 : "Skriv inn passordet du brukte ved lagring, eller la feltet stå tomt."}
             </p>
@@ -549,7 +674,12 @@ export default function Settings() {
               value={dialogPassphrase}
               onChange={(e) => setDialogPassphrase(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") dialog === "save" ? saveFile() : loadFile();
+                if (e.key === "Enter") {
+                  if (dialog === "save") saveFile();
+                  else if (dialog === "load") loadFile();
+                  else if (dialog === "drive-save") saveDrive();
+                  else if (dialog === "drive-load") loadDrive();
+                }
                 if (e.key === "Escape") closeDialog();
               }}
               className="mb-4"
@@ -559,8 +689,18 @@ export default function Settings() {
               <Button variant="ghost" onClick={closeDialog}>
                 Avbryt
               </Button>
-              <Button onClick={dialog === "save" ? saveFile : loadFile}>
-                {dialog === "save" ? "Lagre" : "Last inn"}
+              <Button
+                onClick={
+                  dialog === "save"
+                    ? saveFile
+                    : dialog === "load"
+                      ? loadFile
+                      : dialog === "drive-save"
+                        ? saveDrive
+                        : loadDrive
+                }
+              >
+                {dialog === "save" || dialog === "drive-save" ? "Lagre" : "Last inn"}
               </Button>
             </div>
           </div>
