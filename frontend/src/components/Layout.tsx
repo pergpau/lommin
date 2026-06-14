@@ -10,7 +10,7 @@ const nav = [
 type Theme = "dark" | "light";
 
 function getInitialTheme(): Theme {
-  return (localStorage.getItem("theme") as Theme) ?? "dark";
+  return (localStorage.getItem("theme") as Theme) ?? "light";
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -31,15 +31,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-bg text-text flex flex-col">
-      {showNav && (
-        <header className="border-b border-border bg-surface/60 backdrop-blur-sm sticky top-0 z-40">
-          <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-            <Link to="/dashboard" className="flex items-center gap-2">
-              <span className="mono text-xl font-semibold text-text tracking-tight">
-                lommin<span className="text-accent">.</span>
-              </span>
-            </Link>
-            <div className="flex items-center gap-1">
+      <header className="border-b border-border bg-surface/60 backdrop-blur-sm sticky top-0 z-40">
+        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link to="/dashboard" className="flex items-center gap-2">
+            <span className="mono text-xl font-semibold text-text tracking-tight">
+              lommin<span className="text-accent">.</span>
+            </span>
+          </Link>
+          <div className="flex items-center gap-1">
+            {showNav && (
               <nav className="flex items-center gap-1">
                 {nav.map(({ to, label }) => (
                   <Link
@@ -55,17 +55,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </Link>
                 ))}
               </nav>
-              <button
-                onClick={toggle}
-                className="ml-1 p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 transition-colors"
-                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              >
-                {theme === "dark" ? <SunIcon size={16} /> : <MoonIcon size={16} />}
-              </button>
-            </div>
+            )}
+            <button
+              onClick={toggle}
+              className="ml-1 p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 transition-colors"
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? <SunIcon size={16} /> : <MoonIcon size={16} />}
+            </button>
           </div>
-        </header>
-      )}
+        </div>
+      </header>
       <main className="flex-1">{children}</main>
       <footer className="border-t border-border py-4">
         <div className="max-w-3xl mx-auto px-4 flex items-center justify-center gap-4">
