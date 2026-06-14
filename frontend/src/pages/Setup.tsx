@@ -223,7 +223,7 @@ export default function Setup() {
     setError("");
     try {
       const pem = await file.text();
-      const stem = file.name.replace(/\.[^.]+$/, "");
+      const stem = file.name.replace(/(\.(pem|crt|key))+$/i, "");
       const key = await importPemKey(pem);
       pendingKey.current = key;
       setAppId(stem);
@@ -308,7 +308,7 @@ export default function Setup() {
             <input
               ref={inputRef}
               type="file"
-              accept=".pem,application/x-pem-file,application/octet-stream,text/plain"
+              accept=".pem,.crt,.key,application/x-pem-file,application/x-x509-ca-cert,application/octet-stream,text/plain"
               className="hidden"
               onChange={onFileChange}
             />
