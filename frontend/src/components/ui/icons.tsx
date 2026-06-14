@@ -148,3 +148,18 @@ export const CopyIcon = icon(
 export const ChevronDownIcon = icon(
   () => <polyline points="6 9 12 15 18 9" strokeLinecap="round" strokeLinejoin="round" />,
 );
+
+export const MenuIcon = icon(() => (
+  <>
+    <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
+    <line x1="3" y1="12" x2="21" y2="12" strokeLinecap="round" />
+    <line x1="3" y1="18" x2="21" y2="18" strokeLinecap="round" />
+  </>
+));
+
+export const XIcon = icon(() => (
+  <>
+    <line x1="18" y1="6" x2="6" y2="18" strokeLinecap="round" />
+    <line x1="6" y1="6" x2="18" y2="18" strokeLinecap="round" />
+  </>
+));

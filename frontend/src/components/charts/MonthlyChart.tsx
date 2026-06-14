@@ -2,6 +2,17 @@ import { useEffect, useState } from "react";
 import { fmtAmount } from "../../lib/format";
 import { ArrowLeftIcon, ArrowRightIcon } from "../ui/icons";
 
+function useIsMobile() {
+  const [mobile, setMobile] = useState(() => window.matchMedia("(max-width: 639px)").matches);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const handler = (e: MediaQueryListEvent) => setMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return mobile;
+}
+
 export type MonthBar = {
   key: string;
   label: string;
@@ -22,6 +33,7 @@ type MonthlyChartProps = {
 
 const BAR_MAX = 80;
 const PAGE_SIZE = 6;
+const PAGE_SIZE_MOBILE = 3;
 
 export default function MonthlyChart({
   bars,
@@ -30,13 +42,15 @@ export default function MonthlyChart({
   mode,
   onModeChange,
 }: MonthlyChartProps) {
-  const [windowStart, setWindowStart] = useState(() => Math.max(0, bars.length - PAGE_SIZE));
+  const isMobile = useIsMobile();
+  const pageSize = isMobile ? PAGE_SIZE_MOBILE : PAGE_SIZE;
+  const [windowStart, setWindowStart] = useState(() => Math.max(0, bars.length - pageSize));
 
   useEffect(() => {
-    setWindowStart(Math.max(0, bars.length - PAGE_SIZE));
-  }, [bars.length]);
+    setWindowStart(Math.max(0, bars.length - pageSize));
+  }, [bars.length, pageSize]);
 
-  const visibleBars = mode === "month" ? bars.slice(windowStart, windowStart + PAGE_SIZE) : bars;
+  const visibleBars = mode === "month" ? bars.slice(windowStart, windowStart + pageSize) : bars;
   const selected = bars.find((b) => b.key === activeKey) ?? bars[bars.length - 1];
   const avgIncome = bars.length > 0 ? bars.reduce((s, b) => s + b.income, 0) / bars.length : 0;
   const avgExpenses = bars.length > 0 ? bars.reduce((s, b) => s + b.expenses, 0) / bars.length : 0;
@@ -48,7 +62,7 @@ export default function MonthlyChart({
   );
 
   const canGoBack = windowStart > 0;
-  const canGoForward = windowStart + PAGE_SIZE < bars.length;
+  const canGoForward = windowStart + pageSize < bars.length;
 
   const yearGroups: { year: string; months: MonthBar[] }[] = [];
   if (mode === "month") {
@@ -112,9 +126,29 @@ export default function MonthlyChart({
     );
   };
 
+  const modeToggle = (
+    <div className="flex rounded-lg overflow-hidden border border-border text-xs font-medium shrink-0">
+      <button
+        className={`px-3 py-1 transition-colors ${mode === "month" ? "bg-accent text-white" : "text-muted hover:text-text"}`}
+        onClick={() => onModeChange("month")}
+      >
+        Måneder
+      </button>
+      <button
+        className={`px-3 py-1 transition-colors ${mode === "year" ? "bg-accent text-white" : "text-muted hover:text-text"}`}
+        onClick={() => onModeChange("year")}
+      >
+        År
+      </button>
+    </div>
+  );
+
   return (
     <div className="card p-5">
-      <div className="flex justify-between items-start mb-5">
+      {/* Mobile: filter above stats */}
+      <div className="flex justify-end mb-3 sm:hidden">{modeToggle}</div>
+
+      <div className="flex items-start justify-between mb-5">
         <div className="flex gap-6">
           <div>
             <div className="text-xs text-muted uppercase tracking-wider mb-1">Inntekt</div>
@@ -146,27 +180,15 @@ export default function MonthlyChart({
             </div>
           </div>
         </div>
-        <div className="flex rounded-lg overflow-hidden border border-border text-xs font-medium">
-          <button
-            className={`px-3 py-1 transition-colors ${mode === "month" ? "bg-accent text-white" : "text-muted hover:text-text"}`}
-            onClick={() => onModeChange("month")}
-          >
-            Måneder
-          </button>
-          <button
-            className={`px-3 py-1 transition-colors ${mode === "year" ? "bg-accent text-white" : "text-muted hover:text-text"}`}
-            onClick={() => onModeChange("year")}
-          >
-            År
-          </button>
-        </div>
+        {/* Desktop: filter beside stats */}
+        <div className="hidden sm:block">{modeToggle}</div>
       </div>
 
       <div className="flex items-center gap-1">
         {mode === "month" && (
           <button
             className="shrink-0 p-1 rounded text-muted hover:text-text disabled:opacity-20 disabled:cursor-default transition-colors"
-            onClick={() => setWindowStart(Math.max(0, windowStart - PAGE_SIZE))}
+            onClick={() => setWindowStart(Math.max(0, windowStart - pageSize))}
             disabled={!canGoBack}
             aria-label="Forrige"
           >
@@ -195,7 +217,7 @@ export default function MonthlyChart({
           <button
             className="shrink-0 p-1 rounded text-muted hover:text-text disabled:opacity-20 disabled:cursor-default transition-colors"
             onClick={() =>
-              setWindowStart(Math.min(bars.length - PAGE_SIZE, windowStart + PAGE_SIZE))
+              setWindowStart(Math.min(bars.length - pageSize, windowStart + pageSize))
             }
             disabled={!canGoForward}
             aria-label="Neste"

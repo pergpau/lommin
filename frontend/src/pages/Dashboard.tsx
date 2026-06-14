@@ -11,7 +11,7 @@ import AccountCard from "../components/AccountCard";
 import MonthlyChart, { type MonthBar, type ChartMode } from "../components/charts/MonthlyChart";
 import TransactionTable from "../components/transactions/TransactionTable";
 import SpendingBreakdown from "../components/charts/SpendingBreakdown";
-import { DownloadIcon, RefreshCwIcon } from "../components/ui/icons";
+import { DownloadIcon, MenuIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
 import { saveEncryptedFile } from "../lib/cryptoFile";
 import { exportAll, setCategoryId } from "../lib/store";
 import { SUB_CATEGORY_MAP } from "../lib/categories";
@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [chartMode, setChartMode] = useState<ChartMode>("month");
   const [tab, setTab] = useState<"kategorier" | "kontoer" | "transaksjoner">("kategorier");
+  const [actionsOpen, setActionsOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [savePassphrase, setSavePassphrase] = useState("");
   const [saving, setSaving] = useState(false);
@@ -171,7 +172,8 @@ export default function Dashboard() {
             transaksjoner
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        {/* Desktop actions */}
+        <div className="hidden sm:flex items-center gap-2">
           <Link to="/connect" className="btn-ghost text-xs">
             + Legg til konto
           </Link>
@@ -194,6 +196,51 @@ export default function Dashboard() {
             <RefreshCwIcon size={14} />
             Synkroniser
           </Button>
+        </div>
+
+        {/* Mobile hamburger */}
+        <div className="sm:hidden relative">
+          <button
+            className="p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 transition-colors"
+            onClick={() => setActionsOpen((o) => !o)}
+            aria-label="Handlinger"
+          >
+            {actionsOpen ? <XIcon size={18} /> : <MenuIcon size={18} />}
+          </button>
+          {actionsOpen && (
+            <div className="absolute right-0 top-full mt-1 w-48 card py-1 z-30 shadow-lg">
+              <Link
+                to="/connect"
+                className="flex items-center px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors"
+                onClick={() => setActionsOpen(false)}
+              >
+                + Legg til konto
+              </Link>
+              <button
+                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
+                onClick={() => {
+                  setActionsOpen(false);
+                  setSaveOpen(true);
+                  setSaveMsg(null);
+                  setTimeout(() => passphraseRef.current?.focus(), 50);
+                }}
+              >
+                <DownloadIcon size={13} />
+                Lagre som fil
+              </button>
+              <button
+                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
+                disabled={accounts.length === 0 || syncing}
+                onClick={() => {
+                  setActionsOpen(false);
+                  runSync(accounts, reload);
+                }}
+              >
+                <RefreshCwIcon size={13} />
+                {syncing ? "Synkroniserer…" : "Synkroniser"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

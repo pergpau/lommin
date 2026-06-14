@@ -55,7 +55,7 @@ function subMeta(subId: SubId): { icon: string; name: string } {
 function AmountBar({ total, max, color }: { total: number; max: number; color: string }) {
   const pct = max > 0 ? Math.round((total / max) * 100) : 0;
   return (
-    <div className="flex-1 h-2 rounded-full bg-border overflow-hidden">
+    <div className="hidden sm:block flex-1 h-2 rounded-full bg-border overflow-hidden">
       <div
         className="h-full rounded-full transition-all duration-300"
         style={{ width: `${pct}%`, backgroundColor: color }}
@@ -180,7 +180,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
     const subRows = [...subMap.entries()]
       .map(([subId, total]) => ({ subId, total }))
       .sort((a, b) => b.total - a.total);
-    const max = subRows[0]?.total ?? 0;
+    const subMax = subRows[0]?.total ?? 0;
 
     return (
       <div>
@@ -212,8 +212,8 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
                   }
                 >
                   <span className="text-base w-6 text-center shrink-0">{s.icon}</span>
-                  <span className="text-sm text-text w-36 shrink-0 truncate">{s.name}</span>
-                  <AmountBar total={total} max={max} color={m.color} />
+                  <span className="text-sm text-text flex-1 sm:flex-none sm:w-36 truncate">{s.name}</span>
+                  <AmountBar total={total} max={subMax} color={m.color} />
                   <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
                     {fmtAmount(total)} kr
                   </span>
@@ -232,10 +232,6 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
   const incomeRows = mainRows.filter((r) => mainType(r.mainId) === "income");
   const savingRows = mainRows.filter((r) => mainType(r.mainId) === "saving");
 
-  const maxExpense = expenseRows[0]?.total ?? 0;
-  const maxIncome = incomeRows[0]?.total ?? 0;
-  const maxSaving = savingRows[0]?.total ?? 0;
-
   function renderRows(rows: typeof mainRows, max: number, excluded?: boolean) {
     return rows.map(({ mainId, total }) => {
       const m = mainMeta(mainId);
@@ -246,7 +242,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
           onClick={() => setView({ level: "sub", mainId, ...(excluded ? { excluded: true } : {}) })}
         >
           <span className="text-base w-6 text-center shrink-0">{m.icon}</span>
-          <span className="text-sm text-text w-36 shrink-0 truncate">{m.name}</span>
+          <span className="text-sm text-text flex-1 sm:flex-none sm:w-36 truncate">{m.name}</span>
           <AmountBar total={total} max={max} color={m.color} />
           <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
             {fmtAmount(total)} kr
@@ -256,6 +252,9 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
     });
   }
 
+  const maxExpense = expenseRows[0]?.total ?? 0;
+  const maxIncome = incomeRows[0]?.total ?? 0;
+  const maxSaving = savingRows[0]?.total ?? 0;
   const maxExcluded = excludedMainRows[0]?.total ?? 0;
 
   const sections: { label: string; rows: typeof mainRows; max: number; excluded?: boolean }[] = [
