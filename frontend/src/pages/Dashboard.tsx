@@ -1,20 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAccounts } from "../hooks/useAccounts";
-import { useTransactions } from "../hooks/useTransactions";
-import { useSyncState } from "../hooks/useSyncState";
-import Spinner from "../components/ui/Spinner";
-import Button from "../components/ui/Button";
-import Alert from "../components/ui/Alert";
-import EmptyState from "../components/ui/EmptyState";
 import AccountCard from "../components/AccountCard";
-import MonthlyChart, { type MonthBar, type ChartMode } from "../components/charts/MonthlyChart";
-import TransactionTable from "../components/transactions/TransactionTable";
+import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import SpendingBreakdown from "../components/charts/SpendingBreakdown";
+import TransactionTable from "../components/transactions/TransactionTable";
+import Alert from "../components/ui/Alert";
+import Button from "../components/ui/Button";
+import EmptyState from "../components/ui/EmptyState";
 import { DownloadIcon, MenuIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
+import Spinner from "../components/ui/Spinner";
+import { useAccounts } from "../hooks/useAccounts";
+import { useSyncState } from "../hooks/useSyncState";
+import { useTransactions } from "../hooks/useTransactions";
+import { SUB_CATEGORY_MAP } from "../lib/categories";
 import { saveEncryptedFile } from "../lib/cryptoFile";
 import { exportAll, setCategoryId } from "../lib/store";
-import { SUB_CATEGORY_MAP } from "../lib/categories";
 
 export default function Dashboard() {
   const { accounts, loading: accountsLoading, reload } = useAccounts();
@@ -284,11 +284,10 @@ export default function Dashboard() {
         {(["kategorier", "kontoer", "transaksjoner"] as const).map((t) => (
           <button
             key={t}
-            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              tab === t
-                ? "border-accent text-accent"
-                : "border-transparent text-muted hover:text-text"
-            }`}
+            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${tab === t
+              ? "border-accent text-accent"
+              : "border-transparent text-muted hover:text-text"
+              }`}
             onClick={() => setTab(t)}
           >
             {t === "kategorier" ? "Kategorier" : t === "kontoer" ? "Kontoer" : "Alle transaksjoner"}
@@ -308,8 +307,8 @@ export default function Dashboard() {
 
       {tab === "kontoer" &&
         (accounts.length === 0 ? (
-          <EmptyState message="Ingen kontoer tilkoblet ennå." className="mb-6">
-            <div className="flex flex-col sm:flex-row items-center gap-2 justify-center">
+          <EmptyState message="Ingen kontoer tilkoblet ennå.">
+            <div className="flex flex-col sm:flex-row items-center gap-2 justify-center mt-8">
               <Link to="/connect" className="btn-primary inline-flex">
                 Koble til en bank
               </Link>
@@ -336,9 +335,11 @@ export default function Dashboard() {
               );
             })}
           </div>
-        ))}
+        ))
+      }
 
-      {tab === "transaksjoner" &&
+      {
+        tab === "transaksjoner" &&
         (recent.length > 0 ? (
           <TransactionTable
             transactions={recent}
@@ -354,47 +355,50 @@ export default function Dashboard() {
           <div className="card p-10 text-center text-muted text-sm">
             Ingen transaksjoner denne måneden.
           </div>
-        ))}
+        ))
+      }
 
-      {saveOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-          onClick={() => setSaveOpen(false)}
-        >
-          <div className="card p-5 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-sm font-semibold text-text mb-1">Lagre sikkerhetskopi</h2>
-            <p className="text-xs text-muted mb-4">
-              Valgfritt: beskytt filen med et passord. La feltet stå tomt for å lagre uten
-              kryptering.
-            </p>
-            {saveMsg && (
-              <Alert
-                type={saveMsg.type === "ok" ? "ok" : "error"}
-                message={saveMsg.text}
-                className="mb-3"
+      {
+        saveOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+            onClick={() => setSaveOpen(false)}
+          >
+            <div className="card p-5 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+              <h2 className="text-sm font-semibold text-text mb-1">Lagre sikkerhetskopi</h2>
+              <p className="text-xs text-muted mb-4">
+                Valgfritt: beskytt filen med et passord. La feltet stå tomt for å lagre uten
+                kryptering.
+              </p>
+              {saveMsg && (
+                <Alert
+                  type={saveMsg.type === "ok" ? "ok" : "error"}
+                  message={saveMsg.text}
+                  className="mb-3"
+                />
+              )}
+              <input
+                ref={passphraseRef}
+                type="password"
+                placeholder="La stå tomt for ingen kryptering"
+                value={savePassphrase}
+                onChange={(e) => setSavePassphrase(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSaveFile()}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-surface text-text placeholder:text-muted focus:outline-none focus:border-accent mb-3"
               />
-            )}
-            <input
-              ref={passphraseRef}
-              type="password"
-              placeholder="La stå tomt for ingen kryptering"
-              value={savePassphrase}
-              onChange={(e) => setSavePassphrase(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSaveFile()}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-surface text-text placeholder:text-muted focus:outline-none focus:border-accent mb-3"
-            />
-            <div className="flex gap-2 justify-end">
-              <Button variant="ghost" onClick={() => setSaveOpen(false)}>
-                Avbryt
-              </Button>
-              <Button loading={saving} onClick={handleSaveFile}>
-                {!saving && <DownloadIcon size={13} />}
-                Lagre
-              </Button>
+              <div className="flex gap-2 justify-end">
+                <Button variant="ghost" onClick={() => setSaveOpen(false)}>
+                  Avbryt
+                </Button>
+                <Button loading={saving} onClick={handleSaveFile}>
+                  {!saving && <DownloadIcon size={13} />}
+                  Lagre
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }

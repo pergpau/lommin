@@ -57,7 +57,15 @@ export default function Connect() {
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
-    return q ? banks.filter((b) => b.name.toLowerCase().includes(q)) : banks;
+    if (!q) return banks;
+    const starts: BankEntry[] = [];
+    const contains: BankEntry[] = [];
+    for (const b of banks) {
+      const n = b.name.toLowerCase();
+      if (n.startsWith(q)) starts.push(b);
+      else if (n.includes(q)) contains.push(b);
+    }
+    return [...starts, ...contains];
   }, [query, banks]);
 
   // No synchronous setPhase call — caller sets connecting before invoking
