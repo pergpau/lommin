@@ -7,7 +7,7 @@ import TransactionTable from "../components/transactions/TransactionTable";
 import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
 import EmptyState from "../components/ui/EmptyState";
-import { DownloadIcon, MenuIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
+import { DownloadIcon, MenuIcon, PlusIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
 import Spinner from "../components/ui/Spinner";
 import { useAccounts } from "../hooks/useAccounts";
 import { useSyncState } from "../hooks/useSyncState";
@@ -334,6 +334,13 @@ export default function Dashboard() {
                 />
               );
             })}
+            <Link
+              to="/connect"
+              className="card p-4 flex flex-col items-center justify-center gap-2 text-muted hover:text-accent hover:border-accent/40 hover:bg-surface-2/50 hover:shadow-sm transition-all"
+            >
+              <PlusIcon size={20} />
+              <span className="text-sm">Ny konto</span>
+            </Link>
           </div>
         ))
       }
