@@ -260,11 +260,15 @@ export default function Setup() {
         <div className="mb-8">
           <div className="mono text-accent text-sm mb-3 tracking-widest uppercase">Lommin</div>
           <h1 className="text-2xl font-semibold text-text tracking-tight leading-tight">
-            Importer signeringsnøkkelen din
+            Få kontroll på pengebruken
           </h1>
-          <p className="text-muted text-sm mt-2">
-            Slipp inn din Enable Banking <span className="mono text-text/70">.pem</span>-nøkkel. Den
-            forlater aldri enheten din.
+          <p className="text-muted text-sm mt-3 leading-relaxed">
+            Lommin kobler seg direkte til bankkontoen din og gir deg et klart bilde av forbruket
+            ditt — sortert, søkbart og alltid oppdatert.
+          </p>
+          <p className="text-muted text-sm mt-2 leading-relaxed">
+            For å komme i gang laster du opp signeringsnøkkelen din fra Enable Banking. Den lagres
+            kryptert på enheten din og forlater den aldri.
           </p>
         </div>
 
