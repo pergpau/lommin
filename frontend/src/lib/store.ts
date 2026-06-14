@@ -32,9 +32,7 @@ export interface Account {
   sources: AccountSource[];
 }
 
-export function getEnableBankingSource(
-  acc: Account,
-): AccountSource | undefined {
+export function getEnableBankingSource(acc: Account): AccountSource | undefined {
   return acc.sources.find((s) => s.type === "enableBanking");
 }
 
@@ -127,10 +125,7 @@ export async function clearAccounts(): Promise<void> {
 }
 
 // Transactions
-export function makeTransactionId(
-  accountUid: string,
-  entryReference: string,
-): string {
+export function makeTransactionId(accountUid: string, entryReference: string): string {
   return `${accountUid}::${entryReference}`;
 }
 
@@ -149,9 +144,7 @@ export async function upsertTransactions(txns: Transaction[]): Promise<number> {
   return inserted;
 }
 
-export async function getTransactionsForAccount(
-  accountUid: string,
-): Promise<Transaction[]> {
+export async function getTransactionsForAccount(accountUid: string): Promise<Transaction[]> {
   const d = await db();
   return d.getAllFromIndex("transactions", "by-account", accountUid);
 }
@@ -208,16 +201,11 @@ export async function clearTransactions(): Promise<void> {
 }
 
 // Sync cursors
-export async function getSyncCursor(
-  accountUid: string,
-): Promise<SyncCursor | undefined> {
+export async function getSyncCursor(accountUid: string): Promise<SyncCursor | undefined> {
   return (await db()).get("syncCursors", accountUid);
 }
 
-export async function setSyncCursor(
-  accountUid: string,
-  lastBookingDate: string,
-): Promise<void> {
+export async function setSyncCursor(accountUid: string, lastBookingDate: string): Promise<void> {
   const d = await db();
   await d.put("syncCursors", {
     accountUid,
@@ -282,9 +270,7 @@ function validateTransaction(v: unknown, i: number): Transaction {
   const t = asRecord(v, `transaction[${i}]`);
   const amount = optNumber(t.amount);
   if (amount === undefined)
-    throw new ValidationError(
-      `Ugyldig data: transaction[${i}] mangler gyldig beløp.`,
-    );
+    throw new ValidationError(`Ugyldig data: transaction[${i}] mangler gyldig beløp.`);
   return {
     id: reqString(t.id, `transaction[${i}].id`),
     accountUid: reqString(t.accountUid, `transaction[${i}].accountUid`),
@@ -293,10 +279,7 @@ function validateTransaction(v: unknown, i: number): Transaction {
     transactionDate: optString(t.transactionDate),
     amount,
     currency: optString(t.currency) ?? "",
-    creditDebit:
-      t.creditDebit === "CRDT" || t.creditDebit === "DBIT"
-        ? t.creditDebit
-        : undefined,
+    creditDebit: t.creditDebit === "CRDT" || t.creditDebit === "DBIT" ? t.creditDebit : undefined,
     description: optString(t.description) ?? "",
     status: optString(t.status) ?? "",
     isTransfer: typeof t.isTransfer === "boolean" ? t.isTransfer : undefined,
@@ -321,17 +304,13 @@ export function validateImportData(data: unknown): ImportData {
   const root = asRecord(data, "sikkerhetskopi");
   return {
     accounts: asArray(root.accounts ?? [], "accounts").map(validateAccount),
-    transactions: asArray(root.transactions ?? [], "transactions").map(
-      validateTransaction,
-    ),
+    transactions: asArray(root.transactions ?? [], "transactions").map(validateTransaction),
     cursors: asArray(root.cursors ?? [], "cursors").map(validateCursor),
   };
 }
 
 // Import (merge) from encrypted file or Spiir parser. Input is validated first.
-export async function importAll(
-  data: unknown,
-): Promise<{ inserted: number; skipped: number }> {
+export async function importAll(data: unknown): Promise<{ inserted: number; skipped: number }> {
   const { accounts, transactions, cursors } = validateImportData(data);
   const d = await db();
   const atx = d.transaction("accounts", "readwrite");

@@ -3,10 +3,7 @@ import type { Account, Transaction } from "./store";
 export function fmtDate(s?: string, options?: Intl.DateTimeFormatOptions): string {
   if (!s) return "—";
   try {
-    return new Date(s).toLocaleDateString(
-      "nb-NO",
-      options ?? { month: "short", day: "numeric" },
-    );
+    return new Date(s).toLocaleDateString("nb-NO", options ?? { month: "short", day: "numeric" });
   } catch {
     return s;
   }
@@ -49,9 +46,7 @@ export function accountLabel(acc: Pick<Account, "bankName" | "name">): string {
 
 // Credit = green, debit = red. Falls back to sign when the
 // indicator is missing (debit stored as a negative amount).
-export function amountClass(
-  t: Pick<Transaction, "creditDebit" | "amount">,
-): string {
+export function amountClass(t: Pick<Transaction, "creditDebit" | "amount">): string {
   const isDebit = t.creditDebit ? t.creditDebit === "DBIT" : t.amount < 0;
   return isDebit ? "amount-negative" : "amount-positive";
 }

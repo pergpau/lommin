@@ -2,10 +2,7 @@ const SALT_LEN = 16;
 const IV_LEN = 12;
 const ITER = 200_000;
 
-async function deriveKey(
-  passphrase: string,
-  salt: Uint8Array<ArrayBuffer>,
-): Promise<CryptoKey> {
+async function deriveKey(passphrase: string, salt: Uint8Array<ArrayBuffer>): Promise<CryptoKey> {
   const base = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(passphrase),
@@ -22,23 +19,12 @@ async function deriveKey(
   );
 }
 
-export async function encryptStore(
-  data: object,
-  passphrase: string,
-): Promise<Uint8Array> {
-  const salt = crypto.getRandomValues(
-    new Uint8Array(SALT_LEN),
-  ) as Uint8Array<ArrayBuffer>;
-  const iv = crypto.getRandomValues(
-    new Uint8Array(IV_LEN),
-  ) as Uint8Array<ArrayBuffer>;
+export async function encryptStore(data: object, passphrase: string): Promise<Uint8Array> {
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_LEN)) as Uint8Array<ArrayBuffer>;
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LEN)) as Uint8Array<ArrayBuffer>;
   const key = await deriveKey(passphrase, salt);
   const plaintext = new TextEncoder().encode(JSON.stringify(data));
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    key,
-    plaintext,
-  );
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext);
 
   const out = new Uint8Array(SALT_LEN + IV_LEN + ciphertext.byteLength);
   out.set(salt, 0);
@@ -47,33 +33,22 @@ export async function encryptStore(
   return out as Uint8Array<ArrayBuffer>;
 }
 
-export async function decryptStore(
-  blob: Uint8Array,
-  passphrase: string,
-): Promise<object> {
+export async function decryptStore(blob: Uint8Array, passphrase: string): Promise<object> {
   const salt = blob.slice(0, SALT_LEN);
   const iv = blob.slice(SALT_LEN, SALT_LEN + IV_LEN);
   const ciphertext = blob.slice(SALT_LEN + IV_LEN);
   const key = await deriveKey(passphrase, salt);
-  const plain = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    key,
-    ciphertext,
-  );
+  const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
   return JSON.parse(new TextDecoder().decode(plain));
 }
 
 function hasFileSystemAccess(): boolean {
   return (
-    typeof (window as unknown as { showSaveFilePicker?: unknown })
-      .showSaveFilePicker === "function"
+    typeof (window as unknown as { showSaveFilePicker?: unknown }).showSaveFilePicker === "function"
   );
 }
 
-export async function saveEncryptedFile(
-  data: object,
-  passphrase: string,
-): Promise<void> {
+export async function saveEncryptedFile(data: object, passphrase: string): Promise<void> {
   const blob = await encryptStore(data, passphrase);
   const file = new Blob([blob.buffer as ArrayBuffer], {
     type: "application/octet-stream",

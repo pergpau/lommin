@@ -1,0 +1,19 @@
+{
+  "env": {
+    "browser": true,
+    "es2023": true
+  },
+  "ignorePatterns": ["dist"],
+  "plugins": ["typescript", "react", "react-hooks"],
+  "rules": {
+    "typescript/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
+  }
+}

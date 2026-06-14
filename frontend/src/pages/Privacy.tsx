@@ -1,10 +1,12 @@
-import { Link } from 'react-router-dom'
+import { Link } from "react-router-dom";
 
 export default function Privacy() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
       <div className="mb-8">
-        <Link to="/" className="text-xs text-muted hover:text-text transition-colors">← Tilbake</Link>
+        <Link to="/" className="text-xs text-muted hover:text-text transition-colors">
+          ← Tilbake
+        </Link>
         <h1 className="text-2xl font-semibold text-text mt-4 mb-2">Personvernerklæring</h1>
         <p className="text-xs text-muted">Gjelder fra: juni 2025</p>
       </div>
@@ -13,10 +15,10 @@ export default function Privacy() {
         <section className="card p-5">
           <h2 className="text-sm font-semibold text-text mb-2">Vi samler ingen data</h2>
           <p className="text-sm text-muted leading-relaxed">
-            Lommin samler ikke inn, lagrer eller overfører noen personopplysninger til noen server vi
-            drifter. Det er ingen analyse, ingen sporingsskript, ingen informasjonskapsler og ingen
-            kontoer. Alt — signeringsnøkkelen din, transaksjonshistorikk og innstillinger — ligger
-            utelukkende i nettleserens IndexedDB.
+            Lommin samler ikke inn, lagrer eller overfører noen personopplysninger til noen server
+            vi drifter. Det er ingen analyse, ingen sporingsskript, ingen informasjonskapsler og
+            ingen kontoer. Alt — signeringsnøkkelen din, transaksjonshistorikk og innstillinger —
+            ligger utelukkende i nettleserens IndexedDB.
           </p>
         </section>
 
@@ -34,14 +36,17 @@ export default function Privacy() {
           <h2 className="text-sm font-semibold text-text mb-2">Proxyen og tilgangstokenet ditt</h2>
           <p className="text-sm text-muted leading-relaxed mb-3">
             For å omgå nettleserens CORS-begrensninger rutes API-kall til Enable Banking gjennom en
-            proxy. Denne proxyen ser <strong className="text-text/80">det kortvarige tilgangstokenet</strong> (Bearer-token)
+            proxy. Denne proxyen ser{" "}
+            <strong className="text-text/80">det kortvarige tilgangstokenet</strong> (Bearer-token)
             som brukes til å autorisere hver forespørsel — ikke den private nøkkelen din.
           </p>
           <p className="text-sm text-muted leading-relaxed">
             Som standard bruker Lommin en delt proxy. Ønsker du full kontroll, kan du kjøre din egen
-            proxy og peke Lommin mot den under{' '}
-            <Link to="/settings" className="text-accent hover:underline">Innstillinger → CORS-proxy</Link>.
-            Selvhosting av proxyen betyr at ingen tredjepart ser noen del av økten din.
+            proxy og peke Lommin mot den under{" "}
+            <Link to="/settings" className="text-accent hover:underline">
+              Innstillinger → CORS-proxy
+            </Link>
+            . Selvhosting av proxyen betyr at ingen tredjepart ser noen del av økten din.
           </p>
         </section>
 
@@ -62,5 +67,5 @@ export default function Privacy() {
         </section>
       </div>
     </div>
-  )
+  );
 }

@@ -1,25 +1,25 @@
-import { fmtAmount } from '../../lib/format'
-import type { Transaction } from '../../lib/store'
+import { fmtAmount } from "../../lib/format";
+import type { Transaction } from "../../lib/store";
 
-type FlowSummaryChartProps = { transactions: Transaction[]; currency: string }
+type FlowSummaryChartProps = { transactions: Transaction[]; currency: string };
 
 export default function FlowSummaryChart({ transactions, currency }: FlowSummaryChartProps) {
-  const nonTransfers = transactions.filter((t) => !t.isTransfer)
+  const nonTransfers = transactions.filter((t) => !t.isTransfer);
   const income = nonTransfers
-    .filter((t) => !(t.creditDebit ? t.creditDebit === 'DBIT' : t.amount < 0))
-    .reduce((s, t) => s + t.amount, 0)
+    .filter((t) => !(t.creditDebit ? t.creditDebit === "DBIT" : t.amount < 0))
+    .reduce((s, t) => s + t.amount, 0);
   const expense = Math.abs(
     nonTransfers
-      .filter((t) => (t.creditDebit ? t.creditDebit === 'DBIT' : t.amount < 0))
+      .filter((t) => (t.creditDebit ? t.creditDebit === "DBIT" : t.amount < 0))
       .reduce((s, t) => s + t.amount, 0),
-  )
+  );
 
-  if (income === 0 && expense === 0) return null
+  if (income === 0 && expense === 0) return null;
 
-  const H = 80
-  const max = Math.max(income, expense)
-  const incomeH = max > 0 ? Math.max(Math.round((income / max) * H), 4) : 0
-  const expenseH = max > 0 ? Math.max(Math.round((expense / max) * H), 4) : 0
+  const H = 80;
+  const max = Math.max(income, expense);
+  const incomeH = max > 0 ? Math.max(Math.round((income / max) * H), 4) : 0;
+  const expenseH = max > 0 ? Math.max(Math.round((expense / max) * H), 4) : 0;
 
   return (
     <div className="card p-4 mb-4">
@@ -41,5 +41,5 @@ export default function FlowSummaryChart({ transactions, currency }: FlowSummary
         </div>
       </div>
     </div>
-  )
+  );
 }

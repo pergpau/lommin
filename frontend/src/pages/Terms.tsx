@@ -1,10 +1,12 @@
-import { Link } from 'react-router-dom'
+import { Link } from "react-router-dom";
 
 export default function Terms() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
       <div className="mb-8">
-        <Link to="/" className="text-xs text-muted hover:text-text transition-colors">← Tilbake</Link>
+        <Link to="/" className="text-xs text-muted hover:text-text transition-colors">
+          ← Tilbake
+        </Link>
         <h1 className="text-2xl font-semibold text-text mt-4 mb-2">Brukervilkår</h1>
         <p className="text-xs text-muted">Gjelder fra: juni 2025</p>
       </div>
@@ -13,9 +15,9 @@ export default function Terms() {
         <section className="card p-5">
           <h2 className="text-sm font-semibold text-text mb-2">Gratis å bruke, uten garanti</h2>
           <p className="text-sm text-muted leading-relaxed">
-            Lommin er tilgjengelig gratis, som det er, uten noen form for garanti — verken uttrykkelig
-            eller underforstått. Bruk på egen risiko. Vi gir ingen garantier for tilgjengelighet,
-            nøyaktighet eller egnethet for noe bestemt formål.
+            Lommin er tilgjengelig gratis, som det er, uten noen form for garanti — verken
+            uttrykkelig eller underforstått. Bruk på egen risiko. Vi gir ingen garantier for
+            tilgjengelighet, nøyaktighet eller egnethet for noe bestemt formål.
           </p>
         </section>
 
@@ -36,9 +38,11 @@ export default function Terms() {
             nøkkelen din.
           </p>
           <p className="text-sm text-muted leading-relaxed">
-            Hvis dette er en bekymring, kan du sette opp din egen proxy og konfigurere den under{' '}
-            <Link to="/settings" className="text-accent hover:underline">Innstillinger → CORS-proxy</Link>.
-            Du kan kjøre den medfølgende Cloudflare Worker lokalt med{' '}
+            Hvis dette er en bekymring, kan du sette opp din egen proxy og konfigurere den under{" "}
+            <Link to="/settings" className="text-accent hover:underline">
+              Innstillinger → CORS-proxy
+            </Link>
+            . Du kan kjøre den medfølgende Cloudflare Worker lokalt med{" "}
             <span className="mono text-text/70">wrangler dev</span>.
           </p>
         </section>
@@ -61,5 +65,5 @@ export default function Terms() {
         </section>
       </div>
     </div>
-  )
+  );
 }

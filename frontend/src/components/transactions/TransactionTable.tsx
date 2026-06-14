@@ -1,38 +1,45 @@
-import { useState } from 'react'
-import { amountClass, fmtAmount, fmtDate } from '../../lib/format'
-import type { Transaction } from '../../lib/store'
-import { PAGE_SIZE } from '../../constants'
-import CategoryBadge from './CategoryBadge'
-import CategoryPicker from './CategoryPicker'
+import { useState } from "react";
+import { amountClass, fmtAmount, fmtDate } from "../../lib/format";
+import type { Transaction } from "../../lib/store";
+import { PAGE_SIZE } from "../../constants";
+import CategoryBadge from "./CategoryBadge";
+import CategoryPicker from "./CategoryPicker";
 
 type TransactionTableProps = {
-  transactions: Transaction[]
-  pageSize?: number
-  title?: string
-  onCategoryChange?: (transactionId: string, categoryId: number | undefined) => Promise<void>
-}
+  transactions: Transaction[];
+  pageSize?: number;
+  title?: string;
+  onCategoryChange?: (transactionId: string, categoryId: number | undefined) => Promise<void>;
+};
 
-export default function TransactionTable({ transactions, pageSize = PAGE_SIZE, title, onCategoryChange }: TransactionTableProps) {
-  const [page, setPage] = useState(0)
-  const [prevTransactions, setPrevTransactions] = useState(transactions)
-  const [pickerFor, setPickerFor] = useState<Transaction | null>(null)
+export default function TransactionTable({
+  transactions,
+  pageSize = PAGE_SIZE,
+  title,
+  onCategoryChange,
+}: TransactionTableProps) {
+  const [page, setPage] = useState(0);
+  const [prevTransactions, setPrevTransactions] = useState(transactions);
+  const [pickerFor, setPickerFor] = useState<Transaction | null>(null);
 
   if (prevTransactions !== transactions) {
-    setPrevTransactions(transactions)
-    setPage(0)
+    setPrevTransactions(transactions);
+    setPage(0);
   }
 
-  const totalPages = Math.ceil(transactions.length / pageSize)
-  const pageItems = transactions.slice(page * pageSize, (page + 1) * pageSize)
+  const totalPages = Math.ceil(transactions.length / pageSize);
+  const pageItems = transactions.slice(page * pageSize, (page + 1) * pageSize);
 
   async function handleCategorySelect(categoryId: number | undefined) {
-    if (!pickerFor || !onCategoryChange) return
-    await onCategoryChange(pickerFor.id, categoryId)
-    setPickerFor(null)
+    if (!pickerFor || !onCategoryChange) return;
+    await onCategoryChange(pickerFor.id, categoryId);
+    setPickerFor(null);
   }
 
   if (transactions.length === 0) {
-    return <div className="card p-10 text-center text-muted text-sm">Ingen transaksjoner funnet.</div>
+    return (
+      <div className="card p-10 text-center text-muted text-sm">Ingen transaksjoner funnet.</div>
+    );
   }
 
   return (
@@ -45,13 +52,24 @@ export default function TransactionTable({ transactions, pageSize = PAGE_SIZE, t
         )}
         <div className="divide-y divide-border">
           {pageItems.map((t) => (
-            <div key={t.id} className="px-4 py-3 flex items-center gap-3 hover:bg-surface-2 transition-colors">
-              <CategoryBadge categoryId={t.categoryId} onClick={() => onCategoryChange ? setPickerFor(t) : undefined} />
+            <div
+              key={t.id}
+              className="px-4 py-3 flex items-center gap-3 hover:bg-surface-2 transition-colors"
+            >
+              <CategoryBadge
+                categoryId={t.categoryId}
+                onClick={() => (onCategoryChange ? setPickerFor(t) : undefined)}
+              />
               <div className="flex-1 min-w-0">
-                <div className={`text-sm truncate ${t.status === 'PNDG' ? 'italic text-muted' : 'text-text'}`}>
-                  {t.description || '—'}{t.status === 'PNDG' ? ' (Reservert)' : ''}
+                <div
+                  className={`text-sm truncate ${t.status === "PNDG" ? "italic text-muted" : "text-text"}`}
+                >
+                  {t.description || "—"}
+                  {t.status === "PNDG" ? " (Reservert)" : ""}
                   {t.isTransfer && (
-                    <span className="ml-1.5 text-xs px-1.5 py-0.5 rounded-full bg-accent/10 text-accent font-medium">Overføring</span>
+                    <span className="ml-1.5 text-xs px-1.5 py-0.5 rounded-full bg-accent/10 text-accent font-medium">
+                      Overføring
+                    </span>
                   )}
                 </div>
                 <div className="text-xs text-muted mt-0.5">
@@ -59,7 +77,8 @@ export default function TransactionTable({ transactions, pageSize = PAGE_SIZE, t
                 </div>
               </div>
               <div className={`mono text-sm font-medium tabular-nums ${amountClass(t)}`}>
-                {t.amount >= 0 ? '+' : ''}{fmtAmount(t.amount, t.currency)}
+                {t.amount >= 0 ? "+" : ""}
+                {fmtAmount(t.amount, t.currency)}
               </div>
             </div>
           ))}
@@ -68,19 +87,24 @@ export default function TransactionTable({ transactions, pageSize = PAGE_SIZE, t
         {totalPages > 1 && (
           <div className="px-4 py-3 border-t border-border flex items-center justify-between">
             <span className="text-xs text-muted">
-              {page * pageSize + 1}–{Math.min((page + 1) * pageSize, transactions.length)} av {transactions.length}
+              {page * pageSize + 1}–{Math.min((page + 1) * pageSize, transactions.length)} av{" "}
+              {transactions.length}
             </span>
             <div className="flex items-center gap-1">
               <button
                 className="btn-ghost px-2 py-1 text-xs disabled:opacity-30"
                 disabled={page === 0}
                 onClick={() => setPage(page - 1)}
-              >← Forrige</button>
+              >
+                ← Forrige
+              </button>
               <button
                 className="btn-ghost px-2 py-1 text-xs disabled:opacity-30"
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage(page + 1)}
-              >Neste →</button>
+              >
+                Neste →
+              </button>
             </div>
           </div>
         )}
@@ -94,5 +118,5 @@ export default function TransactionTable({ transactions, pageSize = PAGE_SIZE, t
         />
       )}
     </>
-  )
+  );
 }

@@ -1,13 +1,13 @@
-import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from '../../lib/categories'
+import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
 
 interface CategoryBadgeProps {
-  categoryId?: number
-  onClick: () => void
+  categoryId?: number;
+  onClick: () => void;
 }
 
 export default function CategoryBadge({ categoryId, onClick }: CategoryBadgeProps) {
-  const subCat = categoryId != null ? SUB_CATEGORY_MAP[categoryId] : undefined
-  const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined
+  const subCat = categoryId != null ? SUB_CATEGORY_MAP[categoryId] : undefined;
+  const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
 
   if (!subCat || !mainCat) {
     return (
@@ -23,7 +23,7 @@ export default function CategoryBadge({ categoryId, onClick }: CategoryBadgeProp
           Kategori
         </span>
       </button>
-    )
+    );
   }
 
   return (
@@ -34,7 +34,7 @@ export default function CategoryBadge({ categoryId, onClick }: CategoryBadgeProp
     >
       <div
         className="w-8 h-8 rounded-lg flex items-center justify-center text-base leading-none transition-opacity group-hover:opacity-80"
-        style={{ backgroundColor: mainCat.color + '22' }}
+        style={{ backgroundColor: mainCat.color + "22" }}
       >
         {subCat.icon}
       </div>
@@ -45,5 +45,5 @@ export default function CategoryBadge({ categoryId, onClick }: CategoryBadgeProp
         {subCat.name}
       </span>
     </button>
-  )
+  );
 }

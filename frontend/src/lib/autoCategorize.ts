@@ -105,14 +105,14 @@ export function guessCategory(
   tx: Transaction,
   creditorHistory?: Map<string, number>,
 ): number | undefined {
-  const creditorName = (tx.raw.creditor as Record<string, unknown> | undefined)
-    ?.name as string | undefined;
+  const creditorName = (tx.raw.creditor as Record<string, unknown> | undefined)?.name as
+    | string
+    | undefined;
 
   // --- CRDT short-circuit ---
   if (tx.creditDebit === "CRDT") {
     const desc = tx.description.toLowerCase();
-    if (desc.includes("cashback transfer") || desc.includes("innbetaling"))
-      return 108;
+    if (desc.includes("cashback transfer") || desc.includes("innbetaling")) return 108;
     return undefined;
   }
 
@@ -122,9 +122,8 @@ export function guessCategory(
   }
 
   // --- Step 1: BTC description ---
-  const btcDesc = (
-    tx.raw.bank_transaction_code as Record<string, unknown> | undefined
-  )?.description as string | undefined;
+  const btcDesc = (tx.raw.bank_transaction_code as Record<string, unknown> | undefined)
+    ?.description as string | undefined;
 
   if (btcDesc) {
     const normalized = btcDesc.toUpperCase();

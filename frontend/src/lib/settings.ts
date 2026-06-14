@@ -23,10 +23,7 @@ const DEFAULTS: AppSettings = {
 // Reject malformed/non-https proxy URLs at save time. The CSP connect-src blocks
 // http: at request time anyway, but failing here gives the user a clear error
 // instead of silently broken syncs later.
-function validateSetting<K extends keyof AppSettings>(
-  key: K,
-  value: AppSettings[K],
-): void {
+function validateSetting<K extends keyof AppSettings>(key: K, value: AppSettings[K]): void {
   if (key === "proxyUrl") {
     let u: URL;
     try {
@@ -34,8 +31,7 @@ function validateSetting<K extends keyof AppSettings>(
     } catch {
       throw new Error("Ugyldig proxy-URL.");
     }
-    if (u.protocol !== "https:")
-      throw new Error("Proxy-URL må bruke https://.");
+    if (u.protocol !== "https:") throw new Error("Proxy-URL må bruke https://.");
   }
   if (key === "lookbackDays") {
     const n = value as number;
@@ -50,27 +46,20 @@ function openDb(): Promise<IDBDatabase> {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = (e) => {
       const db = (e.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains(STORE))
-        db.createObjectStore(STORE, { keyPath: "k" });
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: "k" });
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
 
-export async function getSetting<K extends keyof AppSettings>(
-  key: K,
-): Promise<AppSettings[K]> {
+export async function getSetting<K extends keyof AppSettings>(key: K): Promise<AppSettings[K]> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, "readonly");
     const req = tx.objectStore(STORE).get(key);
     req.onsuccess = () =>
-      resolve(
-        (req.result !== undefined
-          ? req.result.v
-          : DEFAULTS[key]) as AppSettings[K],
-      );
+      resolve((req.result !== undefined ? req.result.v : DEFAULTS[key]) as AppSettings[K]);
     req.onerror = () => reject(req.error);
   });
 }
