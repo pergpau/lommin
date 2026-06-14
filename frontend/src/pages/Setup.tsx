@@ -276,8 +276,8 @@ export default function Setup() {
             Få kontroll på pengebruken
           </h1>
           <p className="text-muted text-sm mt-3 leading-relaxed">
-            Lommin kobler seg direkte til bankkontoen din og gir deg et klart bilde av forbruket
-            ditt — sortert, søkbart og alltid oppdatert.
+            Lommin kobler seg direkte til bankkontoene og kredittkortene dine og gir deg et klart bilde av forbruket
+            ditt — kategorisert og alltid oppdatert.
           </p>
           <p className="text-muted text-sm mt-2 leading-relaxed">
             For å komme i gang laster du opp signeringsnøkkelen din fra Enable Banking. Den lagres
