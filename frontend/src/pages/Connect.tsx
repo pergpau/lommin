@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
-import { CheckIcon, ChevronLeftIcon } from "../components/ui/icons";
+import { CheckIcon } from "../components/ui/icons";
 import Spinner from "../components/ui/Spinner";
 import { SESSION_VALID_DAYS } from "../constants";
 import { createSession, initiateAuth, listBanks, type BankEntry } from "../lib/enableBanking";
@@ -290,19 +290,8 @@ export default function Connect() {
   }
 
   return (
-    <div className="min-h-screen bg-bg grid-bg flex items-center justify-center p-4">
-      <div className="w-full max-w-lg animate-slide-up">
-        <div className="mb-6">
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-1 text-muted text-xs hover:text-text transition-colors mb-6"
-          >
-            <ChevronLeftIcon size={12} />
-            Oversikt
-          </Link>
-        </div>
-        <div className="mb-6">
-          <div className="mono text-accent text-sm mb-3 tracking-widest uppercase">Steg 2</div>
+    <div className="max-w-lg mx-auto px-4 py-8 animate-slide-up">
+      <div className="mb-6">
           <h1 className="text-2xl font-semibold text-text tracking-tight">Koble til en bank</h1>
           <p className="text-muted text-sm mt-1">
             Velg land og bank. Du blir videresendt for å gi tilgang.
@@ -353,6 +342,7 @@ export default function Connect() {
 
         <Card className="p-4 mb-4">
           <label className="label">Bank</label>
+          <div className="min-h-72">
           {banksLoading ? (
             <div className="flex items-center gap-2 text-muted text-sm py-2">
               <Spinner size={14} />
@@ -389,6 +379,7 @@ export default function Connect() {
               </div>
             </>
           )}
+          </div>
         </Card>
 
         <Button
@@ -400,7 +391,6 @@ export default function Connect() {
           {phase !== "connecting" && <>Koble til {selected ? `"${selected.name}"` : "bank"} →</>}
           {phase === "connecting" && "Videresender…"}
         </Button>
-      </div>
     </div>
   );
 }

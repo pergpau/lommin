@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAccounts } from "../hooks/useAccounts";
 import { useTransactions } from "../hooks/useTransactions";
@@ -29,7 +29,15 @@ export default function Dashboard() {
   } = useSyncState();
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [chartMode, setChartMode] = useState<ChartMode>("month");
+  const loading = accountsLoading || txLoading;
   const [tab, setTab] = useState<"kategorier" | "kontoer" | "transaksjoner">("kategorier");
+  const tabInitialized = useRef(false);
+  useEffect(() => {
+    if (!loading && !tabInitialized.current) {
+      tabInitialized.current = true;
+      if (accounts.length === 0) setTab("kontoer");
+    }
+  }, [loading, accounts.length]);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [savePassphrase, setSavePassphrase] = useState("");
@@ -56,8 +64,6 @@ export default function Dashboard() {
       setSaving(false);
     }
   };
-
-  const loading = accountsLoading || txLoading;
 
   function txSection(t: (typeof transactions)[0]): "income" | "expense" | "saving" | null {
     if (t.isTransfer) return null;
@@ -303,9 +309,15 @@ export default function Dashboard() {
       {tab === "kontoer" &&
         (accounts.length === 0 ? (
           <EmptyState message="Ingen kontoer tilkoblet ennå." className="mb-6">
-            <Link to="/connect" className="btn-primary inline-flex">
-              Koble til en bank →
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center gap-2 justify-center">
+              <Link to="/connect" className="btn-primary inline-flex">
+                Koble til en bank
+              </Link>
+              <span className="text-muted text-sm">eller</span>
+              <Link to="/settings#spiir" className="btn-secondary inline-flex">
+                Importer data fra Spiir
+              </Link>
+            </div>
           </EmptyState>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

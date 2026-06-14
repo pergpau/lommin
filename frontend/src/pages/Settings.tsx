@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -26,6 +26,19 @@ import {
 
 export default function Settings() {
   const navigate = useNavigate();
+  const { hash } = useLocation();
+  const [spiirHighlighted, setSpiirHighlighted] = useState(false);
+  useEffect(() => {
+    if (hash) {
+      const el = document.querySelector(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (hash === "#spiir") {
+        setSpiirHighlighted(true);
+        const t = setTimeout(() => setSpiirHighlighted(false), 1200);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [hash]);
   const [proxyUrl, setProxyUrl] = useState("");
   const [lookbackDays, setLookbackDays] = useState("");
   const [appId, setAppId] = useState("");
@@ -419,7 +432,10 @@ export default function Settings() {
         </div>
       </Card>
 
-      <Card className="p-5 mb-4">
+      <Card
+        id="spiir"
+        className={`p-5 mb-4 transition-shadow duration-300 ${spiirHighlighted ? "ring-2 ring-accent" : ""}`}
+      >
         <h2 className="text-sm font-semibold text-text mb-1">Importer fra Spiir</h2>
         <p className="text-xs text-muted mb-4">
           Importer historiske transaksjoner fra Spiir. Velg CSV-eksport for enkel import, eller

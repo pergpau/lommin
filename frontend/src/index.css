@@ -92,6 +92,10 @@ html.light {
     @apply text-muted hover:text-text hover:bg-surface-2 font-medium px-4 py-2 rounded-md text-sm transition-colors;
   }
 
+  .btn-secondary {
+    @apply bg-surface-2 hover:brightness-95 text-text border border-border font-medium px-4 py-2 rounded-md text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
   .btn-danger {
     @apply bg-negative/10 hover:bg-negative/20 text-negative border border-negative/20 font-medium px-4 py-2 rounded-md text-sm transition-colors;
   }

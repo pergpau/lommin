@@ -15,7 +15,7 @@ function getInitialTheme(): Theme {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const showNav = pathname !== "/setup" && pathname !== "/connect";
+  const showNav = pathname !== "/setup";
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   function toggle() {
