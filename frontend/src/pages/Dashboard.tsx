@@ -13,7 +13,8 @@ import { useAccounts } from "../hooks/useAccounts";
 import { useSyncState } from "../hooks/useSyncState";
 import { useTransactions } from "../hooks/useTransactions";
 import { SUB_CATEGORY_MAP } from "../lib/categories";
-import { setCategoryId } from "../lib/store";
+import { loadKey } from "../lib/keystore";
+import { getEnableBankingSource, setCategoryId } from "../lib/store";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -27,6 +28,12 @@ export default function Dashboard() {
     syncingAccountUids,
     run: runSync,
   } = useSyncState();
+  const [hasKey, setHasKey] = useState(true);
+  useEffect(() => {
+    loadKey().then((kv) => setHasKey(!!kv));
+  }, []);
+  const connectTarget = hasKey ? "/connect" : "/setup";
+  const hasLiveAccounts = accounts.some((acc) => !!getEnableBankingSource(acc));
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [chartMode, setChartMode] = useState<ChartMode>("month");
   const loading = accountsLoading || txLoading;
@@ -154,7 +161,7 @@ export default function Dashboard() {
         </div>
         {/* Desktop actions */}
         <div className="hidden sm:flex items-center gap-2">
-          <Link to="/connect" className="btn-ghost text-xs">
+          <Link to={connectTarget} className="btn-ghost text-xs">
             + Legg til konto
           </Link>
           <Button variant="ghost" onClick={() => navigate("/settings#backup")}>
@@ -163,7 +170,7 @@ export default function Dashboard() {
           </Button>
           <Button
             loading={syncing}
-            disabled={accounts.length === 0}
+            disabled={!hasLiveAccounts}
             onClick={() => runSync(accounts, reload)}
           >
             <RefreshCwIcon size={14} />
@@ -183,7 +190,7 @@ export default function Dashboard() {
           {actionsOpen && (
             <div className="absolute right-0 top-full mt-1 w-48 card py-1 z-30 shadow-lg">
               <Link
-                to="/connect"
+                to={connectTarget}
                 className="flex items-center px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors"
                 onClick={() => setActionsOpen(false)}
               >
@@ -201,7 +208,7 @@ export default function Dashboard() {
               </button>
               <button
                 className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
-                disabled={accounts.length === 0 || syncing}
+                disabled={!hasLiveAccounts || syncing}
                 onClick={() => {
                   setActionsOpen(false);
                   runSync(accounts, reload);
@@ -275,7 +282,7 @@ export default function Dashboard() {
         (accounts.length === 0 ? (
           <EmptyState message="Ingen kontoer tilkoblet ennå.">
             <div className="flex flex-col sm:flex-row items-center gap-2 justify-center mt-8">
-              <Link to="/connect" className="btn-primary inline-flex">
+              <Link to={connectTarget} className="btn-primary inline-flex">
                 Koble til en bank
               </Link>
               <span className="text-muted text-sm">eller</span>
@@ -301,7 +308,7 @@ export default function Dashboard() {
               );
             })}
             <Link
-              to="/connect"
+              to={connectTarget}
               className="card p-4 flex flex-col items-center justify-center gap-2 text-muted hover:text-accent hover:border-accent/40 hover:bg-surface-2/50 hover:shadow-sm transition-all"
             >
               <PlusIcon size={20} />

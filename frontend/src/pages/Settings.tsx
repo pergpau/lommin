@@ -4,7 +4,7 @@ import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
-import { DownloadIcon, UploadIcon } from "../components/ui/icons";
+import { DownloadIcon, FileUpIcon, UploadIcon } from "../components/ui/icons";
 import { loadEncryptedFile, saveEncryptedFile } from "../lib/cryptoFile";
 import {
   DriveAuthError,
@@ -12,7 +12,7 @@ import {
   saveBackupToDrive,
   signInWithGoogle,
 } from "../lib/googleDrive";
-import { clearKey, loadKey, saveKey } from "../lib/keystore";
+import { clearKey, importPemKey, loadKey, saveKey } from "../lib/keystore";
 import { getAllSettings, setSetting } from "../lib/settings";
 import {
   buildImportPayload,
@@ -35,6 +35,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undef
 export default function Settings() {
   const navigate = useNavigate();
   const { hash } = useLocation();
+  const [hasKey, setHasKey] = useState(true);
   const [spiirHighlighted, setSpiirHighlighted] = useState(false);
   useEffect(() => {
     if (hash) {
@@ -47,6 +48,12 @@ export default function Settings() {
       }
     }
   }, [hash]);
+  const pemInputRef = useRef<HTMLInputElement>(null);
+  const [pemState, setPemState] = useState<"idle" | "loading" | "confirm" | "done" | "error">("idle");
+  const [pemAppId, setPemAppId] = useState("");
+  const [pemError, setPemError] = useState("");
+  const [pemDragging, setPemDragging] = useState(false);
+  const pendingPemKey = useRef<CryptoKey | null>(null);
   const [proxyUrl, setProxyUrl] = useState("");
   const [lookbackDays, setLookbackDays] = useState("");
   const [appId, setAppId] = useState("");
@@ -82,9 +89,39 @@ export default function Settings() {
       setLookbackDays(String(s.lookbackDays));
     });
     loadKey().then((kv) => {
+      setHasKey(!!kv);
       if (kv) setAppId(kv.appId);
     });
   }, []);
+
+  const processPemFile = useCallback(async (file: File) => {
+    setPemState("loading");
+    setPemError("");
+    try {
+      const pem = await file.text();
+      const stem = file.name.replace(/(\.(pem|crt|key))+$/i, "");
+      const key = await importPemKey(pem);
+      pendingPemKey.current = key;
+      setPemAppId(stem);
+      setPemState("confirm");
+    } catch (e) {
+      setPemError(e instanceof Error ? e.message : "Klarte ikke å importere nøkkelen");
+      setPemState("error");
+    }
+  }, []);
+
+  const confirmPemKey = useCallback(async () => {
+    if (!pendingPemKey.current || !pemAppId.trim()) return;
+    try {
+      await saveKey(pendingPemKey.current, pemAppId.trim());
+      setAppId(pemAppId.trim());
+      setHasKey(true);
+      setPemState("idle");
+    } catch (e) {
+      setPemError(e instanceof Error ? e.message : "Klarte ikke å lagre nøkkelen");
+      setPemState("error");
+    }
+  }, [pemAppId]);
 
   const saveProxy = useCallback(async () => {
     setSaving(true);
@@ -369,6 +406,63 @@ export default function Settings() {
 
       {msg && (
         <Alert type={msg.type === "ok" ? "ok" : "error"} message={msg.text} className="mb-6" />
+      )}
+
+      {!hasKey && (
+        <Card className="p-5 mb-4 border-accent/30 bg-accent/5">
+          <h2 className="text-sm font-semibold text-text mb-1">Importer signeringsnøkkel</h2>
+          <p className="text-xs text-muted mb-4">
+            Ingen nøkkel er lagret. Last opp <span className="mono">.pem</span>-filen fra Enable Banking for å aktivere synkronisering.
+          </p>
+          <input
+            ref={pemInputRef}
+            type="file"
+            accept=".pem,.crt,.key,application/x-pem-file,text/plain"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) processPemFile(f); }}
+          />
+          {pemState !== "confirm" && (
+            <div
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${pemDragging ? "border-accent bg-accent/10" : "border-border hover:border-accent/40 hover:bg-surface/50"}`}
+              onDragEnter={(e) => { e.preventDefault(); setPemDragging(true); }}
+              onDragOver={(e) => { e.preventDefault(); setPemDragging(true); }}
+              onDragLeave={() => setPemDragging(false)}
+              onDrop={(e) => { e.preventDefault(); setPemDragging(false); const f = e.dataTransfer.files[0]; if (f) processPemFile(f); }}
+              onClick={() => pemInputRef.current?.click()}
+            >
+              {pemState === "loading" ? (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="animate-spin w-5 h-5 border-2 border-accent/20 border-t-accent rounded-full" />
+                  <span className="text-muted text-xs">Importerer nøkkel…</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <FileUpIcon size={20} className="text-muted" />
+                  <div>
+                    <div className="text-sm text-text font-medium">{pemDragging ? "Slipp for å importere" : "Slipp .pem-fila her"}</div>
+                    <div className="text-xs text-muted mt-0.5">eller klikk for å velge fil</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {pemState === "confirm" && (
+            <div className="space-y-3">
+              <Input
+                label="App ID"
+                value={pemAppId}
+                onChange={(e) => setPemAppId(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") confirmPemKey(); }}
+                className="font-mono"
+                autoFocus
+              />
+              <Button onClick={confirmPemKey} disabled={!pemAppId.trim()}>
+                Lagre nøkkel
+              </Button>
+            </div>
+          )}
+          {pemState === "error" && <Alert type="error" message={pemError} className="mt-3" />}
+        </Card>
       )}
 
       <Card className="p-5 mb-4">
