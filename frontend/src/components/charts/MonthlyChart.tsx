@@ -187,12 +187,12 @@ export default function MonthlyChart({
       <div className="flex items-center gap-1">
         {mode === "month" && (
           <button
-            className="shrink-0 p-1 rounded text-muted hover:text-text disabled:opacity-20 disabled:cursor-default transition-colors"
+            className="shrink-0 p-2 rounded-lg text-muted hover:text-text hover:bg-surface disabled:opacity-20 disabled:cursor-default transition-colors"
             onClick={() => setWindowStart(Math.max(0, windowStart - pageSize))}
             disabled={!canGoBack}
             aria-label="Forrige"
           >
-            <ArrowLeftIcon size={14} />
+            <ArrowLeftIcon size={22} />
           </button>
         )}
 
@@ -215,14 +215,14 @@ export default function MonthlyChart({
 
         {mode === "month" && (
           <button
-            className="shrink-0 p-1 rounded text-muted hover:text-text disabled:opacity-20 disabled:cursor-default transition-colors"
+            className="shrink-0 p-2 rounded-lg text-muted hover:text-text hover:bg-surface disabled:opacity-20 disabled:cursor-default transition-colors"
             onClick={() =>
               setWindowStart(Math.min(bars.length - pageSize, windowStart + pageSize))
             }
             disabled={!canGoForward}
             aria-label="Neste"
           >
-            <ArrowRightIcon size={14} />
+            <ArrowRightIcon size={22} />
           </button>
         )}
       </div>
