@@ -210,31 +210,44 @@ function RestoreForm() {
 export default function Setup() {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  const pendingKey = useRef<CryptoKey | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [state, setState] = useState<"idle" | "loading" | "confirm" | "done" | "error">("idle");
   const [appId, setAppId] = useState("");
+  const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
   const [showRestore, setShowRestore] = useState(false);
 
-  const processFile = useCallback(
-    async (file: File) => {
-      setState("loading");
-      setError("");
-      try {
-        const pem = await file.text();
-        const stem = file.name.replace(/\.pem$/i, "");
-        const key = await importPemKey(pem);
-        await saveKey(key, stem);
-        setAppId(stem);
-        setState("done");
-        setTimeout(() => navigate("/dashboard"), 1200);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Klarte ikke å importere nøkkelen");
-        setState("error");
-      }
-    },
-    [navigate],
-  );
+  const processFile = useCallback(async (file: File) => {
+    setState("loading");
+    setError("");
+    try {
+      const pem = await file.text();
+      const stem = file.name.replace(/\.[^.]+$/, "");
+      const key = await importPemKey(pem);
+      pendingKey.current = key;
+      setAppId(stem);
+      setState("confirm");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Klarte ikke å importere nøkkelen");
+      setState("error");
+    }
+  }, []);
+
+  const confirmAppId = useCallback(async () => {
+    if (!pendingKey.current || !appId.trim()) return;
+    setConfirming(true);
+    try {
+      await saveKey(pendingKey.current, appId.trim());
+      setState("done");
+      setTimeout(() => navigate("/dashboard"), 1000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Klarte ikke å lagre nøkkelen");
+      setState("error");
+    } finally {
+      setConfirming(false);
+    }
+  }, [appId, navigate]);
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
@@ -274,7 +287,7 @@ export default function Setup() {
 
         <SetupGuide />
 
-        {state !== "done" && (
+        {state !== "confirm" && state !== "done" && (
           <div
             className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-200 ${dragging
               ? "border-accent bg-accent/5"
@@ -295,14 +308,14 @@ export default function Setup() {
             <input
               ref={inputRef}
               type="file"
-              accept=".pem"
+              accept=".pem,application/x-pem-file,application/octet-stream,text/plain"
               className="hidden"
               onChange={onFileChange}
             />
             {state === "loading" ? (
               <div className="flex flex-col items-center gap-3">
                 <div className="animate-spin w-6 h-6 border-2 border-accent/20 border-t-accent rounded-full" />
-                <span className="text-muted text-sm">Importing key…</span>
+                <span className="text-muted text-sm">Importerer nøkkel…</span>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3">
@@ -317,6 +330,42 @@ export default function Setup() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {state === "confirm" && (
+          <div className="border border-border rounded-xl p-5 animate-fade-in space-y-4">
+            <div>
+              <div className="text-sm font-medium text-text mb-1">Bekreft App ID</div>
+              <p className="text-xs text-muted leading-relaxed">
+                App ID-en er hentet fra filnavnet. Sjekk at den stemmer med ID-en i{" "}
+                <a
+                  href="https://enablebanking.com/sign-in/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent hover:underline"
+                >
+                  Enable Banking-dashbordet
+                </a>{" "}
+                ditt. På mobil kan filnavnet noen ganger endres automatisk.
+              </p>
+            </div>
+            <Input
+              label="App ID"
+              value={appId}
+              onChange={(e) => setAppId(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") confirmAppId(); }}
+              className="font-mono"
+              autoFocus
+            />
+            <Button
+              className="w-full justify-center"
+              loading={confirming}
+              onClick={confirmAppId}
+              disabled={!appId.trim()}
+            >
+              Lagre og fortsett
+            </Button>
           </div>
         )}
 

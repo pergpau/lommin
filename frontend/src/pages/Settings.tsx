@@ -6,7 +6,7 @@ import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
 import { DownloadIcon, UploadIcon } from "../components/ui/icons";
 import { loadEncryptedFile, saveEncryptedFile } from "../lib/cryptoFile";
-import { clearKey } from "../lib/keystore";
+import { clearKey, loadKey, saveKey } from "../lib/keystore";
 import { getAllSettings, setSetting } from "../lib/settings";
 import {
   buildImportPayload,
@@ -28,6 +28,8 @@ export default function Settings() {
   const navigate = useNavigate();
   const [proxyUrl, setProxyUrl] = useState("");
   const [lookbackDays, setLookbackDays] = useState("");
+  const [appId, setAppId] = useState("");
+  const [savingAppId, setSavingAppId] = useState(false);
   const [savingLookback, setSavingLookback] = useState(false);
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState<"save" | "load" | null>(null);
@@ -54,6 +56,9 @@ export default function Settings() {
     getAllSettings().then((s) => {
       setProxyUrl(s.proxyUrl);
       setLookbackDays(String(s.lookbackDays));
+    });
+    loadKey().then((kv) => {
+      if (kv) setAppId(kv.appId);
     });
   }, []);
 
@@ -82,6 +87,24 @@ export default function Settings() {
       setSavingLookback(false);
     }
   }, [lookbackDays]);
+
+  const saveAppIdFn = useCallback(async () => {
+    const trimmed = appId.trim();
+    if (!trimmed) return;
+    setSavingAppId(true);
+    setMsg(null);
+    try {
+      const kv = await loadKey();
+      if (!kv) throw new Error("Ingen nøkkel lagret.");
+      await saveKey(kv.key, trimmed);
+      setAppId(trimmed);
+      setMsg({ type: "ok", text: "App ID oppdatert." });
+    } catch (e) {
+      setMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
+    } finally {
+      setSavingAppId(false);
+    }
+  }, [appId]);
 
   const openDialog = useCallback((mode: "save" | "load") => {
     setDialogPassphrase("");
@@ -298,6 +321,38 @@ export default function Settings() {
           />
           <div className="self-end">
             <Button loading={saving} onClick={saveProxy}>
+              Lagre
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-5 mb-4">
+        <h2 className="text-sm font-semibold text-text mb-1">App ID</h2>
+        <p className="text-xs text-muted mb-3">
+          ID-en som identifiserer applikasjonen din hos Enable Banking. Må stemme nøyaktig med
+          ID-en i{" "}
+          <a
+            href="https://enablebanking.com/sign-in/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:underline"
+          >
+            Enable Banking-dashbordet
+          </a>
+          .
+        </p>
+        <div className="flex gap-2">
+          <Input
+            label="App ID"
+            value={appId}
+            onChange={(e) => setAppId(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") saveAppIdFn(); }}
+            placeholder="f.eks. abc123de-f456-..."
+            className="flex-1 font-mono"
+          />
+          <div className="self-end">
+            <Button loading={savingAppId} onClick={saveAppIdFn} disabled={!appId.trim()}>
               Lagre
             </Button>
           </div>
