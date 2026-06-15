@@ -9,6 +9,8 @@ export interface AppSettings {
   // How far back the first sync of an account fetches (days). Subsequent syncs
   // continue from the stored cursor.
   lookbackDays: number;
+  usePassphrase: boolean;
+  backupMethod: "drive" | "file";
 }
 
 // Hosted HTTPS proxy. Override per deployment to match your own Worker; must also
@@ -18,6 +20,8 @@ const HOSTED_PROXY_URL = "https://proxy.lommin.workers.dev";
 const DEFAULTS: AppSettings = {
   proxyUrl: HOSTED_PROXY_URL,
   lookbackDays: SYNC_LOOKBACK_DAYS,
+  usePassphrase: false,
+  backupMethod: "file",
 };
 
 // Reject malformed/non-https proxy URLs at save time. The CSP connect-src blocks
@@ -79,11 +83,13 @@ export async function setSetting<K extends keyof AppSettings>(
 }
 
 export async function getAllSettings(): Promise<AppSettings> {
-  const [proxyUrl, lookbackDays] = await Promise.all([
+  const [proxyUrl, lookbackDays, usePassphrase, backupMethod] = await Promise.all([
     getSetting("proxyUrl"),
     getSetting("lookbackDays"),
+    getSetting("usePassphrase"),
+    getSetting("backupMethod"),
   ]);
-  return { proxyUrl, lookbackDays };
+  return { proxyUrl, lookbackDays, usePassphrase, backupMethod };
 }
 
 export async function getDriveToken(): Promise<{ token: string; expiry: number } | null> {

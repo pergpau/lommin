@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import AccountCard from "../components/AccountCard";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import SpendingBreakdown from "../components/charts/SpendingBreakdown";
@@ -8,16 +8,19 @@ import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
 import EmptyState from "../components/ui/EmptyState";
 import { DownloadIcon, MenuIcon, PlusIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
+import Input from "../components/ui/Input";
 import Spinner from "../components/ui/Spinner";
 import { useAccounts } from "../hooks/useAccounts";
 import { useSyncState } from "../hooks/useSyncState";
 import { useTransactions } from "../hooks/useTransactions";
 import { SUB_CATEGORY_MAP } from "../lib/categories";
+import { saveEncryptedFile } from "../lib/cryptoFile";
+import { DriveAuthError, saveBackupToDrive } from "../lib/googleDrive";
 import { loadKey } from "../lib/keystore";
-import { getEnableBankingSource, setCategoryId } from "../lib/store";
+import { clearDriveToken, getAllSettings, getDriveToken } from "../lib/settings";
+import { exportAll, getEnableBankingSource, setCategoryId } from "../lib/store";
 
 export default function Dashboard() {
-  const navigate = useNavigate();
   const { accounts, loading: accountsLoading, reload } = useAccounts();
   const { transactions, loading: txLoading, refresh } = useTransactions();
   const {
@@ -29,9 +32,63 @@ export default function Dashboard() {
     run: runSync,
   } = useSyncState();
   const [hasKey, setHasKey] = useState(true);
+  const [backupMethod, setBackupMethod] = useState<"drive" | "file">("file");
+  const [usePassphrase, setUsePassphrase] = useState(false);
+  const [dashDriveToken, setDashDriveToken] = useState<string | null>(null);
+  const [dashBackupSaving, setDashBackupSaving] = useState(false);
+  const [dashMsg, setDashMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [dashDialog, setDashDialog] = useState(false);
+  const [dashPassphrase, setDashPassphrase] = useState("");
+
   useEffect(() => {
     loadKey().then((kv) => setHasKey(!!kv));
+    getAllSettings().then((s) => {
+      setBackupMethod(s.backupMethod);
+      setUsePassphrase(s.usePassphrase);
+    });
+    getDriveToken().then((stored) => {
+      if (stored) setDashDriveToken(stored.token);
+    });
   }, []);
+  const handleQuickSaveClick = useCallback(() => {
+    setDashMsg(null);
+    if (usePassphrase) {
+      setDashPassphrase("");
+      setDashDialog(true);
+    } else {
+      void handleQuickSave("");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usePassphrase, backupMethod, dashDriveToken]);
+
+  const handleQuickSave = useCallback(async (passphrase: string) => {
+    setDashDialog(false);
+    setDashBackupSaving(true);
+    setDashMsg(null);
+    try {
+      const data = await exportAll();
+      if (backupMethod === "drive") {
+        if (!dashDriveToken) {
+          setDashMsg({ type: "err", text: "Ikke koblet til Google Drive. Gå til Innstillinger for å koble til." });
+          return;
+        }
+        await saveBackupToDrive(dashDriveToken, data, passphrase);
+        setDashMsg({ type: "ok", text: "Sikkerhetskopi lagret til Google Drive." });
+      } else {
+        await saveEncryptedFile(data, passphrase);
+        setDashMsg({ type: "ok", text: "Sikkerhetskopi lagret som lokal fil." });
+      }
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") {
+        if (e instanceof DriveAuthError) { setDashDriveToken(null); void clearDriveToken(); }
+        setDashMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
+      }
+    } finally {
+      setDashBackupSaving(false);
+      setDashPassphrase("");
+    }
+  }, [backupMethod, dashDriveToken]);
+
   const connectTarget = hasKey ? "/connect" : "/setup";
   const hasLiveAccounts = accounts.some((acc) => !!getEnableBankingSource(acc));
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
@@ -164,9 +221,9 @@ export default function Dashboard() {
           <Link to={connectTarget} className="btn-ghost text-xs">
             + Legg til konto
           </Link>
-          <Button variant="ghost" onClick={() => navigate("/settings#backup")}>
+          <Button variant="ghost" loading={dashBackupSaving} onClick={handleQuickSaveClick}>
             <DownloadIcon size={14} />
-            Lagre som fil
+            Lagre
           </Button>
           <Button
             loading={syncing}
@@ -197,14 +254,15 @@ export default function Dashboard() {
                 + Legg til konto
               </Link>
               <button
-                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
+                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
+                disabled={dashBackupSaving}
                 onClick={() => {
                   setActionsOpen(false);
-                  navigate("/settings#backup");
+                  handleQuickSaveClick();
                 }}
               >
                 <DownloadIcon size={13} />
-                Lagre som fil
+                {dashBackupSaving ? "Lagrer…" : "Lagre"}
               </button>
               <button
                 className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
@@ -237,6 +295,10 @@ export default function Dashboard() {
       )}
 
       {syncMsg && !syncing && <Alert type="ok" message={syncMsg} className="mb-6" />}
+
+      {dashMsg && (
+        <Alert type={dashMsg.type === "ok" ? "ok" : "error"} message={dashMsg.text} className="mb-6" />
+      )}
 
       {chartData.length > 0 && (
         <div className="mb-8">
@@ -338,6 +400,43 @@ export default function Dashboard() {
         ))
       }
 
+      {dashDialog && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={() => setDashDialog(false)}
+        >
+          <div
+            className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-semibold text-text mb-1">Lagre sikkerhetskopi</h3>
+            <p className="text-xs text-muted mb-4">
+              Valgfritt: beskytt filen med et passord. La feltet stå tomt for å lagre uten kryptering.
+            </p>
+            <Input
+              label="Passord (valgfritt)"
+              type="password"
+              placeholder="La stå tomt for ingen kryptering"
+              value={dashPassphrase}
+              onChange={(e) => setDashPassphrase(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void handleQuickSave(dashPassphrase);
+                if (e.key === "Escape") setDashDialog(false);
+              }}
+              className="mb-4"
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost" onClick={() => setDashDialog(false)}>
+                Avbryt
+              </Button>
+              <Button onClick={() => void handleQuickSave(dashPassphrase)}>
+                Lagre
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 }
