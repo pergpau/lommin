@@ -20,6 +20,7 @@ import {
   signInWithGoogle,
 } from "../lib/googleDrive";
 import { importPemKey, saveKey } from "../lib/keystore";
+import { persistDriveToken } from "../lib/settings";
 import { importAll, validateImportData } from "../lib/store";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
@@ -228,7 +229,8 @@ function DriveRestoreForm() {
     setState("connecting");
     setMsg("");
     try {
-      const t = await signInWithGoogle(GOOGLE_CLIENT_ID);
+      const { token: t, expiresIn } = await signInWithGoogle(GOOGLE_CLIENT_ID);
+      await persistDriveToken(t, expiresIn);
       setToken(t);
       setState("idle");
     } catch (e) {

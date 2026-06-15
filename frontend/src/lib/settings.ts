@@ -85,3 +85,44 @@ export async function getAllSettings(): Promise<AppSettings> {
   ]);
   return { proxyUrl, lookbackDays };
 }
+
+export async function getDriveToken(): Promise<{ token: string; expiry: number } | null> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    let token: string | undefined;
+    let expiry: number | undefined;
+    const r1 = tx.objectStore(STORE).get("driveAccessToken");
+    const r2 = tx.objectStore(STORE).get("driveTokenExpiry");
+    r1.onsuccess = () => { token = r1.result?.v as string | undefined; };
+    r2.onsuccess = () => { expiry = r2.result?.v as number | undefined; };
+    tx.oncomplete = () => {
+      if (!token || !expiry || Date.now() >= expiry) resolve(null);
+      else resolve({ token, expiry });
+    };
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function persistDriveToken(token: string, expiresIn: number): Promise<void> {
+  const expiry = Date.now() + expiresIn * 1000;
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).put({ k: "driveAccessToken", v: token });
+    tx.objectStore(STORE).put({ k: "driveTokenExpiry", v: expiry });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function clearDriveToken(): Promise<void> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).delete("driveAccessToken");
+    tx.objectStore(STORE).delete("driveTokenExpiry");
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}

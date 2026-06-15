@@ -13,7 +13,7 @@ import {
   signInWithGoogle,
 } from "../lib/googleDrive";
 import { clearKey, importPemKey, loadKey, saveKey } from "../lib/keystore";
-import { getAllSettings, setSetting } from "../lib/settings";
+import { clearDriveToken, getAllSettings, getDriveToken, persistDriveToken, setSetting } from "../lib/settings";
 import {
   buildImportPayload,
   buildImportPayloadFromZip,
@@ -91,6 +91,9 @@ export default function Settings() {
     loadKey().then((kv) => {
       setHasKey(!!kv);
       if (kv) setAppId(kv.appId);
+    });
+    getDriveToken().then((stored) => {
+      if (stored) setDriveToken(stored.token);
     });
   }, []);
 
@@ -216,7 +219,8 @@ export default function Settings() {
     setDriveSyncing("connect");
     setDriveMsg(null);
     try {
-      const token = await signInWithGoogle(GOOGLE_CLIENT_ID);
+      const { token, expiresIn } = await signInWithGoogle(GOOGLE_CLIENT_ID);
+      await persistDriveToken(token, expiresIn);
       setDriveToken(token);
     } catch (e) {
       setDriveMsg({ type: "err", text: e instanceof Error ? e.message : "Tilkobling feilet" });
@@ -235,7 +239,7 @@ export default function Settings() {
       await saveBackupToDrive(driveToken, data, dialogPassphrase);
       setDriveMsg({ type: "ok", text: "Sikkerhetskopi lagret til Google Drive." });
     } catch (e) {
-      if (e instanceof DriveAuthError) setDriveToken(null);
+      if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
       setDriveMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
     } finally {
       setDriveSyncing(null);
@@ -253,7 +257,7 @@ export default function Settings() {
       await importAll(data);
       setDriveMsg({ type: "ok", text: "Data hentet fra Google Drive." });
     } catch (e) {
-      if (e instanceof DriveAuthError) setDriveToken(null);
+      if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
       setDriveMsg({ type: "err", text: e instanceof Error ? e.message : "Lasting feilet" });
     } finally {
       setDriveSyncing(null);
@@ -601,7 +605,7 @@ export default function Settings() {
                 <Button
                   variant="ghost"
                   disabled={!!driveSyncing}
-                  onClick={() => setDriveToken(null)}
+                  onClick={() => { setDriveToken(null); void clearDriveToken(); }}
                 >
                   Koble fra
                 </Button>

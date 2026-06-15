@@ -70,7 +70,7 @@ function buildMultipartBody(
   return out;
 }
 
-export async function signInWithGoogle(clientId: string): Promise<string> {
+export async function signInWithGoogle(clientId: string): Promise<{ token: string; expiresIn: number }> {
   const redirectUri = `${window.location.origin}/oauth/google`;
   const params = new URLSearchParams({
     client_id: clientId,
@@ -85,32 +85,32 @@ export async function signInWithGoogle(clientId: string): Promise<string> {
   );
   if (!popup) throw new Error("Popup ble blokkert. Tillat popups for denne siden.");
 
-  return new Promise<string>((resolve, reject) => {
+  return new Promise<{ token: string; expiresIn: number }>((resolve, reject) => {
     const channel = new BroadcastChannel(GOOGLE_OAUTH_CHANNEL);
     let done = false;
 
-    const finish = (token?: string, err?: string) => {
+    const finish = (token?: string, expiresIn?: number, err?: string) => {
       if (done) return;
       done = true;
       clearTimeout(timer);
       clearInterval(pollClosed);
       channel.close();
       if (err) reject(new Error(err));
-      else resolve(token!);
+      else resolve({ token: token!, expiresIn: expiresIn ?? 3600 });
     };
 
     const timer = setTimeout(
-      () => finish(undefined, "Autentisering timed out."),
+      () => finish(undefined, undefined, "Autentisering timed out."),
       120_000,
     );
 
     const pollClosed = setInterval(() => {
-      if (popup.closed) setTimeout(() => finish(undefined, "Autentisering avbrutt."), 500);
+      if (popup.closed) setTimeout(() => finish(undefined, undefined, "Autentisering avbrutt."), 500);
     }, 500);
 
-    channel.onmessage = (e: MessageEvent<{ access_token?: string; error?: string }>) => {
-      if (e.data?.error) finish(undefined, e.data.error);
-      else finish(e.data?.access_token);
+    channel.onmessage = (e: MessageEvent<{ access_token?: string; expires_in?: number; error?: string }>) => {
+      if (e.data?.error) finish(undefined, undefined, e.data.error);
+      else finish(e.data?.access_token, e.data?.expires_in);
     };
   });
 }
