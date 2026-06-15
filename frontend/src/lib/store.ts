@@ -11,7 +11,7 @@ import {
 } from "./validate";
 
 export interface AccountSource {
-  type: "enableBanking" | "spiir";
+  type: "enableBanking" | "spiir" | "demo";
   sourceId: string; // Enable Banking account UID or Spiir accountId
   sessionId?: string; // Enable Banking session ID
 }
@@ -233,7 +233,7 @@ interface ImportData {
 
 function validateAccountSource(v: unknown, where: string): AccountSource {
   const s = asRecord(v, where);
-  if (s.type !== "enableBanking" && s.type !== "spiir") {
+  if (s.type !== "enableBanking" && s.type !== "spiir" && s.type !== "demo") {
     throw new ValidationError(`Ugyldig data: ukjent kildetype i ${where}.`);
   }
   return {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AccountCard from "../components/AccountCard";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import SpendingBreakdown from "../components/charts/SpendingBreakdown";
@@ -16,12 +16,14 @@ import { useSyncState } from "../hooks/useSyncState";
 import { useTransactions } from "../hooks/useTransactions";
 import { SUB_CATEGORY_MAP } from "../lib/categories";
 import { saveEncryptedFile } from "../lib/cryptoFile";
+import { isDemoMode } from "../lib/demoData";
 import { DriveAuthError, saveBackupToDrive } from "../lib/googleDrive";
 import { loadKey } from "../lib/keystore";
 import { clearDriveToken, getAllSettings, getDriveToken } from "../lib/settings";
-import { exportAll, getEnableBankingSource, setCategoryId } from "../lib/store";
+import { clearAccounts, clearTransactions, exportAll, getEnableBankingSource, setCategoryId } from "../lib/store";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { accounts, loading: accountsLoading, reload } = useAccounts();
   const { transactions, loading: txLoading, refresh } = useTransactions();
   const {
@@ -40,6 +42,8 @@ export default function Dashboard() {
   const [dashBackupSaving, setDashBackupSaving] = useState(false);
   const [dashDialog, setDashDialog] = useState(false);
   const [dashPassphrase, setDashPassphrase] = useState("");
+  const [isDemo, setIsDemo] = useState(false);
+  const [exitingDemo, setExitingDemo] = useState(false);
 
   useEffect(() => {
     loadKey().then((kv) => setHasKey(!!kv));
@@ -50,6 +54,7 @@ export default function Dashboard() {
     getDriveToken().then((stored) => {
       if (stored) setDashDriveToken(stored.token);
     });
+    isDemoMode().then(setIsDemo);
   }, []);
 
   useEffect(() => {
@@ -93,7 +98,14 @@ export default function Dashboard() {
     }
   }, [backupMethod, dashDriveToken, showSnackbar]);
 
-  const connectTarget = hasKey ? "/connect" : "/setup";
+  const exitDemo = useCallback(async () => {
+    setExitingDemo(true);
+    await clearTransactions();
+    await clearAccounts();
+    navigate("/onboarding");
+  }, [navigate]);
+
+  const connectTarget = hasKey ? "/connect" : "/onboarding";
   const hasLiveAccounts = accounts.some((acc) => !!getEnableBankingSource(acc));
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [chartMode, setChartMode] = useState<ChartMode>("month");
@@ -211,6 +223,17 @@ export default function Dashboard() {
   }
 
   return (
+    <>
+      {isDemo && (
+        <div className="bg-warning/10 border-b border-warning/20 px-4 py-3 flex items-center justify-between">
+          <span className="text-sm text-warning font-medium">
+            Du er i demomodus — ingen ekte data er tilkoblet
+          </span>
+          <Button variant="ghost" size="sm" loading={exitingDemo} onClick={exitDemo}>
+            Avslutt demo
+          </Button>
+        </div>
+      )}
     <div className="max-w-3xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -222,10 +245,12 @@ export default function Dashboard() {
         </div>
         {/* Desktop actions */}
         <div className="hidden sm:flex items-center gap-2">
-          <Link to={connectTarget} className="btn-ghost text-xs">
-            + Legg til konto
-          </Link>
-          <Button variant="ghost" loading={dashBackupSaving} onClick={handleQuickSaveClick}>
+          {!isDemo && (
+            <Link to={connectTarget} className="btn-ghost text-xs">
+              + Legg til konto
+            </Link>
+          )}
+          <Button variant="ghost" loading={dashBackupSaving} disabled={isDemo} onClick={handleQuickSaveClick}>
             <DownloadIcon size={14} />
             Lagre
           </Button>
@@ -250,16 +275,18 @@ export default function Dashboard() {
           </button>
           {actionsOpen && (
             <div className="absolute right-0 top-full mt-1 w-48 card py-1 z-30 shadow-lg">
-              <Link
-                to={connectTarget}
-                className="flex items-center px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors"
-                onClick={() => setActionsOpen(false)}
-              >
-                + Legg til konto
-              </Link>
+              {!isDemo && (
+                <Link
+                  to={connectTarget}
+                  className="flex items-center px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors"
+                  onClick={() => setActionsOpen(false)}
+                >
+                  + Legg til konto
+                </Link>
+              )}
               <button
                 className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
-                disabled={dashBackupSaving}
+                disabled={isDemo || dashBackupSaving}
                 onClick={() => {
                   setActionsOpen(false);
                   handleQuickSaveClick();
@@ -341,15 +368,17 @@ export default function Dashboard() {
       {tab === "kontoer" &&
         (accounts.length === 0 ? (
           <EmptyState message="Ingen kontoer tilkoblet ennå.">
-            <div className="flex flex-col sm:flex-row items-center gap-2 justify-center mt-8">
-              <Link to={connectTarget} className="btn-primary inline-flex">
-                Koble til en bank
-              </Link>
-              <span className="text-muted text-sm">eller</span>
-              <Link to="/settings#spiir" className="btn-secondary inline-flex">
-                Importer data fra Spiir
-              </Link>
-            </div>
+            {!isDemo && (
+              <div className="flex flex-col sm:flex-row items-center gap-2 justify-center mt-8">
+                <Link to={connectTarget} className="btn-primary inline-flex">
+                  Koble til en bank
+                </Link>
+                <span className="text-muted text-sm">eller</span>
+                <Link to="/settings#spiir" className="btn-secondary inline-flex">
+                  Importer data fra Spiir
+                </Link>
+              </div>
+            )}
           </EmptyState>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -367,13 +396,15 @@ export default function Dashboard() {
                 />
               );
             })}
-            <Link
-              to={connectTarget}
-              className="card p-4 flex flex-col items-center justify-center gap-2 text-muted hover:text-accent hover:border-accent/40 hover:bg-surface-2/50 hover:shadow-sm transition-all"
-            >
-              <PlusIcon size={20} />
-              <span className="text-sm">Ny konto</span>
-            </Link>
+            {!isDemo && (
+              <Link
+                to={connectTarget}
+                className="card p-4 flex flex-col items-center justify-center gap-2 text-muted hover:text-accent hover:border-accent/40 hover:bg-surface-2/50 hover:shadow-sm transition-all"
+              >
+                <PlusIcon size={20} />
+                <span className="text-sm">Ny konto</span>
+              </Link>
+            )}
           </div>
         ))
       }
@@ -435,6 +466,7 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-    </div >
+    </div>
+    </>
   );
 }

@@ -5,6 +5,7 @@ import Button from "../components/ui/Button";
 import { useSnackbar } from "../components/ui/Snackbar";
 import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
+import SpiirImportPanel from "../components/SpiirImport";
 import { DownloadIcon, FileUpIcon, UploadIcon } from "../components/ui/icons";
 import { loadEncryptedFile, saveEncryptedFile } from "../lib/cryptoFile";
 import {
@@ -14,22 +15,14 @@ import {
   signInWithGoogle,
 } from "../lib/googleDrive";
 import { clearKey, importPemKey, loadKey, saveKey } from "../lib/keystore";
-import { clearDriveToken, getAllSettings, getDriveToken, persistDriveToken, setSetting } from "../lib/settings";
-import {
-  buildImportPayload,
-  buildImportPayloadFromZip,
-  parseSpiirCsvAccounts,
-  parseSpiirZipAccounts,
-  type SpiirAccount,
-} from "../lib/spiirImport";
+import { clearDriveToken, getAllSettings, getDriveToken, HOSTED_PROXY_URL, persistDriveToken, setSetting } from "../lib/settings";
 import {
   clearAccounts,
   clearTransactions,
   exportAll,
-  getAccounts,
   importAll,
-  type Account,
 } from "../lib/store";
+import { isDemoMode } from "../lib/demoData";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
@@ -55,7 +48,8 @@ export default function Settings() {
   const [pemError, setPemError] = useState("");
   const [pemDragging, setPemDragging] = useState(false);
   const pendingPemKey = useRef<CryptoKey | null>(null);
-  const [proxyUrl, setProxyUrl] = useState("");
+  const [proxyMode, setProxyMode] = useState<"lommin" | "custom">("lommin");
+  const [customProxyUrl, setCustomProxyUrl] = useState("");
   const [lookbackDays, setLookbackDays] = useState("");
   const [appId, setAppId] = useState("");
   const [savingAppId, setSavingAppId] = useState(false);
@@ -70,22 +64,21 @@ export default function Settings() {
   const [dialogPassphrase, setDialogPassphrase] = useState("");
   const [wiping, setWiping] = useState(false);
   const [wipingAccounts, setWipingAccounts] = useState(false);
+  const [isDemo, setIsDemo] = useState<boolean | null>(null);
   const { showSnackbar } = useSnackbar();
 
-  // Spiir import state
-  const spiirFileRef = useRef<HTMLInputElement>(null);
-  const spiirZipRef = useRef<HTMLInputElement>(null);
-  const [spiirMode, setSpiirMode] = useState<"csv" | "zip">("csv");
-  const [spiirStep, setSpiirStep] = useState<"idle" | "mapping" | "importing">("idle");
-  const [spiirText, setSpiirText] = useState("");
-  const [spiirZipBuf, setSpiirZipBuf] = useState<ArrayBuffer | null>(null);
-  const [spiirAccounts, setSpiirAccounts] = useState<SpiirAccount[]>([]);
-  const [existingAccounts, setExistingAccounts] = useState<Account[]>([]);
-  const [accountMap, setAccountMap] = useState<Record<string, string>>({});
+  useEffect(() => {
+    isDemoMode().then(setIsDemo);
+  }, []);
 
   useEffect(() => {
     getAllSettings().then((s) => {
-      setProxyUrl(s.proxyUrl);
+      if (s.proxyUrl === HOSTED_PROXY_URL) {
+        setProxyMode("lommin");
+      } else {
+        setProxyMode("custom");
+        setCustomProxyUrl(s.proxyUrl);
+      }
       setLookbackDays(String(s.lookbackDays));
       setUsePassphrase(s.usePassphrase);
       setBackupMethod(s.backupMethod);
@@ -128,17 +121,29 @@ export default function Settings() {
     }
   }, [pemAppId]);
 
+  const changeProxyMode = useCallback(async (mode: "lommin" | "custom") => {
+    setProxyMode(mode);
+    if (mode === "lommin") {
+      try {
+        await setSetting("proxyUrl", HOSTED_PROXY_URL);
+        showSnackbar("Proxy satt til Lommin standard.", "ok");
+      } catch (e) {
+        showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
+      }
+    }
+  }, [showSnackbar]);
+
   const saveProxy = useCallback(async () => {
     setSaving(true);
     try {
-      await setSetting("proxyUrl", proxyUrl.trim());
+      await setSetting("proxyUrl", customProxyUrl.trim());
       showSnackbar("Proxy-URL lagret.", "ok");
     } catch (e) {
       showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
     } finally {
       setSaving(false);
     }
-  }, [proxyUrl, showSnackbar]);
+  }, [customProxyUrl, showSnackbar]);
 
   const saveLookback = useCallback(async () => {
     setSavingLookback(true);
@@ -279,7 +284,8 @@ export default function Settings() {
 
   const forgetKey = useCallback(async () => {
     await clearKey();
-    navigate("/setup");
+    await clearDriveToken();
+    navigate("/onboarding");
   }, [navigate]);
 
   const wipeAccounts = useCallback(async () => {
@@ -314,89 +320,8 @@ export default function Settings() {
     }
   }, [showSnackbar]);
 
-  const onSpiirFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const text = await file.text();
-    const parsed = parseSpiirCsvAccounts(text);
-    if (parsed.length === 0) {
-      showSnackbar("Fant ingen kontoer i filen. Sjekk at filen er en gyldig Spiir-eksport.", "error");
-      return;
-    }
-    const existing = await getAccounts();
-    const initMap: Record<string, string> = {};
-    for (const a of parsed) initMap[a.accountId] = `spiir::${a.accountId}`;
-    setSpiirText(text);
-    setSpiirMode("csv");
-    setSpiirAccounts(parsed);
-    setExistingAccounts(existing);
-    setAccountMap(initMap);
-    setSpiirStep("mapping");
-    if (spiirFileRef.current) spiirFileRef.current.value = "";
-  }, [showSnackbar]);
 
-  const onSpiirZipChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const buf = await file.arrayBuffer();
-      const parsed = await parseSpiirZipAccounts(buf);
-      if (parsed.length === 0) {
-        showSnackbar("Fant ingen kontoer i ZIP-filen. Sjekk at filen er en gyldig Spiir dataeksport.", "error");
-        return;
-      }
-      const existing = await getAccounts();
-      const initMap: Record<string, string> = {};
-      for (const a of parsed) {
-        const normBban = (s: string) => s.replace(/\D/g, "");
-        const match = existing.find(
-          (acc) =>
-            (a.iban && acc.iban && a.iban === acc.iban) ||
-            (a.bban && acc.bban && normBban(a.bban) === normBban(acc.bban)),
-        );
-        initMap[a.accountId] = match ? match.uid : `spiir::${a.accountId}`;
-      }
-      const sorted = [...parsed].sort((a, b) => {
-        const aMatched = !initMap[a.accountId].startsWith("spiir::");
-        const bMatched = !initMap[b.accountId].startsWith("spiir::");
-        return Number(bMatched) - Number(aMatched);
-      });
-      setSpiirZipBuf(buf);
-      setSpiirMode("zip");
-      setSpiirAccounts(sorted);
-      setExistingAccounts(existing);
-      setAccountMap(initMap);
-      setSpiirStep("mapping");
-    } catch (err) {
-      showSnackbar(err instanceof Error ? err.message : "Kunne ikke lese ZIP-filen.", "error");
-    } finally {
-      if (spiirZipRef.current) spiirZipRef.current.value = "";
-    }
-  }, [showSnackbar]);
-
-  const doSpiirImport = useCallback(async () => {
-    setSpiirStep("importing");
-    try {
-      const payload =
-        spiirMode === "zip"
-          ? await buildImportPayloadFromZip(spiirZipBuf!, accountMap)
-          : buildImportPayload(spiirText, accountMap);
-      const { inserted, skipped } = await importAll({ ...payload, cursors: [] });
-      const skipNote = skipped > 0 ? ` (${skipped} hoppet over – fantes allerede)` : "";
-      showSnackbar(
-        `Importerte ${inserted} transaksjoner fra ${spiirAccounts.length} konto${spiirAccounts.length !== 1 ? "er" : ""}${skipNote}.`,
-        "ok",
-      );
-      setSpiirStep("idle");
-    } catch (e) {
-      showSnackbar(e instanceof Error ? e.message : "Import feilet", "error");
-      setSpiirStep("mapping");
-    }
-  }, [spiirMode, spiirText, spiirZipBuf, accountMap, spiirAccounts, showSnackbar]);
-
-  const cancelSpiirImport = useCallback(() => {
-    setSpiirStep("idle");
-  }, []);
+  if (isDemo === null || isDemo) return null;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -465,6 +390,32 @@ export default function Settings() {
           Alle Enable Banking API-kall rutes gjennom denne proxyen. Deploy worker med{" "}
           <span className="mono text-text/70">wrangler deploy</span>.
         </p>
+
+        <div className="flex gap-4 mb-3">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="radio"
+              name="proxyMode"
+              value="lommin"
+              checked={proxyMode === "lommin"}
+              onChange={() => changeProxyMode("lommin")}
+              className="w-4 h-4 accent-accent"
+            />
+            <span className="text-xs text-text">Lommin proxy (standard)</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="radio"
+              name="proxyMode"
+              value="custom"
+              checked={proxyMode === "custom"}
+              onChange={() => changeProxyMode("custom")}
+              className="w-4 h-4 accent-accent"
+            />
+            <span className="text-xs text-text">Egendefinert</span>
+          </label>
+        </div>
+
         <div className="mb-4 border border-warning/20 bg-warning/5 rounded-lg p-3">
           <p className="text-xs text-muted leading-relaxed">
             <span className="text-text/80 font-medium">Tillitsgrense:</span> den standard hostede
@@ -473,20 +424,21 @@ export default function Settings() {
             pek denne URL-en dit.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Input
-            label="Proxy-URL"
-            value={proxyUrl}
-            onChange={(e) => setProxyUrl(e.target.value)}
-            placeholder="https://proxy.lommin.workers.dev"
-            className="flex-1"
-          />
-          <div className="self-end">
+
+        {proxyMode === "custom" && (
+          <div>
+            <Input
+              label="Proxy-URL"
+              value={customProxyUrl}
+              onChange={(e) => setCustomProxyUrl(e.target.value)}
+              placeholder="https://din-proxy.workers.dev"
+              className="mb-2"
+            />
             <Button loading={saving} onClick={saveProxy}>
               Lagre
             </Button>
           </div>
-        </div>
+        )}
       </Card>
 
       <Card className="p-5 mb-4">
@@ -663,84 +615,14 @@ export default function Settings() {
         className={`p-5 mb-4 transition-shadow duration-300 ${spiirHighlighted ? "ring-2 ring-accent" : ""}`}
       >
         <h2 className="text-sm font-semibold text-text mb-1">Importer fra Spiir</h2>
-        <p className="text-xs text-muted mb-4">
-          Importer historiske transaksjoner fra Spiir. Velg CSV-eksport for enkel import, eller
-          ZIP-eksport (full dataeksport) for bedre data med kontonavn, bank og kategorier fra Spiir.
-          Duplikater hoppes over.
+        <SpiirImportPanel />
+      </Card>
+
+      <Card id="import" className="p-5 mb-4">
+        <h2 className="text-sm font-semibold text-text mb-1">Import fra egne data</h2>
+        <p className="text-xs text-muted">
+          Kommer snart. Her vil du kunne importere transaksjoner fra egne CSV-filer og andre kilder.
         </p>
-
-        {spiirStep === "idle" && (
-          <>
-            <input
-              ref={spiirFileRef}
-              type="file"
-              accept=".csv"
-              className="hidden"
-              onChange={onSpiirFileChange}
-            />
-            <input
-              ref={spiirZipRef}
-              type="file"
-              accept=".zip"
-              className="hidden"
-              onChange={onSpiirZipChange}
-            />
-            <div className="flex gap-2">
-              <Button variant="ghost" onClick={() => spiirFileRef.current?.click()}>
-                <UploadIcon size={13} />
-                Velg CSV-fil
-              </Button>
-              <Button onClick={() => spiirZipRef.current?.click()}>
-                <UploadIcon size={13} />
-                Velg ZIP-eksport
-              </Button>
-            </div>
-          </>
-        )}
-
-        {(spiirStep === "mapping" || spiirStep === "importing") && (
-          <>
-            <div className="mb-4 space-y-3">
-              {spiirAccounts.map((sa) => (
-                <div key={sa.accountId} className="flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-text truncate">{sa.name}</div>
-                    <div className="text-xs text-muted">
-                      {[sa.bankName, sa.bban, sa.currency].filter(Boolean).join(" · ")}
-                    </div>
-                  </div>
-                  <select
-                    className="text-xs border border-border rounded px-2 py-1.5 bg-surface text-text"
-                    value={accountMap[sa.accountId] ?? `spiir::${sa.accountId}`}
-                    onChange={(e) =>
-                      setAccountMap((m) => ({ ...m, [sa.accountId]: e.target.value }))
-                    }
-                    disabled={spiirStep === "importing"}
-                  >
-                    <option value={`spiir::${sa.accountId}`}>Opprett ny konto</option>
-                    {existingAccounts.map((acc) => (
-                      <option key={acc.uid} value={acc.uid}>
-                        {acc.name ?? acc.uid}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Button loading={spiirStep === "importing"} onClick={doSpiirImport}>
-                Importer
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={spiirStep === "importing"}
-                onClick={cancelSpiirImport}
-              >
-                Avbryt
-              </Button>
-            </div>
-          </>
-        )}
       </Card>
 
       {dialog && (

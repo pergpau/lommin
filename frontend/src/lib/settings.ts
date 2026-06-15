@@ -15,7 +15,7 @@ export interface AppSettings {
 
 // Hosted HTTPS proxy. Override per deployment to match your own Worker; must also
 // be reflected in the CSP connect-src (index.html / _headers).
-const HOSTED_PROXY_URL = "https://proxy.lommin.workers.dev";
+export const HOSTED_PROXY_URL = "https://proxy.lommin.workers.dev";
 
 const DEFAULTS: AppSettings = {
   proxyUrl: HOSTED_PROXY_URL,

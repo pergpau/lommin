@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { isDemoMode } from "../lib/demoData";
 import { MoonIcon, SunIcon } from "./ui/icons";
 
 const nav = [
@@ -15,8 +16,13 @@ function getInitialTheme(): Theme {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const showNav = pathname !== "/setup";
+  const showNav = pathname !== "/setup" && pathname !== "/onboarding";
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [isDemo, setIsDemo] = useState(false);
+
+  useEffect(() => {
+    if (showNav) isDemoMode().then(setIsDemo);
+  }, [showNav]);
 
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
@@ -41,7 +47,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-1">
             {showNav && (
               <nav className="flex items-center gap-1">
-                {nav.map(({ to, label }) => (
+                {nav.filter(({ to }) => !(isDemo && to === "/settings")).map(({ to, label }) => (
                   <Link
                     key={to}
                     to={to}

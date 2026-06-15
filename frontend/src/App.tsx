@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { SnackbarProvider } from "./components/ui/Snackbar";
-import Setup from "./pages/Setup";
+import Onboarding from "./pages/Onboarding";
 import Connect from "./pages/Connect";
 import Dashboard from "./pages/Dashboard";
 import Account from "./pages/Account";
@@ -28,14 +28,16 @@ function RequireKey({ children }: { children: React.ReactNode }) {
         <Spinner size={24} />
       </div>
     );
-  if (status === "missing") return <Navigate to="/setup" replace />;
+  if (status === "missing") return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
 }
 
 function RootRedirect() {
   const [dest, setDest] = useState<string | null>(null);
   useEffect(() => {
-    loadKey().then((kv) => setDest(kv ? "/dashboard" : "/setup"));
+    Promise.all([loadKey(), getAccounts()]).then(([kv, accounts]) =>
+      setDest(kv || accounts.length > 0 ? "/dashboard" : "/onboarding"),
+    );
   }, []);
   if (!dest)
     return (
@@ -52,7 +54,8 @@ export default function App() {
       <Layout>
         <ErrorBoundary>
           <Routes>
-            <Route path="/setup" element={<Setup />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/setup" element={<Navigate to="/onboarding" replace />} />
             <Route path="/connect" element={<Connect />} />
             <Route
               path="/dashboard"
