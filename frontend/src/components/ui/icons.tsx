@@ -170,3 +170,12 @@ export const PlusIcon = icon(() => (
     <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" />
   </>
 ));
+
+export const TrashIcon = icon(() => (
+  <>
+    <polyline points="3 6 5 6 21 6" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M19 6l-1 14H6L5 6" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M10 11v6M14 11v6" strokeLinecap="round" />
+    <path d="M9 6V4h6v2" strokeLinecap="round" strokeLinejoin="round" />
+  </>
+));

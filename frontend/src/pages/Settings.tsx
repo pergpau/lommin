@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import SpiirImportPanel from "../components/SpiirImport";
 import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
-import { useSnackbar } from "../components/ui/Snackbar";
 import Card from "../components/ui/Card";
+import { DownloadIcon, FileUpIcon, TrashIcon, UploadIcon } from "../components/ui/icons";
 import Input from "../components/ui/Input";
-import SpiirImportPanel from "../components/SpiirImport";
-import { DownloadIcon, FileUpIcon, UploadIcon } from "../components/ui/icons";
+import { useSnackbar } from "../components/ui/Snackbar";
 import { loadEncryptedFile, saveEncryptedFile } from "../lib/cryptoFile";
+import { isDemoMode } from "../lib/demoData";
 import {
   DriveAuthError,
   loadBackupFromDrive,
@@ -22,7 +23,6 @@ import {
   exportAll,
   importAll,
 } from "../lib/store";
-import { isDemoMode } from "../lib/demoData";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
@@ -52,6 +52,7 @@ export default function Settings() {
   const [customProxyUrl, setCustomProxyUrl] = useState("");
   const [lookbackDays, setLookbackDays] = useState("");
   const [appId, setAppId] = useState("");
+  const savedAppId = useRef("");
   const [savingAppId, setSavingAppId] = useState(false);
   const [savingLookback, setSavingLookback] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -64,6 +65,8 @@ export default function Settings() {
   const [dialogPassphrase, setDialogPassphrase] = useState("");
   const [wiping, setWiping] = useState(false);
   const [wipingAccounts, setWipingAccounts] = useState(false);
+  const [wipingAll, setWipingAll] = useState(false);
+  const [wipeAllDialog, setWipeAllDialog] = useState(false);
   const [isDemo, setIsDemo] = useState<boolean | null>(null);
   const { showSnackbar } = useSnackbar();
 
@@ -85,7 +88,7 @@ export default function Settings() {
     });
     loadKey().then((kv) => {
       setHasKey(!!kv);
-      if (kv) setAppId(kv.appId);
+      if (kv) { setAppId(kv.appId); savedAppId.current = kv.appId; }
     });
     getDriveToken().then((stored) => {
       if (stored) setDriveToken(stored.token);
@@ -166,6 +169,7 @@ export default function Settings() {
       if (!kv) throw new Error("Ingen nøkkel lagret.");
       await saveKey(kv.key, trimmed);
       setAppId(trimmed);
+      savedAppId.current = trimmed;
       showSnackbar("App ID oppdatert.", "ok");
     } catch (e) {
       showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
@@ -320,6 +324,20 @@ export default function Settings() {
     }
   }, [showSnackbar]);
 
+  const wipeAll = useCallback(async () => {
+    setWipeAllDialog(false);
+    setWipingAll(true);
+    try {
+      await clearTransactions();
+      await clearAccounts();
+      await clearKey();
+      await clearDriveToken();
+      navigate("/onboarding");
+    } catch (e) {
+      showSnackbar(e instanceof Error ? e.message : "Sletting feilet", "error");
+      setWipingAll(false);
+    }
+  }, [navigate, showSnackbar]);
 
   if (isDemo === null || isDemo) return null;
 
@@ -327,62 +345,100 @@ export default function Settings() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-xl font-semibold text-text mb-6">Innstillinger</h1>
 
-      {!hasKey && (
-        <Card className="p-5 mb-4 border-accent/30 bg-accent/5">
-          <h2 className="text-sm font-semibold text-text mb-1">Importer signeringsnøkkel</h2>
-          <p className="text-xs text-muted mb-4">
-            Ingen nøkkel er lagret. Last opp <span className="mono">.pem</span>-filen fra Enable Banking for å aktivere synkronisering.
-          </p>
-          <input
-            ref={pemInputRef}
-            type="file"
-            accept=".pem,.crt,.key,application/x-pem-file,text/plain"
-            className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) processPemFile(f); }}
-          />
-          {pemState !== "confirm" && (
-            <div
-              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${pemDragging ? "border-accent bg-accent/10" : "border-border hover:border-accent/40 hover:bg-surface/50"}`}
-              onDragEnter={(e) => { e.preventDefault(); setPemDragging(true); }}
-              onDragOver={(e) => { e.preventDefault(); setPemDragging(true); }}
-              onDragLeave={() => setPemDragging(false)}
-              onDrop={(e) => { e.preventDefault(); setPemDragging(false); const f = e.dataTransfer.files[0]; if (f) processPemFile(f); }}
-              onClick={() => pemInputRef.current?.click()}
+
+      <Card className={`p-5 mb-4 ${!hasKey ? "border-accent/30 bg-accent/5" : ""}`}>
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-text">Signeringsnøkkel</h2>
+            {hasKey && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-positive/10 px-2 py-0.5 text-xs font-medium text-positive">
+                ✓ importert
+              </span>
+            )}
+          </div>
+          {hasKey && (
+            <button
+              className="inline-flex items-center gap-1 text-xs text-negative/70 hover:text-negative transition-colors"
+              onClick={forgetKey}
             >
-              {pemState === "loading" ? (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="animate-spin w-5 h-5 border-2 border-accent/20 border-t-accent rounded-full" />
-                  <span className="text-muted text-xs">Importerer nøkkel…</span>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <FileUpIcon size={20} className="text-muted" />
-                  <div>
-                    <div className="text-sm text-text font-medium">{pemDragging ? "Slipp for å importere" : "Slipp .pem-fila her"}</div>
-                    <div className="text-xs text-muted mt-0.5">eller klikk for å velge fil</div>
-                  </div>
-                </div>
-              )}
-            </div>
+              <TrashIcon size={12} />
+              Fjern nøkkel
+            </button>
           )}
-          {pemState === "confirm" && (
-            <div className="space-y-3">
+        </div>
+
+        {hasKey ? (
+          <div className="space-y-3 mt-4">
+            <div>
               <Input
                 label="App ID"
-                value={pemAppId}
-                onChange={(e) => setPemAppId(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") confirmPemKey(); }}
-                className="font-mono"
-                autoFocus
+                value={appId}
+                onChange={(e) => setAppId(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") saveAppIdFn(); }}
+                placeholder="f.eks. abc123de-f456-..."
+                className="w-full font-mono"
               />
-              <Button onClick={confirmPemKey} disabled={!pemAppId.trim()}>
-                Lagre nøkkel
-              </Button>
             </div>
-          )}
-          {pemState === "error" && <Alert type="error" message={pemError} className="mt-3" />}
-        </Card>
-      )}
+            <Button loading={savingAppId} onClick={saveAppIdFn} disabled={!appId.trim() || appId.trim() === savedAppId.current}>
+              Oppdater
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-xs text-muted">
+              Ingen nøkkel er lagret. Last opp <span className="mono">.pem</span>-filen fra Enable Banking for å aktivere synkronisering.
+            </p>
+            <input
+              ref={pemInputRef}
+              type="file"
+              accept=".pem,.crt,.key,application/x-pem-file,text/plain"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) processPemFile(f); }}
+            />
+            {pemState !== "confirm" && (
+              <div
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${pemDragging ? "border-accent bg-accent/10" : "border-border hover:border-accent/40 hover:bg-surface/50"}`}
+                onDragEnter={(e) => { e.preventDefault(); setPemDragging(true); }}
+                onDragOver={(e) => { e.preventDefault(); setPemDragging(true); }}
+                onDragLeave={() => setPemDragging(false)}
+                onDrop={(e) => { e.preventDefault(); setPemDragging(false); const f = e.dataTransfer.files[0]; if (f) processPemFile(f); }}
+                onClick={() => pemInputRef.current?.click()}
+              >
+                {pemState === "loading" ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="animate-spin w-5 h-5 border-2 border-accent/20 border-t-accent rounded-full" />
+                    <span className="text-muted text-xs">Importerer nøkkel…</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <FileUpIcon size={20} className="text-muted" />
+                    <div>
+                      <div className="text-sm text-text font-medium">{pemDragging ? "Slipp for å importere" : "Slipp .pem-fila her"}</div>
+                      <div className="text-xs text-muted mt-0.5">eller klikk for å velge fil</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {pemState === "confirm" && (
+              <div className="space-y-3">
+                <Input
+                  label="App ID"
+                  value={pemAppId}
+                  onChange={(e) => setPemAppId(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") confirmPemKey(); }}
+                  className="font-mono"
+                  autoFocus
+                />
+                <Button onClick={confirmPemKey} disabled={!pemAppId.trim()}>
+                  Lagre nøkkel
+                </Button>
+              </div>
+            )}
+            {pemState === "error" && <Alert type="error" message={pemError} className="mt-3" />}
+          </div>
+        )}
+      </Card>
 
       <Card className="p-5 mb-4">
         <h2 className="text-sm font-semibold text-text mb-1">CORS Proxy</h2>
@@ -418,10 +474,9 @@ export default function Settings() {
 
         <div className="mb-4 border border-warning/20 bg-warning/5 rounded-lg p-3">
           <p className="text-xs text-muted leading-relaxed">
-            <span className="text-text/80 font-medium">Tillitsgrense:</span> den standard hostede
-            proxyen videresender trafikken din og kan se transaksjonsdata og ditt kortlivede
-            tilgangstoken (aldri signeringsnøkkelen). For fullt privat data, kjør din egen proxy og
-            pek denne URL-en dit.
+            <span className="text-text/80 font-medium">OBS! </span>
+            Lommis egen proxy videresender trafikken din til Enable Banking og kan i teorien lese dine transaksjonsdata og ditt kortlivede
+            tilgangstoken (men aldri signeringsnøkkelen). Lommi lagrer ingen av dine data, men du må rett og slett bare stole på at det er sant. Hvis du ikke gjør det kan du velge å registrere din egen proxy her.
           </p>
         </div>
 
@@ -439,38 +494,6 @@ export default function Settings() {
             </Button>
           </div>
         )}
-      </Card>
-
-      <Card className="p-5 mb-4">
-        <h2 className="text-sm font-semibold text-text mb-1">App ID</h2>
-        <p className="text-xs text-muted mb-3">
-          ID-en som identifiserer applikasjonen din hos Enable Banking. Må stemme nøyaktig med
-          ID-en i{" "}
-          <a
-            href="https://enablebanking.com/sign-in/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-accent hover:underline"
-          >
-            Enable Banking-dashbordet
-          </a>
-          .
-        </p>
-        <div className="flex gap-2">
-          <Input
-            label="App ID"
-            value={appId}
-            onChange={(e) => setAppId(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") saveAppIdFn(); }}
-            placeholder="f.eks. abc123de-f456-..."
-            className="flex-1 font-mono"
-          />
-          <div className="self-end">
-            <Button loading={savingAppId} onClick={saveAppIdFn} disabled={!appId.trim()}>
-              Lagre
-            </Button>
-          </div>
-        </div>
       </Card>
 
       <Card className="p-5 mb-4">
@@ -690,23 +713,44 @@ export default function Settings() {
 
       <Card className="p-5 border-negative/10">
         <h2 className="text-sm font-semibold text-text mb-1">Faresone</h2>
-        <p className="text-xs text-muted mb-4">
-          Fjerner signeringsnøkkelen fra IndexedDB. Du må importere{" "}
-          <span className="mono">.pem</span>-filen på nytt. Eksisterende transaksjonsdata påvirkes
-          ikke.
-        </p>
-        <div className="flex gap-2">
-          <Button variant="danger" onClick={forgetKey}>
-            Glem signeringsnøkkel
-          </Button>
+        <div className="flex gap-2 flex-wrap">
           <Button variant="danger" loading={wiping} onClick={wipeTransactions}>
             Slett transaksjoner
           </Button>
           <Button variant="danger" loading={wipingAccounts} onClick={wipeAccounts}>
-            Slett all kontoer
+            Slett alle kontoer
+          </Button>
+          <Button variant="danger" loading={wipingAll} onClick={() => setWipeAllDialog(true)}>
+            Slett alt
           </Button>
         </div>
       </Card>
+
+      {wipeAllDialog && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={() => setWipeAllDialog(false)}
+        >
+          <div
+            className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-semibold text-text mb-2">Slett alt</h3>
+            <p className="text-xs text-muted mb-6">
+              Dette sletter signeringsnøkkelen, alle kontoer og alle transaksjoner permanent.
+              Du sendes tilbake til innledende oppsett. Handlingen kan ikke angres.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost" onClick={() => setWipeAllDialog(false)}>
+                Avbryt
+              </Button>
+              <Button variant="danger" onClick={wipeAll}>
+                Slett alt
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
