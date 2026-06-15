@@ -341,7 +341,7 @@ export default function Dashboard() {
       )}
 
       <div className="flex gap-1 mb-6 border-b border-border">
-        {(["kategorier", "kontoer", "transaksjoner"] as const).map((t) => (
+        {(["kategorier", "transaksjoner", "kontoer"] as const).map((t) => (
           <button
             key={t}
             className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${tab === t
@@ -350,7 +350,7 @@ export default function Dashboard() {
               }`}
             onClick={() => setTab(t)}
           >
-            {t === "kategorier" ? "Kategorier" : t === "kontoer" ? "Kontoer" : "Alle transaksjoner"}
+            {t === "kategorier" ? "Kategorier" : t === "kontoer" ? "Kontoer" : "Transaksjoner"}
           </button>
         ))}
       </div>
