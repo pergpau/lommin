@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { deleteAccount, resetAccountSync, setCategoryId } from "../lib/store";
 import { accountLabel } from "../lib/format";
@@ -8,6 +8,7 @@ import { useSyncState } from "../hooks/useSyncState";
 import Spinner from "../components/ui/Spinner";
 import Button from "../components/ui/Button";
 import Alert from "../components/ui/Alert";
+import { useSnackbar } from "../components/ui/Snackbar";
 import FlowSummaryChart from "../components/charts/FlowSummaryChart";
 import TransactionTable from "../components/transactions/TransactionTable";
 import { ArrowLeftIcon, RefreshCwIcon } from "../components/ui/icons";
@@ -31,7 +32,12 @@ export default function AccountPage() {
   const { transactions: all, loading: txLoading, refresh } = useTransactions(uid);
   const { syncing, syncMsg, error: syncError, failedAccounts, run: runSync } = useSyncState();
   const accountError = failedAccounts.get(uid ?? "");
+  const { showSnackbar } = useSnackbar();
   const [selectedMonth, setSelectedMonth] = useState("");
+
+  useEffect(() => {
+    if (syncMsg) showSnackbar(syncMsg, "ok");
+  }, [syncMsg, showSnackbar]);
 
   const loading = accountsLoading || txLoading;
 
@@ -144,9 +150,6 @@ export default function AccountPage() {
 
       {(syncError || accountError) && (
         <Alert type="error" message={accountError ?? syncError ?? ""} className="mb-4" />
-      )}
-      {syncMsg && !syncing && !accountError && (
-        <Alert type="ok" message={syncMsg} className="mb-4" />
       )}
 
       <div className="card px-4 py-3 mb-6 inline-block">

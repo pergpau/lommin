@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
+import { SnackbarProvider } from "./components/ui/Snackbar";
 import Setup from "./pages/Setup";
 import Connect from "./pages/Connect";
 import Dashboard from "./pages/Dashboard";
@@ -47,41 +48,43 @@ function RootRedirect() {
 
 export default function App() {
   return (
-    <Layout>
-      <ErrorBoundary>
-        <Routes>
-          <Route path="/setup" element={<Setup />} />
-          <Route path="/connect" element={<Connect />} />
-          <Route
-            path="/dashboard"
-            element={
-              <RequireKey>
-                <Dashboard />
-              </RequireKey>
-            }
-          />
-          <Route
-            path="/account/:uid"
-            element={
-              <RequireKey>
-                <Account />
-              </RequireKey>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <RequireKey>
-                <Settings />
-              </RequireKey>
-            }
-          />
-          <Route path="/oauth/google" element={<OAuthCallback />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="*" element={<RootRedirect />} />
-        </Routes>
-      </ErrorBoundary>
-    </Layout>
+    <SnackbarProvider>
+      <Layout>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/setup" element={<Setup />} />
+            <Route path="/connect" element={<Connect />} />
+            <Route
+              path="/dashboard"
+              element={
+                <RequireKey>
+                  <Dashboard />
+                </RequireKey>
+              }
+            />
+            <Route
+              path="/account/:uid"
+              element={
+                <RequireKey>
+                  <Account />
+                </RequireKey>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <RequireKey>
+                  <Settings />
+                </RequireKey>
+              }
+            />
+            <Route path="/oauth/google" element={<OAuthCallback />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="*" element={<RootRedirect />} />
+          </Routes>
+        </ErrorBoundary>
+      </Layout>
+    </SnackbarProvider>
   );
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
+import { useSnackbar } from "../components/ui/Snackbar";
 import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
 import { DownloadIcon, FileUpIcon, UploadIcon } from "../components/ui/icons";
@@ -66,12 +67,10 @@ export default function Settings() {
   const [dialog, setDialog] = useState<"save" | "load" | "drive-save" | "drive-load" | null>(null);
   const [driveToken, setDriveToken] = useState<string | null>(null);
   const [driveSyncing, setDriveSyncing] = useState<"connect" | "save" | "load" | null>(null);
-  const [driveMsg, setDriveMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [dialogPassphrase, setDialogPassphrase] = useState("");
   const [wiping, setWiping] = useState(false);
   const [wipingAccounts, setWipingAccounts] = useState(false);
-  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
-  const [backupMsg, setBackupMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const { showSnackbar } = useSnackbar();
 
   // Spiir import state
   const spiirFileRef = useRef<HTMLInputElement>(null);
@@ -83,7 +82,6 @@ export default function Settings() {
   const [spiirAccounts, setSpiirAccounts] = useState<SpiirAccount[]>([]);
   const [existingAccounts, setExistingAccounts] = useState<Account[]>([]);
   const [accountMap, setAccountMap] = useState<Record<string, string>>({});
-  const [spiirMsg, setSpiirMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   useEffect(() => {
     getAllSettings().then((s) => {
@@ -132,47 +130,44 @@ export default function Settings() {
 
   const saveProxy = useCallback(async () => {
     setSaving(true);
-    setMsg(null);
     try {
       await setSetting("proxyUrl", proxyUrl.trim());
-      setMsg({ type: "ok", text: "Proxy-URL lagret." });
+      showSnackbar("Proxy-URL lagret.", "ok");
     } catch (e) {
-      setMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
+      showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
     } finally {
       setSaving(false);
     }
-  }, [proxyUrl]);
+  }, [proxyUrl, showSnackbar]);
 
   const saveLookback = useCallback(async () => {
     setSavingLookback(true);
-    setMsg(null);
     try {
       await setSetting("lookbackDays", parseInt(lookbackDays, 10));
-      setMsg({ type: "ok", text: "Synkroniseringsperiode lagret." });
+      showSnackbar("Synkroniseringsperiode lagret.", "ok");
     } catch (e) {
-      setMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
+      showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
     } finally {
       setSavingLookback(false);
     }
-  }, [lookbackDays]);
+  }, [lookbackDays, showSnackbar]);
 
   const saveAppIdFn = useCallback(async () => {
     const trimmed = appId.trim();
     if (!trimmed) return;
     setSavingAppId(true);
-    setMsg(null);
     try {
       const kv = await loadKey();
       if (!kv) throw new Error("Ingen nøkkel lagret.");
       await saveKey(kv.key, trimmed);
       setAppId(trimmed);
-      setMsg({ type: "ok", text: "App ID oppdatert." });
+      showSnackbar("App ID oppdatert.", "ok");
     } catch (e) {
-      setMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
+      showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
     } finally {
       setSavingAppId(false);
     }
-  }, [appId]);
+  }, [appId, showSnackbar]);
 
   const openDialog = useCallback((mode: "save" | "load" | "drive-save" | "drive-load") => {
     setDialogPassphrase("");
@@ -192,28 +187,26 @@ export default function Settings() {
   const saveFile = useCallback(async (passphrase: string) => {
     setDialog(null);
     setSyncing("save");
-    setBackupMsg(null);
     try {
       const data = await exportAll();
       await saveEncryptedFile(data, passphrase);
-      setBackupMsg({ type: "ok", text: "Sikkerhetskopi lagret." });
+      showSnackbar("Sikkerhetskopi lagret.", "ok");
     } catch (e) {
       if ((e as Error).name !== "AbortError")
-        setBackupMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
+        showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
     } finally {
       setSyncing(null);
       setDialogPassphrase("");
     }
-  }, []);
+  }, [showSnackbar]);
 
   const loadFile = useCallback(async (passphrase: string) => {
     setDialog(null);
     setSyncing("load");
-    setBackupMsg(null);
     try {
       const data = await loadEncryptedFile(passphrase);
       await importAll(data);
-      setBackupMsg({ type: "ok", text: "Data hentet fra sikkerhetskopi." });
+      showSnackbar("Data hentet fra sikkerhetskopi.", "ok");
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
         const isDecryptErr = e instanceof DOMException && e.name === "OperationError";
@@ -222,56 +215,53 @@ export default function Settings() {
             ? "Feil passord."
             : "Filen er kryptert med passord. Huk av «Bruk passord» og prøv igjen."
           : e instanceof Error ? e.message : "Lasting feilet";
-        setBackupMsg({ type: "err", text });
+        showSnackbar(text, "error");
       }
     } finally {
       setSyncing(null);
       setDialogPassphrase("");
     }
-  }, []);
+  }, [showSnackbar]);
 
   const connectDrive = useCallback(async () => {
     if (!GOOGLE_CLIENT_ID) return;
     setDriveSyncing("connect");
-    setDriveMsg(null);
     try {
       const { token, expiresIn } = await signInWithGoogle(GOOGLE_CLIENT_ID);
       await persistDriveToken(token, expiresIn);
       setDriveToken(token);
     } catch (e) {
-      setDriveMsg({ type: "err", text: e instanceof Error ? e.message : "Tilkobling feilet" });
+      showSnackbar(e instanceof Error ? e.message : "Tilkobling feilet", "error");
     } finally {
       setDriveSyncing(null);
     }
-  }, []);
+  }, [showSnackbar]);
 
   const saveDrive = useCallback(async (passphrase: string) => {
     if (!driveToken) return;
     setDialog(null);
     setDriveSyncing("save");
-    setDriveMsg(null);
     try {
       const data = await exportAll();
       await saveBackupToDrive(driveToken, data, passphrase);
-      setDriveMsg({ type: "ok", text: "Sikkerhetskopi lagret til Google Drive." });
+      showSnackbar("Sikkerhetskopi lagret til Google Drive.", "ok");
     } catch (e) {
       if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
-      setDriveMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
+      showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
     } finally {
       setDriveSyncing(null);
       setDialogPassphrase("");
     }
-  }, [driveToken]);
+  }, [driveToken, showSnackbar]);
 
   const loadDrive = useCallback(async (passphrase: string) => {
     if (!driveToken) return;
     setDialog(null);
     setDriveSyncing("load");
-    setDriveMsg(null);
     try {
       const data = await loadBackupFromDrive(driveToken, passphrase);
       await importAll(data);
-      setDriveMsg({ type: "ok", text: "Data hentet fra Google Drive." });
+      showSnackbar("Data hentet fra Google Drive.", "ok");
     } catch (e) {
       if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
       const isDecryptErr = e instanceof DOMException && e.name === "OperationError";
@@ -280,12 +270,12 @@ export default function Settings() {
           ? "Feil passord."
           : "Filen er kryptert med passord. Huk av «Bruk passord» og prøv igjen."
         : e instanceof Error ? e.message : "Lasting feilet";
-      setDriveMsg({ type: "err", text });
+      showSnackbar(text, "error");
     } finally {
       setDriveSyncing(null);
       setDialogPassphrase("");
     }
-  }, [driveToken]);
+  }, [driveToken, showSnackbar]);
 
   const forgetKey = useCallback(async () => {
     await clearKey();
@@ -295,17 +285,16 @@ export default function Settings() {
   const wipeAccounts = useCallback(async () => {
     if (!confirm("Slett alle kontoer og tilhørende transaksjoner? Dette kan ikke angres.")) return;
     setWipingAccounts(true);
-    setMsg(null);
     try {
       await clearTransactions();
       await clearAccounts();
-      setMsg({ type: "ok", text: "Alle kontoer og transaksjoner er slettet." });
+      showSnackbar("Alle kontoer og transaksjoner er slettet.", "ok");
     } catch (e) {
-      setMsg({ type: "err", text: e instanceof Error ? e.message : "Sletting feilet" });
+      showSnackbar(e instanceof Error ? e.message : "Sletting feilet", "error");
     } finally {
       setWipingAccounts(false);
     }
-  }, []);
+  }, [showSnackbar]);
 
   const wipeTransactions = useCallback(async () => {
     if (
@@ -315,31 +304,23 @@ export default function Settings() {
     )
       return;
     setWiping(true);
-    setMsg(null);
     try {
       await clearTransactions();
-      setMsg({
-        type: "ok",
-        text: "Transaksjoner slettet. Kjør Synkroniser på oversikten for å hente på nytt.",
-      });
+      showSnackbar("Transaksjoner slettet. Kjør Synkroniser på oversikten for å hente på nytt.", "ok");
     } catch (e) {
-      setMsg({ type: "err", text: e instanceof Error ? e.message : "Sletting feilet" });
+      showSnackbar(e instanceof Error ? e.message : "Sletting feilet", "error");
     } finally {
       setWiping(false);
     }
-  }, []);
+  }, [showSnackbar]);
 
   const onSpiirFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setSpiirMsg(null);
     const text = await file.text();
     const parsed = parseSpiirCsvAccounts(text);
     if (parsed.length === 0) {
-      setSpiirMsg({
-        type: "err",
-        text: "Fant ingen kontoer i filen. Sjekk at filen er en gyldig Spiir-eksport.",
-      });
+      showSnackbar("Fant ingen kontoer i filen. Sjekk at filen er en gyldig Spiir-eksport.", "error");
       return;
     }
     const existing = await getAccounts();
@@ -352,20 +333,16 @@ export default function Settings() {
     setAccountMap(initMap);
     setSpiirStep("mapping");
     if (spiirFileRef.current) spiirFileRef.current.value = "";
-  }, []);
+  }, [showSnackbar]);
 
   const onSpiirZipChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setSpiirMsg(null);
     try {
       const buf = await file.arrayBuffer();
       const parsed = await parseSpiirZipAccounts(buf);
       if (parsed.length === 0) {
-        setSpiirMsg({
-          type: "err",
-          text: "Fant ingen kontoer i ZIP-filen. Sjekk at filen er en gyldig Spiir dataeksport.",
-        });
+        showSnackbar("Fant ingen kontoer i ZIP-filen. Sjekk at filen er en gyldig Spiir dataeksport.", "error");
         return;
       }
       const existing = await getAccounts();
@@ -391,18 +368,14 @@ export default function Settings() {
       setAccountMap(initMap);
       setSpiirStep("mapping");
     } catch (err) {
-      setSpiirMsg({
-        type: "err",
-        text: err instanceof Error ? err.message : "Kunne ikke lese ZIP-filen.",
-      });
+      showSnackbar(err instanceof Error ? err.message : "Kunne ikke lese ZIP-filen.", "error");
     } finally {
       if (spiirZipRef.current) spiirZipRef.current.value = "";
     }
-  }, []);
+  }, [showSnackbar]);
 
   const doSpiirImport = useCallback(async () => {
     setSpiirStep("importing");
-    setSpiirMsg(null);
     try {
       const payload =
         spiirMode === "zip"
@@ -410,29 +383,24 @@ export default function Settings() {
           : buildImportPayload(spiirText, accountMap);
       const { inserted, skipped } = await importAll({ ...payload, cursors: [] });
       const skipNote = skipped > 0 ? ` (${skipped} hoppet over – fantes allerede)` : "";
-      setSpiirMsg({
-        type: "ok",
-        text: `Importerte ${inserted} transaksjoner fra ${spiirAccounts.length} konto${spiirAccounts.length !== 1 ? "er" : ""}${skipNote}.`,
-      });
+      showSnackbar(
+        `Importerte ${inserted} transaksjoner fra ${spiirAccounts.length} konto${spiirAccounts.length !== 1 ? "er" : ""}${skipNote}.`,
+        "ok",
+      );
       setSpiirStep("idle");
     } catch (e) {
-      setSpiirMsg({ type: "err", text: e instanceof Error ? e.message : "Import feilet" });
+      showSnackbar(e instanceof Error ? e.message : "Import feilet", "error");
       setSpiirStep("mapping");
     }
-  }, [spiirMode, spiirText, spiirZipBuf, accountMap, spiirAccounts]);
+  }, [spiirMode, spiirText, spiirZipBuf, accountMap, spiirAccounts, showSnackbar]);
 
   const cancelSpiirImport = useCallback(() => {
     setSpiirStep("idle");
-    setSpiirMsg(null);
   }, []);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-xl font-semibold text-text mb-6">Innstillinger</h1>
-
-      {msg && (
-        <Alert type={msg.type === "ok" ? "ok" : "error"} message={msg.text} className="mb-6" />
-      )}
 
       {!hasKey && (
         <Card className="p-5 mb-4 border-accent/30 bg-accent/5">
@@ -621,13 +589,6 @@ export default function Settings() {
 
           {backupMethod === "drive" ? (
             <div>
-              {driveMsg && (
-                <Alert
-                  type={driveMsg.type === "ok" ? "ok" : "error"}
-                  message={driveMsg.text}
-                  className="mb-2"
-                />
-              )}
               {!GOOGLE_CLIENT_ID ? (
                 <p className="text-xs text-muted">
                   Google Drive er ikke konfigurert.{" "}
@@ -671,13 +632,6 @@ export default function Settings() {
             </div>
           ) : (
             <div>
-              {backupMsg && (
-                <Alert
-                  type={backupMsg.type === "ok" ? "ok" : "error"}
-                  message={backupMsg.text}
-                  className="mb-2"
-                />
-              )}
               <div className="flex gap-2">
                 <Button
                   className="flex-1 justify-center"
@@ -714,14 +668,6 @@ export default function Settings() {
           ZIP-eksport (full dataeksport) for bedre data med kontonavn, bank og kategorier fra Spiir.
           Duplikater hoppes over.
         </p>
-
-        {spiirMsg && (
-          <Alert
-            type={spiirMsg.type === "ok" ? "ok" : "error"}
-            message={spiirMsg.text}
-            className="mb-3"
-          />
-        )}
 
         {spiirStep === "idle" && (
           <>

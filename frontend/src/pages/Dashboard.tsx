@@ -6,6 +6,7 @@ import SpendingBreakdown from "../components/charts/SpendingBreakdown";
 import TransactionTable from "../components/transactions/TransactionTable";
 import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
+import { useSnackbar } from "../components/ui/Snackbar";
 import EmptyState from "../components/ui/EmptyState";
 import { DownloadIcon, MenuIcon, PlusIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
 import Input from "../components/ui/Input";
@@ -31,12 +32,12 @@ export default function Dashboard() {
     syncingAccountUids,
     run: runSync,
   } = useSyncState();
+  const { showSnackbar } = useSnackbar();
   const [hasKey, setHasKey] = useState(true);
   const [backupMethod, setBackupMethod] = useState<"drive" | "file">("file");
   const [usePassphrase, setUsePassphrase] = useState(false);
   const [dashDriveToken, setDashDriveToken] = useState<string | null>(null);
   const [dashBackupSaving, setDashBackupSaving] = useState(false);
-  const [dashMsg, setDashMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [dashDialog, setDashDialog] = useState(false);
   const [dashPassphrase, setDashPassphrase] = useState("");
 
@@ -50,8 +51,12 @@ export default function Dashboard() {
       if (stored) setDashDriveToken(stored.token);
     });
   }, []);
+
+  useEffect(() => {
+    if (syncMsg) showSnackbar(syncMsg, "ok");
+  }, [syncMsg, showSnackbar]);
+
   const handleQuickSaveClick = useCallback(() => {
-    setDashMsg(null);
     if (usePassphrase) {
       setDashPassphrase("");
       setDashDialog(true);
@@ -64,30 +69,29 @@ export default function Dashboard() {
   const handleQuickSave = useCallback(async (passphrase: string) => {
     setDashDialog(false);
     setDashBackupSaving(true);
-    setDashMsg(null);
     try {
       const data = await exportAll();
       if (backupMethod === "drive") {
         if (!dashDriveToken) {
-          setDashMsg({ type: "err", text: "Ikke koblet til Google Drive. Gå til Innstillinger for å koble til." });
+          showSnackbar("Ikke koblet til Google Drive. Gå til Innstillinger for å koble til.", "error");
           return;
         }
         await saveBackupToDrive(dashDriveToken, data, passphrase);
-        setDashMsg({ type: "ok", text: "Sikkerhetskopi lagret til Google Drive." });
+        showSnackbar("Sikkerhetskopi lagret til Google Drive.", "ok");
       } else {
         await saveEncryptedFile(data, passphrase);
-        setDashMsg({ type: "ok", text: "Sikkerhetskopi lagret som lokal fil." });
+        showSnackbar("Sikkerhetskopi lagret som lokal fil.", "ok");
       }
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
         if (e instanceof DriveAuthError) { setDashDriveToken(null); void clearDriveToken(); }
-        setDashMsg({ type: "err", text: e instanceof Error ? e.message : "Lagring feilet" });
+        showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
       }
     } finally {
       setDashBackupSaving(false);
       setDashPassphrase("");
     }
-  }, [backupMethod, dashDriveToken]);
+  }, [backupMethod, dashDriveToken, showSnackbar]);
 
   const connectTarget = hasKey ? "/connect" : "/setup";
   const hasLiveAccounts = accounts.some((acc) => !!getEnableBankingSource(acc));
@@ -292,12 +296,6 @@ export default function Dashboard() {
             </>
           )}
         </Alert>
-      )}
-
-      {syncMsg && !syncing && <Alert type="ok" message={syncMsg} className="mb-6" />}
-
-      {dashMsg && (
-        <Alert type={dashMsg.type === "ok" ? "ok" : "error"} message={dashMsg.text} className="mb-6" />
       )}
 
       {chartData.length > 0 && (
