@@ -55,17 +55,6 @@ function subMeta(subId: SubId): { icon: IconDefinition; name: string } {
   return { icon: getCategoryIcon(sub?.id), name: sub?.name ?? "Ukjent" };
 }
 
-function AmountBar({ total, max, color }: { total: number; max: number; color: string }) {
-  const pct = max > 0 ? Math.round((total / max) * 100) : 0;
-  return (
-    <div className="hidden sm:block flex-1 h-2 rounded-full bg-border overflow-hidden">
-      <div
-        className="h-full rounded-full transition-all duration-300"
-        style={{ width: `${pct}%`, backgroundColor: color }}
-      />
-    </div>
-  );
-}
 
 export default function SpendingBreakdown({ transactions, onCategoryChange }: Props) {
   const [view, setView] = useState<View>({ level: "main" });
@@ -151,7 +140,6 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
     const pool = excluded ? excludedPool : eligible;
     const m = mainMeta(mainId);
 
-    // Uncategorized has no sub-categories — show transaction list directly
     if (mainId === "uncategorized" || mainId === "uncategorized-income") {
       const filtered = pool.filter((t) => mainIdOf(t) === mainId);
       return (
@@ -183,7 +171,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
     const subRows = [...subMap.entries()]
       .map(([subId, total]) => ({ subId, total }))
       .sort((a, b) => b.total - a.total);
-    const subMax = subRows[0]?.total ?? 0;
+    const subTotal = subRows.reduce((sum, r) => sum + r.total, 0);
 
     return (
       <div>
@@ -194,40 +182,44 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
           ← Tilbake
         </button>
         <div className="card overflow-hidden mb-6">
-          <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-            <span className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
-              <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
-            </span>
-            <span className="text-sm font-medium text-text">{m.name}</span>
-          </div>
-          <div className="divide-y divide-border">
-            {subRows.map(({ subId, total }) => {
-              const s = subMeta(subId);
-              return (
-                <button
-                  key={subId}
-                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-surface-2 transition-colors text-left"
-                  onClick={() =>
-                    setView({
-                      level: "txns",
-                      mainId,
-                      subId,
-                      ...(excluded ? { excluded: true } : {}),
-                    })
-                  }
-                >
-                  <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
-                    <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
-                  </span>
-                  <span className="text-sm text-text flex-1 sm:flex-none sm:w-36 truncate">{s.name}</span>
-                  <AmountBar total={total} max={subMax} color={m.color} />
-                  <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
-                    {fmtAmount(total)} kr
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+            <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+              <span className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
+                <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
+              </span>
+              <span className="text-sm font-medium text-text">{m.name}</span>
+            </div>
+            <div className="divide-y divide-border">
+              {subRows.map(({ subId, total }) => {
+                const s = subMeta(subId);
+                const pct = subTotal > 0 ? (total / subTotal) * 100 : 0;
+                return (
+                  <button
+                    key={subId}
+                    className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
+                    style={{ backgroundColor: m.color + "12" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = m.color + "25")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = m.color + "12")}
+                    onClick={() =>
+                      setView({ level: "txns", mainId, subId, ...(excluded ? { excluded: true } : {}) })
+                    }
+                  >
+                    <span
+                      className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
+                      style={{ backgroundColor: m.color + "22", color: m.color }}
+                    >
+                      <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
+                    </span>
+                    <span className="text-sm text-text flex-1 truncate">{s.name}</span>
+                    <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
+                      {pct.toFixed(0)}%
+                    </span>
+                    <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
+                      {fmtAmount(total)} kr
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
         </div>
         <TransactionTable transactions={subTxns} onCategoryChange={onCategoryChange} />
       </div>
@@ -239,20 +231,27 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
   const incomeRows = mainRows.filter((r) => mainType(r.mainId) === "income");
   const savingRows = mainRows.filter((r) => mainType(r.mainId) === "saving");
 
-  function renderRows(rows: typeof mainRows, max: number, excluded?: boolean) {
+  function renderRows(rows: { mainId: MainId; total: number }[], excluded?: boolean) {
+    const sectionTotal = rows.reduce((sum, r) => sum + r.total, 0);
     return rows.map(({ mainId, total }) => {
       const m = mainMeta(mainId);
+      const pct = sectionTotal > 0 ? (total / sectionTotal) * 100 : 0;
       return (
         <button
           key={mainId}
-          className="w-full px-4 py-3 flex items-center gap-3 hover:bg-surface-2 transition-colors text-left"
+          className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
+          style={{ backgroundColor: m.color + "12" }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = m.color + "25")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = m.color + "12")}
           onClick={() => setView({ level: "sub", mainId, ...(excluded ? { excluded: true } : {}) })}
         >
           <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
             <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
           </span>
-          <span className="text-sm text-text flex-1 sm:flex-none sm:w-36 truncate">{m.name}</span>
-          <AmountBar total={total} max={max} color={m.color} />
+          <span className="text-sm text-text flex-1 truncate">{m.name}</span>
+          <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
+            {pct.toFixed(0)}%
+          </span>
           <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
             {fmtAmount(total)} kr
           </span>
@@ -261,30 +260,27 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
     });
   }
 
-  const maxExpense = Math.max(0, ...expenseRows.map((r) => r.total));
-  const maxIncome = Math.max(0, ...incomeRows.map((r) => r.total));
-  const maxSaving = Math.max(0, ...savingRows.map((r) => r.total));
-  const maxExcluded = Math.max(0, ...excludedMainRows.map((r) => r.total));
-
-  const sections: { label: string; rows: typeof mainRows; max: number; excluded?: boolean }[] = [
-    { label: "Utgifter", rows: expenseRows, max: maxExpense },
-    { label: "Inntekter", rows: incomeRows, max: maxIncome },
-    { label: "Sparing", rows: savingRows, max: maxSaving },
-    { label: "Ekskludert", rows: excludedMainRows, max: maxExcluded, excluded: true },
+  const sections: { label: string; rows: { mainId: MainId; total: number }[]; excluded?: boolean }[] = [
+    { label: "Utgifter", rows: expenseRows },
+    { label: "Inntekter", rows: incomeRows },
+    { label: "Sparing", rows: savingRows },
+    { label: "Ekskludert", rows: excludedMainRows, excluded: true },
   ];
 
   return (
     <div className="flex flex-col gap-6">
-      {sections.map(({ label, rows, max, excluded }) => (
+      {sections.map(({ label, rows, excluded }) => {
+        return (
           <div key={label}>
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted mb-2 px-1">
               {label}
             </h3>
             <div className="card overflow-hidden">
-              <div className="divide-y divide-border">{renderRows(rows, max, excluded)}</div>
+              <div className="divide-y divide-border">{renderRows(rows, excluded)}</div>
             </div>
           </div>
-        ))}
+        );
+      })}
     </div>
   );
 }
