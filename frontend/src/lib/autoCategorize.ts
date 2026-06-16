@@ -2,103 +2,103 @@ import type { Transaction } from "./store";
 
 const BTC_RULES: Array<[string | RegExp, number]> = [
   // Food & drink — specific first
-  ["FAST FOOD", 143],
-  ["EATING PLACES", 144],
-  ["RESTAURANTS", 144],
-  ["DRINKING PLACES", 144],
-  ["BARS/TAVERNS", 144],
+  ["FAST FOOD", 155],
+  ["EATING PLACES", 156],
+  ["RESTAURANTS", 156],
+  ["DRINKING PLACES", 156],
+  ["BARS/TAVERNS", 156],
 
   // Groceries / kiosk
-  ["GROCERY STORES", 126],
-  ["SUPERMARKETS", 126],
-  ["MISC FOOD STORES", 126],
-  ["NEWS DEALERS", 127],
-  ["CANDY", 127],
+  ["GROCERY STORES", 133],
+  ["SUPERMARKETS", 133],
+  ["MISC FOOD STORES", 133],
+  ["NEWS DEALERS", 134],
+  ["CANDY", 134],
 
   // Pharmacy
-  ["DRUG STORES", 134],
-  ["PHARMACIES", 134],
+  ["DRUG STORES", 142],
+  ["PHARMACIES", 142],
 
   // Transport
-  ["TAXICABS", 122],
-  ["LIMOUSINES", 122],
-  ["LOCAL COMMUTER TRANSPORT", 121],
-  ["BUS LINES", 121],
-  ["CHARTER", 121],
-  ["SERVICE STATIONS", 118],
-  ["TRANSPORTATION SVCS", 125],
+  ["TAXICABS", 129],
+  ["LIMOUSINES", 129],
+  ["LOCAL COMMUTER TRANSPORT", 128],
+  ["BUS LINES", 128],
+  ["CHARTER", 128],
+  ["SERVICE STATIONS", 125],
+  ["TRANSPORTATION SVCS", 132],
 
   // Travel
-  [/AIR SHUTTLE|AIRLINES?/i, 130],
-  ["NORWEGIAN AIR", 130],
-  ["HOTELS", 130],
-  ["LODGING", 130],
-  ["TOURIST ATTRACTIONS", 133],
-  ["DUTY FREE", 158],
+  [/AIR SHUTTLE|AIRLINES?/i, 137],
+  ["NORWEGIAN AIR", 137],
+  ["HOTELS", 137],
+  ["LODGING", 137],
+  ["TOURIST ATTRACTIONS", 140],
+  ["DUTY FREE", 169],
 
   // Digital goods — specific before generic (en-dash U+2013)
-  ["DIGITAL GOODS – GAMES", 148],
-  ["DIGITAL GOODS – GAMES", 148],
-  ["DIGITAL GOODS – MEDIA", 151],
-  ["DIGITAL GOODS MEDIA", 151],
-  ["DIGITAL GOODS", 157],
+  ["DIGITAL GOODS – GAMES", 160],
+  ["DIGITAL GOODS – GAMES", 160],
+  ["DIGITAL GOODS – MEDIA", 163],
+  ["DIGITAL GOODS MEDIA", 163],
+  ["DIGITAL GOODS", 168],
 
   // Tech / software
-  ["COMPUTER SOFTWARE", 157],
-  ["COMPUTER NETWORK", 157],
+  ["COMPUTER SOFTWARE", 168],
+  ["COMPUTER NETWORK", 168],
 
   // Clothing
-  ["CLOTHING STORES", 145],
-  ["FAMILY CLOTHING", 145],
-  ["APPAREL", 145],
+  ["CLOTHING STORES", 157],
+  ["FAMILY CLOTHING", 157],
+  ["APPAREL", 157],
 
   // Electronics
-  ["HOUSEHOLD APPLIANCE", 147],
+  ["HOUSEHOLD APPLIANCE", 159],
 
   // Sports
-  ["SPORTING GOODS", 142],
-  ["COMMERCIAL SPORTS", 142],
-  ["ATHLETIC", 142],
+  ["SPORTING GOODS", 154],
+  ["COMMERCIAL SPORTS", 154],
+  ["ATHLETIC", 154],
 
   // Beauty / personal care
-  ["BEAUTY", 150],
-  ["BARBER", 150],
+  ["BEAUTY", 162],
+  ["BARBER", 162],
 
   // Culture / entertainment
-  ["ART DEALERS", 152],
-  ["GALLERIES", 152],
+  ["ART DEALERS", 164],
+  ["GALLERIES", 164],
 
   // Charity
-  ["CHARITABLE", 155],
-  ["SOC SERVICE ORGS", 155],
+  ["CHARITABLE", 167],
+  ["SOC SERVICE ORGS", 167],
 
   // Government
-  ["GOV'T SERV", 164],
+  ["GOV'T SERV", 177],
 
   // Misc shopping
-  ["DEPARTMENT STORES", 156],
-  ["USED MERCHANDISE", 156],
+  ["DEPARTMENT STORES", 172],
+  ["USED MERCHANDISE", 172],
 ];
 
 const CREDITOR_RULES: Array<[RegExp, number]> = [
-  [/\bBOLT\b/i, 122],
-  [/\bRUTER\b/i, 121],
-  [/Vipps\*Norweg/i, 130],
-  [/\bFLYTOGET\b/i, 121],
-  [/\bENTUR\b/i, 121],
-  [/STEAMGAMES|STEAM/i, 148],
-  [/NETFLIX/i, 151],
-  [/SPOTIFY/i, 151],
-  [/Vipps\*GOOGLE|PAYPAL.*GOOGLE/i, 157],
-  [/HETZNER|NORDHOST/i, 157],
-  [/\bOBOS\b/i, 111],
+  [/\bBOLT\b/i, 129],
+  [/\bRUTER\b/i, 128],
+  [/Vipps\*Norweg/i, 137],
+  [/\bFLYTOGET\b/i, 128],
+  [/\bENTUR\b/i, 128],
+  [/STEAMGAMES|STEAM/i, 160],
+  [/NETFLIX/i, 163],
+  [/SPOTIFY/i, 163],
+  [/Vipps\*GOOGLE|PAYPAL.*GOOGLE/i, 168],
+  [/HETZNER|NORDHOST/i, 168],
+  [/\bOBOS\b/i, 116],
 ];
 
 const DESCRIPTION_RULES: Array<[RegExp, number]> = [
-  [/\b(kiwi|rema\s*1000|coop|meny|spar|extra|holdbart)\b/i, 126],
-  [/\b(narvesen|7.eleven|7eleven|press)\b/i, 127],
-  [/\b(vitusapotek|apotek1?|boots apotek)\b/i, 134],
-  [/\b(kanpla|compass)\b/i, 143],
+  [/\b(kiwi|rema\s*1000|coop|meny|spar|extra|holdbart)\b/i, 133],
+  [/\b(narvesen|7.eleven|7eleven|press)\b/i, 134],
+  [/\b(vitusapotek|apotek1?|boots apotek)\b/i, 142],
+  [/\b(kanpla|compass)\b/i, 155],
 ];
 
 export function guessCategory(
@@ -112,7 +112,7 @@ export function guessCategory(
   // --- CRDT short-circuit ---
   if (tx.creditDebit === "CRDT") {
     const desc = tx.description.toLowerCase();
-    if (desc.includes("cashback transfer") || desc.includes("innbetaling")) return 108;
+    if (desc.includes("cashback transfer") || desc.includes("innbetaling")) return 113;
     return undefined;
   }
 

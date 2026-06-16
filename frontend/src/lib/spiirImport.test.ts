@@ -34,7 +34,7 @@ describe("buildImportPayload", () => {
     const p1 = transactions.find((t) => t.entryReference === "p1")!;
     expect(p1.amount).toBeCloseTo(-100.5);
     expect(p1.bookingDate).toBe("2024-01-10");
-    expect(p1.categoryId).toBe(126); // Spiir 132 → own 126 (Dagligvarer)
+    expect(p1.categoryId).toBe(133); // Spiir 132 → own 133 (Dagligvarer)
     expect(p1.creditDebit).toBe("DBIT");
     expect(p1.id).toBe(`${uid}::p1`);
     expect(p1.accountUid).toBe(uid);

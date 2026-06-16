@@ -12,89 +12,111 @@ const SPIIR_CATEGORY_MAP: Record<number, number> = {
 
   // --- Inntekt ---
   103: 103, // Lønn
+  104: 108, // Pensjonsinntekt
   105: 104, // Dagpenger
+  106: 112, // Studielån / Stipend
+  107: 110, // Barnetrygd
+  108: 113, // Andre inntekter (underholdsbidrag mottatt)
+  109: 109, // Feriepenger
   110: 105, // Renteinntekter
   111: 106, // Avkastning & Utbytte
   112: 107, // Tilbakebetalt skatt
-  113: 108, // Andre inntekter
+  113: 113, // Andre inntekter
+  190: 111, // Bostøtte
 
   // --- Bolig ---
-  114: 109, // Lån/Husleie
-  115: 110, // Strøm & Energi
-  116: 111, // Felleskostnader
-  118: 112, // Bygningsforsikring
-  119: 113, // Innboforsikring
-  122: 114, // Oppussing & Reparasjon
-  187: 115, // Andre boutgifter
-  195: 116, // Hage & Planter
+  114: 114, // Lån/Husleie
+  115: 115, // Strøm & Energi
+  116: 116, // Felleskostnader
+  117: 119, // Eiendomsskatt
+  118: 117, // Bygningsforsikring
+  119: 118, // Innboforsikring
+  120: 123, // Andre boutgifter (alarmsystem)
+  121: 120, // Hytte & Fritidshus
+  122: 121, // Oppussing & Reparasjon
+  151: 123, // Andre boutgifter (hus & havehjælp)
+  187: 123, // Andre boutgifter
+  195: 122, // Hage & Planter
 
   // --- Bil & Transport ---
-  123: 117, // Billån m.m.
-  124: 118, // Drivstoff
-  125: 119, // Bilforsikring & Assistanse
-  126: 120, // Årsavgift & Engangsavgift
-  127: 121, // Kollektivtransport
-  128: 122, // Taxi
-  129: 123, // Parkering
-  130: 124, // Garasje & Bildeler
-  131: 125, // Annen transport
+  123: 124, // Billån m.m.
+  124: 125, // Drivstoff
+  125: 126, // Bilforsikring & Assistanse
+  126: 127, // Årsavgift & Engangsavgift
+  127: 128, // Kollektivtransport
+  128: 129, // Taxi
+  129: 130, // Parkering
+  130: 131, // Garasje & Bildeler
+  131: 132, // Annen transport
 
   // --- Dagligvarer & Mat ---
-  132: 126, // Dagligvarer
-  133: 127, // Kiosk & Delikatesser
-  192: 128, // Matkasse
+  132: 133, // Dagligvarer
+  133: 134, // Kiosk & Delikatesser
+  192: 135, // Matkasse
 
   // --- Reise ---
-  135: 130, // Fly & Hotell
-  138: 131, // Leiebil
-  139: 132, // Feriehus & Camping
-  140: 133, // Ferieaktiviteter
+  135: 137, // Fly & Hotell
+  138: 138, // Leiebil
+  139: 139, // Feriehus & Camping
+  140: 140, // Ferieaktiviteter
+  141: 141, // Reiseforsikring
 
   // --- Faste utgifter ---
-  134: 134, // Apotek
-  144: 135, // Fagforening & Dagpengeforsikring
-  148: 136, // TV & Strømming
-  149: 137, // Telefon & Internett
-  153: 138, // Legespesialist
-  154: 139, // Briller & Linser
-  189: 140, // Utdanning
-  191: 141, // Medlemskap
+  134: 142, // Apotek
+  142: 152, // Underholdsbidrag
+  143: 151, // Barnehage & SFO
+  144: 143, // Fagforening & Dagpengeforsikring
+  145: 144, // Livsforsikring
+  146: 145, // Helseforsikring
+  148: 146, // TV & Strømming
+  149: 147, // Telefon & Internett
+  153: 148, // Legespesialist
+  154: 149, // Briller & Linser
+  189: 150, // Utdanning
+  191: 153, // Medlemskap
+  193: 150, // Utdanning (højskole & kursusophold)
 
   // --- Fritid ---
-  147: 142, // Sport & Fritid
-  155: 143, // Fast Food & Take Away
-  156: 144, // Restaurant & Bar
-  157: 145, // Klær & Accessoarer
-  158: 146, // Møbler & Interiør
-  159: 147, // Elektronikk & Data
-  160: 148, // Spill & Leketøy
-  161: 149, // Hobby & Sportsutstyr
-  162: 150, // Frisør & Personlig pleie
-  163: 151, // Film, Musikk & Bøker
-  164: 152, // Kino, Konserter & Underholdning
-  165: 153, // Spill & Odds
-  168: 154, // Kjæledyr
-  169: 155, // Gaver & Veldedighet
-  170: 156, // Annet privat forbruk
-  186: 157, // Nettjenester & Programvare
-  188: 158, // Tobakk & Alkohol
-  194: 159, // Rådgivere & Tjenester
+  147: 154, // Sport & Fritid
+  155: 155, // Fast Food & Take Away
+  156: 156, // Restaurant & Bar
+  157: 157, // Klær & Accessoarer
+  158: 158, // Møbler & Interiør
+  159: 159, // Elektronikk & Data
+  160: 160, // Spill & Leketøy
+  161: 161, // Hobby & Sportsutstyr
+  162: 162, // Frisør & Personlig pleie
+  163: 163, // Film, Musikk & Bøker
+  164: 164, // Kino, Konserter & Underholdning
+  165: 165, // Spill & Odds
+  167: 172, // Annet privat forbruk (babyudstyr)
+  168: 166, // Kjæledyr
+  169: 167, // Gaver & Veldedighet
+  170: 172, // Annet privat forbruk
+  172: 171, // Kontantuttak
+  186: 168, // Nettjenester & Programvare
+  188: 169, // Tobakk & Alkohol
+  194: 170, // Rådgivere & Tjenester
 
   // --- Annet ---
-  171: 160, // Ukjent
-  174: 161, // Bankgebyrer
-  176: 162, // Bøter
-  177: 163, // Restskatt
-  196: 164, // Offentlig gebyr
+  171: 173, // Ukjent
+  174: 174, // Bankgebyrer
+  175: 174, // Bankgebyrer (rykkergebyrer)
+  176: 175, // Bøter
+  177: 176, // Restskatt
+  196: 177, // Offentlig gebyr
 
   // --- Gjeld & Renter ---
-  178: 165, // Studielån
-  179: 166, // Forbrukslån
-  180: 167, // Privatlån (Venner & Familie)
-  181: 168, // Renter
+  178: 178, // Studielån
+  179: 179, // Forbrukslån
+  180: 180, // Privatlån (venner & familie)
+  181: 181, // Renter
 
   // --- Pensjon & Sparing ---
-  184: 169, // Annen sparing
+  182: 182, // Pensjonssparing
+  183: 183, // Barnesparing
+  184: 185, // Annen sparing
+  185: 184, // Verdipapirhandel
 };
 
 function mapSpiirCategory(spiirId: number | undefined): number | undefined {

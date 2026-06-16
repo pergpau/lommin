@@ -19,17 +19,17 @@ function tx(partial: Partial<Transaction>): Transaction {
 
 describe("guessCategory", () => {
   it("matches a grocery merchant from the description", () => {
-    expect(guessCategory(tx({ description: "KIWI MAJORSTUEN" }))).toBe(132);
+    expect(guessCategory(tx({ description: "KIWI MAJORSTUEN" }))).toBe(133);
   });
 
   it("matches a creditor-name rule", () => {
-    expect(guessCategory(tx({ raw: { creditor: { name: "RUTER AS" } } }))).toBe(127);
+    expect(guessCategory(tx({ raw: { creditor: { name: "RUTER AS" } } }))).toBe(128);
   });
 
   it("matches a BTC code", () => {
     expect(
       guessCategory(tx({ raw: { bank_transaction_code: { description: "GROCERY STORES" } } })),
-    ).toBe(132);
+    ).toBe(133);
   });
 
   it("lets the user history override the rules", () => {
