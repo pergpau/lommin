@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
+import { MAIN_CATEGORIES, MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
 import type { Transaction } from "../../lib/store";
 import { fmtAmount } from "../../lib/format";
 import TransactionTable from "../transactions/TransactionTable";
@@ -83,13 +83,14 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
       const delta = mainType(id) === "income" ? t.amount : -t.amount;
       map.set(id, (map.get(id) ?? 0) + delta);
     }
-    return [...map.entries()]
-      .map(([mainId, total]) => ({ mainId, total }))
-      .sort((a, b) => {
-        if (a.mainId === "uncategorized") return 1;
-        if (b.mainId === "uncategorized") return -1;
-        return b.total - a.total;
-      });
+    const rows: { mainId: MainId; total: number }[] = MAIN_CATEGORIES.filter((cat) =>
+      cat.subCategories.some((s) => s.type !== "exclude"),
+    ).map((cat) => ({ mainId: cat.id as MainId, total: map.get(cat.id) ?? 0 }));
+    if (map.has("uncategorized"))
+      rows.push({ mainId: "uncategorized", total: map.get("uncategorized")! });
+    if (map.has("uncategorized-income"))
+      rows.push({ mainId: "uncategorized-income", total: map.get("uncategorized-income")! });
+    return rows;
   }, [eligible]);
 
   const excludedMainRows = useMemo(() => {
@@ -99,9 +100,9 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
       const delta = mainType(id) === "income" ? t.amount : -t.amount;
       map.set(id, (map.get(id) ?? 0) + delta);
     }
-    return [...map.entries()]
-      .map(([mainId, total]) => ({ mainId, total }))
-      .sort((a, b) => b.total - a.total);
+    return MAIN_CATEGORIES.filter((cat) =>
+      cat.subCategories.every((s) => s.type === "exclude"),
+    ).map((cat) => ({ mainId: cat.id as MainId, total: map.get(cat.id) ?? 0 }));
   }, [excludedPool]);
 
   if (eligible.length === 0 && excludedPool.length === 0) {
@@ -248,10 +249,10 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
     });
   }
 
-  const maxExpense = expenseRows[0]?.total ?? 0;
-  const maxIncome = incomeRows[0]?.total ?? 0;
-  const maxSaving = savingRows[0]?.total ?? 0;
-  const maxExcluded = excludedMainRows[0]?.total ?? 0;
+  const maxExpense = Math.max(0, ...expenseRows.map((r) => r.total));
+  const maxIncome = Math.max(0, ...incomeRows.map((r) => r.total));
+  const maxSaving = Math.max(0, ...savingRows.map((r) => r.total));
+  const maxExcluded = Math.max(0, ...excludedMainRows.map((r) => r.total));
 
   const sections: { label: string; rows: typeof mainRows; max: number; excluded?: boolean }[] = [
     { label: "Utgifter", rows: expenseRows, max: maxExpense },
@@ -262,9 +263,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
 
   return (
     <div className="flex flex-col gap-6">
-      {sections
-        .filter((s) => s.rows.length > 0)
-        .map(({ label, rows, max, excluded }) => (
+      {sections.map(({ label, rows, max, excluded }) => (
           <div key={label}>
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted mb-2 px-1">
               {label}
