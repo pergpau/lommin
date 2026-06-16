@@ -121,7 +121,6 @@ export default function Dashboard() {
   const [actionsOpen, setActionsOpen] = useState(false);
 
   function txSection(t: (typeof transactions)[0]): "income" | "expense" | "saving" | null {
-    if (t.isTransfer) return null;
     if (t.categoryId != null) {
       const type = SUB_CATEGORY_MAP[t.categoryId]?.type;
       if (type === "exclude") return null;

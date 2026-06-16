@@ -47,7 +47,6 @@ export interface Transaction {
   creditDebit?: "CRDT" | "DBIT";
   description: string;
   status: string;
-  isTransfer?: boolean;
   categoryId?: number;
   raw: Record<string, unknown>;
 }
@@ -153,15 +152,13 @@ export async function getAllTransactions(): Promise<Transaction[]> {
   return (await db()).getAll("transactions");
 }
 
-// Mark transactions as transfers (or clear the flag). Reads each record, updates isTransfer, writes back.
-export async function markTransfers(transferIds: Set<string>): Promise<void> {
+export async function tagTransferCategory(transferIds: Set<string>): Promise<void> {
   const d = await db();
   const all = await d.getAll("transactions");
   const tx = d.transaction("transactions", "readwrite");
   for (const t of all) {
-    const flag = transferIds.has(t.id);
-    if (flag !== (t.isTransfer ?? false)) {
-      await tx.store.put({ ...t, isTransfer: flag });
+    if (transferIds.has(t.id) && t.categoryId === undefined) {
+      await tx.store.put({ ...t, categoryId: 100 });
     }
   }
   await tx.done;
@@ -282,7 +279,6 @@ function validateTransaction(v: unknown, i: number): Transaction {
     creditDebit: t.creditDebit === "CRDT" || t.creditDebit === "DBIT" ? t.creditDebit : undefined,
     description: optString(t.description) ?? "",
     status: optString(t.status) ?? "",
-    isTransfer: typeof t.isTransfer === "boolean" ? t.isTransfer : undefined,
     categoryId: optNumber(t.categoryId),
     raw: isRecord(t.raw) ? t.raw : {},
   };

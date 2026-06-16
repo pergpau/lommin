@@ -66,11 +66,6 @@ export default function TransactionTable({
                 >
                   {t.description || "—"}
                   {t.status === "PNDG" ? " (Reservert)" : ""}
-                  {t.isTransfer && (
-                    <span className="ml-1.5 text-xs px-1.5 py-0.5 rounded-full bg-accent/10 text-accent font-medium">
-                      Overføring
-                    </span>
-                  )}
                 </div>
                 <div className="text-xs text-muted mt-0.5">
                   {fmtDate(t.bookingDate ?? t.transactionDate)}

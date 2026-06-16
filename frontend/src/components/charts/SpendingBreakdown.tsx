@@ -20,7 +20,6 @@ interface Props {
 }
 
 function isEligible(t: Transaction): boolean {
-  if (t.isTransfer) return false;
   if (t.categoryId != null && SUB_CATEGORY_MAP[t.categoryId]?.type === "exclude") return false;
   return true;
 }
@@ -72,10 +71,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
   const excludedPool = useMemo(
     () =>
       transactions.filter(
-        (t) =>
-          !t.isTransfer &&
-          t.categoryId != null &&
-          SUB_CATEGORY_MAP[t.categoryId]?.type === "exclude",
+        (t) => t.categoryId != null && SUB_CATEGORY_MAP[t.categoryId]?.type === "exclude",
       ),
     [transactions],
   );

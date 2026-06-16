@@ -7,7 +7,6 @@ const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 // opposite signs, booking dates within 3 days of each other. Greedy — each transaction
 // is matched at most once.
 export function detectTransfers(transactions: Transaction[]): Set<string> {
-  // Group by currency + rounded amount bucket for O(n) inner loop in typical cases
   const buckets = new Map<string, Transaction[]>();
   for (const t of transactions) {
     const key = `${t.currency}::${Math.round(Math.abs(t.amount) * 100)}`;

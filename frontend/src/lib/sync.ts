@@ -5,7 +5,7 @@ import {
   saveAccount,
   upsertTransactions,
   getAllTransactions,
-  markTransfers,
+  tagTransferCategory,
   getEnableBankingSource,
   type Account,
 } from "./store";
@@ -113,9 +113,8 @@ export async function syncAccounts(
     }
   }
 
-  onProgress?.("Oppdaterer overføringer…");
   const allTxns = await getAllTransactions();
-  await markTransfers(detectTransfers(allTxns));
+  await tagTransferCategory(detectTransfers(allTxns));
 
   return { inserted, errors };
 }

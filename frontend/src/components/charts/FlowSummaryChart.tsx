@@ -1,15 +1,18 @@
 import { fmtAmount } from "../../lib/format";
+import { SUB_CATEGORY_MAP } from "../../lib/categories";
 import type { Transaction } from "../../lib/store";
 
 type FlowSummaryChartProps = { transactions: Transaction[]; currency: string };
 
 export default function FlowSummaryChart({ transactions, currency }: FlowSummaryChartProps) {
-  const nonTransfers = transactions.filter((t) => !t.isTransfer);
-  const income = nonTransfers
+  const nonExcluded = transactions.filter(
+    (t) => t.categoryId == null || SUB_CATEGORY_MAP[t.categoryId]?.type !== "exclude",
+  );
+  const income = nonExcluded
     .filter((t) => !(t.creditDebit ? t.creditDebit === "DBIT" : t.amount < 0))
     .reduce((s, t) => s + t.amount, 0);
   const expense = Math.abs(
-    nonTransfers
+    nonExcluded
       .filter((t) => (t.creditDebit ? t.creditDebit === "DBIT" : t.amount < 0))
       .reduce((s, t) => s + t.amount, 0),
   );
