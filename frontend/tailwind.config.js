@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"DM Sans"', "sans-serif"],
-        mono: ['"DM Mono"', "monospace"],
+        sans: ['"Geist"', "sans-serif"],
+        mono: ['"Geist Mono"', "monospace"],
       },
       colors: {
         bg: "rgb(var(--c-bg) / <alpha-value>)",
