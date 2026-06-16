@@ -135,10 +135,8 @@ export async function upsertTransactions(txns: Transaction[]): Promise<number> {
   const tx = d.transaction("transactions", "readwrite");
   for (const t of txns) {
     const existing = await tx.store.get(t.id);
-    if (!existing) {
-      await tx.store.put(t);
-      inserted++;
-    }
+    if (!existing) inserted++;
+    await tx.store.put(t);
   }
   await tx.done;
   return inserted;
