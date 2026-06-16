@@ -132,6 +132,7 @@ interface RawTransaction {
   status?: string;
   remittance_information?: string[];
   creditor?: { name?: string };
+  bank_transaction_code?: { description?: string | null; code?: string; sub_code?: string | null };
 }
 
 // API sends a positive magnitude plus a separate indicator. Apply the sign so
@@ -199,6 +200,7 @@ export async function fetchTransactions(
       currency: r.transaction_amount?.currency ?? "",
       creditDebit: parseCreditDebit(r),
       description: parseDescription(r),
+      bankTransactionCode: r.bank_transaction_code?.description || undefined,
       status: r.status ?? "",
       raw: { ...r },
     };

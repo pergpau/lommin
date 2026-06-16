@@ -46,6 +46,7 @@ export interface Transaction {
   currency: string;
   creditDebit?: "CRDT" | "DBIT";
   description: string;
+  bankTransactionCode?: string;
   status: string;
   categoryId?: number;
   raw: Record<string, unknown>;
