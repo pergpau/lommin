@@ -19,9 +19,6 @@ export default function CategoryBadge({ categoryId, onClick }: CategoryBadgeProp
         <div className="w-8 h-8 rounded-lg border border-dashed border-border group-hover:border-text/30 flex items-center justify-center text-muted/40 group-hover:text-muted transition-colors text-sm leading-none">
           +
         </div>
-        <span className="text-[9px] text-muted/30 group-hover:text-muted/60 transition-colors leading-none select-none">
-          Kategori
-        </span>
       </button>
     );
   }
@@ -38,12 +35,6 @@ export default function CategoryBadge({ categoryId, onClick }: CategoryBadgeProp
       >
         {subCat.icon}
       </div>
-      <span
-        className="text-[9px] leading-tight text-center w-full line-clamp-2 select-none transition-opacity group-hover:opacity-70"
-        style={{ color: mainCat.color }}
-      >
-        {subCat.name}
-      </span>
     </button>
   );
 }
