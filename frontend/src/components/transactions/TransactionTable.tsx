@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { amountClass, fmtAmount, fmtDate } from "../../lib/format";
 import type { Transaction } from "../../lib/store";
 import { PAGE_SIZE } from "../../constants";
-import CategoryBadge from "./CategoryBadge";
 import CategoryPicker from "./CategoryPicker";
 import TransactionDetail from "./TransactionDetail";
+import TransactionRow from "./TransactionRow";
 
 type TransactionTableProps = {
   transactions: Transaction[];
@@ -55,38 +54,12 @@ export default function TransactionTable({
         )}
         <div className="divide-y divide-border">
           {pageItems.map((t) => (
-            <div
+            <TransactionRow
               key={t.id}
-              className="px-4 py-3 flex items-center gap-3 hover:bg-surface-2 transition-colors cursor-pointer"
+              transaction={t}
               onClick={() => setDetailForId(t.id)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") setDetailForId(t.id);
-              }}
-            >
-              <div onClick={(e) => e.stopPropagation()}>
-                <CategoryBadge
-                  categoryId={t.categoryId}
-                  onClick={() => (onCategoryChange ? setPickerFor(t) : undefined)}
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div
-                  className={`text-sm truncate ${t.status === "PNDG" ? "italic text-muted" : "text-text"}`}
-                >
-                  {t.description || "—"}
-                  {t.status === "PNDG" ? " (Reservert)" : ""}
-                </div>
-                <div className="text-xs text-muted mt-0.5">
-                  {fmtDate(t.bookingDate ?? t.transactionDate)}
-                </div>
-              </div>
-              <div className={`mono text-sm font-medium tabular-nums ${amountClass(t)}`}>
-                {t.amount >= 0 ? "+" : ""}
-                {fmtAmount(t.amount, t.currency)}
-              </div>
-            </div>
+              onCategoryClick={onCategoryChange ? () => setPickerFor(t) : undefined}
+            />
           ))}
         </div>
 
