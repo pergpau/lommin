@@ -256,7 +256,7 @@ export default function Dashboard() {
           <Button
             loading={syncing}
             disabled={!hasLiveAccounts}
-            onClick={() => runSync(accounts, reload)}
+            onClick={() => runSync(accounts, () => { reload(); refresh(); })}
           >
             <RefreshCwIcon size={14} />
             Synkroniser
@@ -299,7 +299,7 @@ export default function Dashboard() {
                 disabled={!hasLiveAccounts || syncing}
                 onClick={() => {
                   setActionsOpen(false);
-                  runSync(accounts, reload);
+                  runSync(accounts, () => { reload(); refresh(); });
                 }}
               >
                 <RefreshCwIcon size={13} />
