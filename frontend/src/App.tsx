@@ -82,7 +82,7 @@ export default function App() {
               }
             />
             <Route path="/oauth/google" element={<OAuthCallback />} />
-            <Route path="/privacy" element={<Privacy />} />
+<Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="*" element={<RootRedirect />} />
           </Routes>

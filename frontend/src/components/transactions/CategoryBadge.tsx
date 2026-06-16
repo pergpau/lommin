@@ -1,8 +1,10 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
+import { getCategoryIcon } from "../../lib/categoryIcons";
 
 interface CategoryBadgeProps {
   categoryId?: number;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 export default function CategoryBadge({ categoryId, onClick }: CategoryBadgeProps) {
@@ -30,10 +32,10 @@ export default function CategoryBadge({ categoryId, onClick }: CategoryBadgeProp
       title={`${mainCat.name} › ${subCat.name}`}
     >
       <div
-        className="w-8 h-8 rounded-lg flex items-center justify-center text-base leading-none transition-opacity group-hover:opacity-80"
-        style={{ backgroundColor: mainCat.color + "22" }}
+        className="w-8 h-8 rounded-lg flex items-center justify-center transition-opacity group-hover:opacity-80"
+        style={{ backgroundColor: mainCat.color + "22", color: mainCat.color, padding: "7px" }}
       >
-        {subCat.icon}
+        <FontAwesomeIcon icon={getCategoryIcon(subCat.id)} style={{ width: "100%", height: "100%" }} />
       </div>
     </button>
   );

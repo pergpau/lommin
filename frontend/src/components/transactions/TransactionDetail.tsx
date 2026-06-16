@@ -1,5 +1,7 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { amountClass, fmtAmount, fmtDate, statusLabel } from "../../lib/format";
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP, type MainCategory, type SubCategory } from "../../lib/categories";
+import { getCategoryIcon } from "../../lib/categoryIcons";
 import type { Transaction } from "../../lib/store";
 
 interface TransactionDetailProps {
@@ -131,11 +133,11 @@ function CategoryPill({
     };
     return onClick ? (
       <button className={base + hoverClass} style={style} onClick={onClick}>
-        {subCat.icon} {subCat.name}
+        <FontAwesomeIcon icon={getCategoryIcon(subCat.id)} className="w-3 h-3" /> {subCat.name}
       </button>
     ) : (
       <span className={base} style={style}>
-        {subCat.icon} {subCat.name}
+        <FontAwesomeIcon icon={getCategoryIcon(subCat.id)} className="w-3 h-3" /> {subCat.name}
       </span>
     );
   }

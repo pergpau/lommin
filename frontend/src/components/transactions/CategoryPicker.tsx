@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   MAIN_CATEGORIES,
   SUB_CATEGORY_MAP,
@@ -6,6 +7,7 @@ import {
   type CategoryType,
   type MainCategory,
 } from "../../lib/categories";
+import { getCategoryIcon } from "../../lib/categoryIcons";
 
 interface CategoryPickerProps {
   currentCategoryId?: number;
@@ -106,7 +108,11 @@ export default function CategoryPicker({
                     : "text-text hover:bg-surface-2"
                 }`}
               >
-                <span className="text-base leading-none shrink-0">{m.icon}</span>
+                <FontAwesomeIcon
+                  icon={getCategoryIcon(m.id)}
+                  className="w-3.5 h-3.5 shrink-0"
+                  style={{ color: m.color }}
+                />
                 {m.name}
               </button>
             ))}
@@ -125,7 +131,11 @@ export default function CategoryPicker({
                       : "text-text hover:bg-surface-2"
                   }`}
                 >
-                  <span className="text-base leading-none shrink-0">{s.icon}</span>
+                  <FontAwesomeIcon
+                    icon={getCategoryIcon(s.id)}
+                    className="w-3.5 h-3.5 shrink-0"
+                    style={{ color: activeMain?.color }}
+                  />
                   {s.name}
                 </button>
               ))

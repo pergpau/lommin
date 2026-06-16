@@ -1,5 +1,9 @@
 import { useState, useMemo } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { faQuestion } from "@fortawesome/free-solid-svg-icons";
 import { MAIN_CATEGORIES, MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
+import { getCategoryIcon } from "../../lib/categoryIcons";
 import type { Transaction } from "../../lib/store";
 import { fmtAmount } from "../../lib/format";
 import TransactionTable from "../transactions/TransactionTable";
@@ -38,17 +42,17 @@ function mainType(mainId: MainId): SectionType {
   return firstType === "income" || firstType === "saving" ? firstType : "expense";
 }
 
-function mainMeta(mainId: MainId): { icon: string; name: string; color: string } {
+function mainMeta(mainId: MainId): { icon: IconDefinition; name: string; color: string } {
   if (mainId === "uncategorized" || mainId === "uncategorized-income")
-    return { icon: "?", name: "Ukategorisert", color: "#9ca3af" };
+    return { icon: faQuestion, name: "Ukategorisert", color: "#9ca3af" };
   const cat = MAIN_CATEGORY_MAP[mainId as number];
-  return { icon: cat.icon, name: cat.name, color: cat.color };
+  return { icon: getCategoryIcon(cat.id), name: cat.name, color: cat.color };
 }
 
-function subMeta(subId: SubId): { icon: string; name: string } {
-  if (subId === "uncategorized") return { icon: "?", name: "Ukategorisert" };
+function subMeta(subId: SubId): { icon: IconDefinition; name: string } {
+  if (subId === "uncategorized") return { icon: faQuestion, name: "Ukategorisert" };
   const sub = SUB_CATEGORY_MAP[subId as number];
-  return { icon: sub?.icon ?? "?", name: sub?.name ?? "Ukjent" };
+  return { icon: getCategoryIcon(sub?.id), name: sub?.name ?? "Ukjent" };
 }
 
 function AmountBar({ total, max, color }: { total: number; max: number; color: string }) {
@@ -128,10 +132,12 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
           className="flex items-center gap-1.5 text-sm text-muted hover:text-text mb-4 transition-colors"
           onClick={() => setView({ level: "sub", mainId, ...(excluded ? { excluded: true } : {}) })}
         >
-          ← <span style={{ color: m.color }}>{m.icon}</span> {m.name}
+          ← <span style={{ color: m.color }}><FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" /></span> {m.name}
         </button>
         <div className="flex items-center gap-2 mb-4">
-          <span>{s.icon}</span>
+          <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
+            <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
+          </span>
           <span className="text-sm font-medium text-text">{s.name}</span>
         </div>
         <TransactionTable transactions={filtered} onCategoryChange={onCategoryChange} />
@@ -189,7 +195,9 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
         </button>
         <div className="card overflow-hidden mb-6">
           <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-            <span>{m.icon}</span>
+            <span className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
+              <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
+            </span>
             <span className="text-sm font-medium text-text">{m.name}</span>
           </div>
           <div className="divide-y divide-border">
@@ -208,7 +216,9 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
                     })
                   }
                 >
-                  <span className="text-base w-6 text-center shrink-0">{s.icon}</span>
+                  <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
+                    <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
+                  </span>
                   <span className="text-sm text-text flex-1 sm:flex-none sm:w-36 truncate">{s.name}</span>
                   <AmountBar total={total} max={subMax} color={m.color} />
                   <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
@@ -238,7 +248,9 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
           className="w-full px-4 py-3 flex items-center gap-3 hover:bg-surface-2 transition-colors text-left"
           onClick={() => setView({ level: "sub", mainId, ...(excluded ? { excluded: true } : {}) })}
         >
-          <span className="text-base w-6 text-center shrink-0">{m.icon}</span>
+          <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
+            <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
+          </span>
           <span className="text-sm text-text flex-1 sm:flex-none sm:w-36 truncate">{m.name}</span>
           <AmountBar total={total} max={max} color={m.color} />
           <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
