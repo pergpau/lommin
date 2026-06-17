@@ -50,7 +50,12 @@ export default function MonthlyChart({
     setWindowStart(Math.max(0, bars.length - pageSize));
   }, [bars.length, pageSize]);
 
-  const visibleBars = mode === "month" ? bars.slice(windowStart, windowStart + pageSize) : bars;
+  const visibleBars =
+    mode === "month"
+      ? bars.slice(windowStart, windowStart + pageSize)
+      : isMobile
+        ? bars.slice(-3)
+        : bars;
   const selected = bars.find((b) => b.key === activeKey) ?? bars[bars.length - 1];
   const avgIncome = bars.length > 0 ? bars.reduce((s, b) => s + b.income, 0) / bars.length : 0;
   const avgExpenses = bars.length > 0 ? bars.reduce((s, b) => s + b.expenses, 0) / bars.length : 0;
@@ -207,7 +212,9 @@ export default function MonthlyChart({
               ))}
             </div>
           ) : (
-            <div className="flex items-end w-full">{bars.map((b) => renderBar(b))}</div>
+            <div className="flex items-end w-full">
+              {(isMobile ? bars.slice(-3) : bars).map((b) => renderBar(b))}
+            </div>
           )}
         </div>
 
