@@ -117,7 +117,7 @@ export default function Dashboard() {
     navigate("/onboarding");
   }, [navigate]);
 
-  const connectTarget = hasKey ? "/connect" : "/onboarding";
+  const connectTarget = hasKey ? "/connect" : "/settings#pem";
   const BackupIcon = backupMethod === "drive" ? GoogleDriveIcon : HardDriveIcon;
   const hasLiveAccounts = accounts.some((acc) => !!getEnableBankingSource(acc));
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);

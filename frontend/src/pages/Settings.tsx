@@ -327,7 +327,7 @@ export default function Settings() {
       <h1 className="text-xl font-semibold text-text mb-6">Innstillinger</h1>
 
 
-      <Card className={`p-5 mb-4 ${!hasKey ? "border-accent/30 bg-accent/5" : ""}`}>
+      <Card id="pem" className={`p-5 mb-4 transition-shadow duration-300 ${highlightedHash === "#pem" ? "ring-2 ring-accent" : ""} ${!hasKey ? "border-accent/30 bg-accent/5" : ""}`}>
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-semibold text-text">Signeringsnøkkel</h2>
