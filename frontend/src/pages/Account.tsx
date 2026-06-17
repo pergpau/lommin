@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { triggerAutosave } from "../lib/autosave";
 import { deleteAccount, resetAccountSync, setCategoryId } from "../lib/store";
 import { accountLabel } from "../lib/format";
 import { useAccounts } from "../hooks/useAccounts";
@@ -34,6 +35,7 @@ export default function AccountPage() {
   const accountError = failedAccounts.get(uid ?? "");
   const { showSnackbar } = useSnackbar();
   const [selectedMonth, setSelectedMonth] = useState("");
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (syncMsg) showSnackbar(syncMsg, "ok");
@@ -82,6 +84,7 @@ export default function AccountPage() {
   const removeAccount = useCallback(async () => {
     if (!uid || !confirm("Fjern denne kontoen og alle tilhørende transaksjoner?")) return;
     await deleteAccount(uid);
+    void triggerAutosave();
     navigate("/dashboard");
   }, [uid, navigate]);
 
@@ -94,6 +97,7 @@ export default function AccountPage() {
     )
       return;
     await resetAccountSync(uid);
+    void triggerAutosave();
   }, [uid]);
 
   if (loading) {
@@ -130,7 +134,7 @@ export default function AccountPage() {
             size="sm"
             loading={syncing}
             disabled={!account}
-            onClick={() => account && runSync([account], reload)}
+            onClick={() => account && runSync([account], () => { reload(); void triggerAutosave(); })}
           >
             <RefreshCwIcon size={12} />
             Synkroniser
@@ -186,6 +190,8 @@ export default function AccountPage() {
         onCategoryChange={async (txId, catId) => {
           await setCategoryId(txId, catId);
           refresh();
+          if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+          autosaveTimer.current = setTimeout(() => void triggerAutosave(), 3000);
         }}
       />
     </div>

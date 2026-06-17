@@ -20,6 +20,7 @@ import { isDemoMode } from "../lib/demoData";
 import { DriveAuthError, saveBackupToDrive } from "../lib/googleDrive";
 import { loadKey } from "../lib/keystore";
 import { clearDriveToken, getAllSettings, getDriveToken } from "../lib/settings";
+import { triggerAutosave } from "../lib/autosave";
 import { clearAccounts, clearTransactions, exportAll, getEnableBankingSource, setCategoryId } from "../lib/store";
 
 export default function Dashboard() {
@@ -44,6 +45,17 @@ export default function Dashboard() {
   const [dashPassphrase, setDashPassphrase] = useState("");
   const [isDemo, setIsDemo] = useState(false);
   const [exitingDemo, setExitingDemo] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const doAutosave = useCallback(async () => {
+    setAutoSaving(true);
+    try {
+      await triggerAutosave();
+    } finally {
+      setAutoSaving(false);
+    }
+  }, []);
 
   useEffect(() => {
     loadKey().then((kv) => setHasKey(!!kv));
@@ -78,7 +90,7 @@ export default function Dashboard() {
       const data = await exportAll();
       if (backupMethod === "drive") {
         if (!dashDriveToken) {
-          showSnackbar("Ikke koblet til Google Drive. Gå til Innstillinger for å koble til.", "error");
+          navigate("/settings#backup");
           return;
         }
         await saveBackupToDrive(dashDriveToken, data, passphrase);
@@ -250,14 +262,14 @@ export default function Dashboard() {
               + Legg til konto
             </Link>
           )}
-          <Button loading={dashBackupSaving} disabled={isDemo} onClick={handleQuickSaveClick}>
+          <Button loading={dashBackupSaving || autoSaving} disabled={isDemo} onClick={handleQuickSaveClick}>
             <BackupIcon size={14} />
             Lagre
           </Button>
           {hasLiveAccounts && (
             <Button
               loading={syncing}
-              onClick={() => runSync(accounts, () => { reload(); refresh(); })}
+              onClick={() => runSync(accounts, () => { reload(); refresh(); void doAutosave(); })}
             >
               <RefreshCwIcon size={14} />
               Synkroniser
@@ -287,7 +299,7 @@ export default function Dashboard() {
               )}
               <button
                 className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
-                disabled={isDemo || dashBackupSaving}
+                disabled={isDemo || dashBackupSaving || autoSaving}
                 onClick={() => {
                   setActionsOpen(false);
                   handleQuickSaveClick();
@@ -302,7 +314,7 @@ export default function Dashboard() {
                   disabled={syncing}
                   onClick={() => {
                     setActionsOpen(false);
-                    runSync(accounts, () => { reload(); refresh(); });
+                    runSync(accounts, () => { reload(); refresh(); void doAutosave(); });
                   }}
                 >
                   <RefreshCwIcon size={13} />
@@ -364,6 +376,8 @@ export default function Dashboard() {
           onCategoryChange={async (txId, catId) => {
             await setCategoryId(txId, catId);
             refresh();
+            if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+            autosaveTimer.current = setTimeout(() => void doAutosave(), 3000);
           }}
         />
       )}
@@ -423,6 +437,8 @@ export default function Dashboard() {
             onCategoryChange={async (txId, catId) => {
               await setCategoryId(txId, catId);
               refresh();
+              if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+              autosaveTimer.current = setTimeout(() => void doAutosave(), 3000);
             }}
           />
         ) : (

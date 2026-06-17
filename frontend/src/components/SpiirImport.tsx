@@ -9,6 +9,7 @@ import {
   parseSpiirZipAccounts,
   type SpiirAccount,
 } from "../lib/spiirImport";
+import { triggerAutosave } from "../lib/autosave";
 import { getAccounts, importAll, type Account } from "../lib/store";
 
 type Props = { onSuccess?: () => void };
@@ -113,6 +114,7 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
         `Importerte ${inserted} transaksjoner fra ${spiirAccounts.length} konto${spiirAccounts.length !== 1 ? "er" : ""}${skipNote}.`,
         "ok",
       );
+      void triggerAutosave();
       setSpiirStep("idle");
       onSuccess?.();
     } catch (e) {

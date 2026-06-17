@@ -31,18 +31,16 @@ export default function Settings() {
   const navigate = useNavigate();
   const { hash } = useLocation();
   const [hasKey, setHasKey] = useState(true);
-  const [spiirHighlighted, setSpiirHighlighted] = useState(false);
+  const [highlightedHash, setHighlightedHash] = useState<string | null>(null);
+  const [isDemo, setIsDemo] = useState<boolean | null>(null);
   useEffect(() => {
-    if (hash) {
-      const el = document.querySelector(hash);
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      if (hash === "#spiir") {
-        setSpiirHighlighted(true);
-        const t = setTimeout(() => setSpiirHighlighted(false), 1200);
-        return () => clearTimeout(t);
-      }
-    }
-  }, [hash]);
+    if (!hash || isDemo === null || isDemo) return;
+    const el = document.querySelector(hash);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    setHighlightedHash(hash);
+    const t = setTimeout(() => setHighlightedHash(null), 1200);
+    return () => clearTimeout(t);
+  }, [hash, isDemo]);
   const [pemConfirming, setPemConfirming] = useState(false);
   const [pemAppId, setPemAppId] = useState("");
   const [showGuide, setShowGuide] = useState(false);
@@ -58,6 +56,7 @@ export default function Settings() {
   const [syncing, setSyncing] = useState<"save" | "load" | null>(null);
   const [usePassphrase, setUsePassphrase] = useState(false);
   const [backupMethod, setBackupMethod] = useState<"drive" | "file">("file");
+  const [driveAutosave, setDriveAutosave] = useState(true);
   const [dialog, setDialog] = useState<"save" | "load" | "drive-save" | "drive-load" | null>(null);
   const [driveToken, setDriveToken] = useState<string | null>(null);
   const [driveSyncing, setDriveSyncing] = useState<"connect" | "save" | "load" | null>(null);
@@ -66,7 +65,6 @@ export default function Settings() {
   const [wipingAccounts, setWipingAccounts] = useState(false);
   const [wipingAll, setWipingAll] = useState(false);
   const [wipeAllDialog, setWipeAllDialog] = useState(false);
-  const [isDemo, setIsDemo] = useState<boolean | null>(null);
   const { showSnackbar } = useSnackbar();
 
   useEffect(() => {
@@ -84,6 +82,7 @@ export default function Settings() {
       setLookbackDays(String(s.lookbackDays));
       setUsePassphrase(s.usePassphrase);
       setBackupMethod(s.backupMethod);
+      setDriveAutosave(s.driveAutosave);
     });
     loadKey().then((kv) => {
       setHasKey(!!kv);
@@ -490,7 +489,7 @@ export default function Settings() {
         </div>
       </Card>
 
-      <Card id="backup" className="p-5 mb-4">
+      <Card id="backup" className={`p-5 mb-4 transition-shadow duration-300 ${highlightedHash === "#backup" ? "ring-2 ring-accent" : ""}`}>
         <h2 className="text-sm font-semibold text-text mb-1">Lagre og gjenopprett</h2>
         <p className="text-xs text-muted mb-3">
           Sikkerhetskopier dataene dine kryptert. Passordet forlater aldri enheten.
@@ -545,33 +544,55 @@ export default function Settings() {
                   Koble til Google Drive
                 </Button>
               ) : (
-                <div className="flex gap-2 flex-wrap">
-                  <Button
-                    className="flex-1 justify-center"
-                    loading={driveSyncing === "save"}
-                    disabled={!!driveSyncing}
-                    onClick={() => usePassphrase ? openDialog("drive-save") : void saveDrive("")}
-                  >
-                    <DownloadIcon size={13} />
-                    Lagre til Drive
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="flex-1 justify-center"
-                    loading={driveSyncing === "load"}
-                    disabled={!!driveSyncing}
-                    onClick={() => usePassphrase ? openDialog("drive-load") : void loadDrive("")}
-                  >
-                    <UploadIcon size={13} />
-                    Last fra Drive
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    disabled={!!driveSyncing}
-                    onClick={() => { setDriveToken(null); void clearDriveToken(); }}
-                  >
-                    Koble fra
-                  </Button>
+                <div className="flex flex-col gap-3">
+                  <div className="flex gap-2 flex-wrap">
+                    <Button
+                      className="flex-1 justify-center"
+                      loading={driveSyncing === "save"}
+                      disabled={!!driveSyncing}
+                      onClick={() => usePassphrase ? openDialog("drive-save") : void saveDrive("")}
+                    >
+                      <DownloadIcon size={13} />
+                      Lagre til Drive
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="flex-1 justify-center"
+                      loading={driveSyncing === "load"}
+                      disabled={!!driveSyncing}
+                      onClick={() => usePassphrase ? openDialog("drive-load") : void loadDrive("")}
+                    >
+                      <UploadIcon size={13} />
+                      Last fra Drive
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      disabled={!!driveSyncing}
+                      onClick={() => { setDriveToken(null); void clearDriveToken(); }}
+                    >
+                      Koble fra
+                    </Button>
+                  </div>
+                  <label className={`flex items-start gap-2 cursor-pointer${usePassphrase ? " opacity-50" : ""}`}>
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-accent mt-0.5 shrink-0"
+                      checked={driveAutosave && !usePassphrase}
+                      disabled={usePassphrase}
+                      onChange={(e) => {
+                        setDriveAutosave(e.target.checked);
+                        void setSetting("driveAutosave", e.target.checked);
+                      }}
+                    />
+                    <span className="text-xs text-text leading-snug">
+                      Lagre automatisk til Drive
+                      {usePassphrase && (
+                        <span className="block text-muted mt-0.5">
+                          Ikke tilgjengelig når passord er aktivert.
+                        </span>
+                      )}
+                    </span>
+                  </label>
                 </div>
               )}
             </div>
@@ -605,7 +626,7 @@ export default function Settings() {
 
       <Card
         id="spiir"
-        className={`p-5 mb-4 transition-shadow duration-300 ${spiirHighlighted ? "ring-2 ring-accent" : ""}`}
+        className={`p-5 mb-4 transition-shadow duration-300 ${highlightedHash === "#spiir" ? "ring-2 ring-accent" : ""}`}
       >
         <h2 className="text-sm font-semibold text-text mb-1">Importer fra Spiir</h2>
         <SpiirImportPanel />

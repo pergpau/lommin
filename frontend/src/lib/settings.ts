@@ -11,6 +11,7 @@ export interface AppSettings {
   lookbackDays: number;
   usePassphrase: boolean;
   backupMethod: "drive" | "file";
+  driveAutosave: boolean;
 }
 
 // Hosted HTTPS proxy. Override per deployment to match your own Worker; must also
@@ -22,6 +23,7 @@ const DEFAULTS: AppSettings = {
   lookbackDays: SYNC_LOOKBACK_DAYS,
   usePassphrase: false,
   backupMethod: "file",
+  driveAutosave: true,
 };
 
 // Reject malformed/non-https proxy URLs at save time. The CSP connect-src blocks
@@ -83,13 +85,14 @@ export async function setSetting<K extends keyof AppSettings>(
 }
 
 export async function getAllSettings(): Promise<AppSettings> {
-  const [proxyUrl, lookbackDays, usePassphrase, backupMethod] = await Promise.all([
+  const [proxyUrl, lookbackDays, usePassphrase, backupMethod, driveAutosave] = await Promise.all([
     getSetting("proxyUrl"),
     getSetting("lookbackDays"),
     getSetting("usePassphrase"),
     getSetting("backupMethod"),
+    getSetting("driveAutosave"),
   ]);
-  return { proxyUrl, lookbackDays, usePassphrase, backupMethod };
+  return { proxyUrl, lookbackDays, usePassphrase, backupMethod, driveAutosave };
 }
 
 export async function getDriveToken(): Promise<{ token: string; expiry: number } | null> {
