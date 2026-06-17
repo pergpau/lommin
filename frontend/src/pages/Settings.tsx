@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import BankSetupGuide from "../components/BankSetupGuide";
+import PemImporter from "../components/PemImporter";
 import SpiirImportPanel from "../components/SpiirImport";
-import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
-import { DownloadIcon, FileUpIcon, TrashIcon, UploadIcon } from "../components/ui/icons";
+import { DownloadIcon, TrashIcon, UploadIcon } from "../components/ui/icons";
 import Input from "../components/ui/Input";
 import { useSnackbar } from "../components/ui/Snackbar";
 import { loadEncryptedFile, saveEncryptedFile } from "../lib/cryptoFile";
@@ -15,7 +16,7 @@ import {
   saveBackupToDrive,
   signInWithGoogle,
 } from "../lib/googleDrive";
-import { clearKey, importPemKey, loadKey, saveKey } from "../lib/keystore";
+import { clearKey, loadKey, saveKey } from "../lib/keystore";
 import { clearDriveToken, getAllSettings, getDriveToken, HOSTED_PROXY_URL, persistDriveToken, setSetting } from "../lib/settings";
 import {
   clearAccounts,
@@ -42,11 +43,9 @@ export default function Settings() {
       }
     }
   }, [hash]);
-  const pemInputRef = useRef<HTMLInputElement>(null);
-  const [pemState, setPemState] = useState<"idle" | "loading" | "confirm" | "done" | "error">("idle");
+  const [pemConfirming, setPemConfirming] = useState(false);
   const [pemAppId, setPemAppId] = useState("");
-  const [pemError, setPemError] = useState("");
-  const [pemDragging, setPemDragging] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const pendingPemKey = useRef<CryptoKey | null>(null);
   const [proxyMode, setProxyMode] = useState<"lommin" | "custom">("lommin");
   const [customProxyUrl, setCustomProxyUrl] = useState("");
@@ -95,34 +94,17 @@ export default function Settings() {
     });
   }, []);
 
-  const processPemFile = useCallback(async (file: File) => {
-    setPemState("loading");
-    setPemError("");
-    try {
-      const pem = await file.text();
-      const stem = file.name.replace(/(\.(pem|crt|key))+$/i, "");
-      const key = await importPemKey(pem);
-      pendingPemKey.current = key;
-      setPemAppId(stem);
-      setPemState("confirm");
-    } catch (e) {
-      setPemError(e instanceof Error ? e.message : "Klarte ikke å importere nøkkelen");
-      setPemState("error");
-    }
-  }, []);
-
   const confirmPemKey = useCallback(async () => {
     if (!pendingPemKey.current || !pemAppId.trim()) return;
     try {
       await saveKey(pendingPemKey.current, pemAppId.trim());
       setAppId(pemAppId.trim());
       setHasKey(true);
-      setPemState("idle");
+      setPemConfirming(false);
     } catch (e) {
-      setPemError(e instanceof Error ? e.message : "Klarte ikke å lagre nøkkelen");
-      setPemState("error");
+      showSnackbar(e instanceof Error ? e.message : "Klarte ikke å lagre nøkkelen", "error");
     }
-  }, [pemAppId]);
+  }, [pemAppId, showSnackbar]);
 
   const changeProxyMode = useCallback(async (mode: "lommin" | "custom") => {
     setProxyMode(mode);
@@ -388,54 +370,42 @@ export default function Settings() {
             <p className="text-xs text-muted">
               Ingen nøkkel er lagret. Last opp <span className="mono">.pem</span>-filen fra Enable Banking for å aktivere synkronisering.
             </p>
-            <input
-              ref={pemInputRef}
-              type="file"
-              accept=".pem,.crt,.key,application/x-pem-file,text/plain"
-              className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) processPemFile(f); }}
-            />
-            {pemState !== "confirm" && (
-              <div
-                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${pemDragging ? "border-accent bg-accent/10" : "border-border hover:border-accent/40 hover:bg-surface/50"}`}
-                onDragEnter={(e) => { e.preventDefault(); setPemDragging(true); }}
-                onDragOver={(e) => { e.preventDefault(); setPemDragging(true); }}
-                onDragLeave={() => setPemDragging(false)}
-                onDrop={(e) => { e.preventDefault(); setPemDragging(false); const f = e.dataTransfer.files[0]; if (f) processPemFile(f); }}
-                onClick={() => pemInputRef.current?.click()}
-              >
-                {pemState === "loading" ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="animate-spin w-5 h-5 border-2 border-accent/20 border-t-accent rounded-full" />
-                    <span className="text-muted text-xs">Importerer nøkkel…</span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-2">
-                    <FileUpIcon size={20} className="text-muted" />
-                    <div>
-                      <div className="text-sm text-text font-medium">{pemDragging ? "Slipp for å importere" : "Slipp .pem-fila her"}</div>
-                      <div className="text-xs text-muted mt-0.5">eller klikk for å velge fil</div>
-                    </div>
+            {!pemConfirming ? (
+              <>
+                <button
+                  className="text-xs text-accent hover:underline"
+                  onClick={() => setShowGuide((v) => !v)}
+                >
+                  {showGuide ? "Skjul guide" : "Trenger du hjelp med å skaffe nøkkelen?"}
+                </button>
+                {showGuide && (
+                  <div className="border border-border rounded-xl p-4 mt-1">
+                    <BankSetupGuide />
                   </div>
                 )}
-              </div>
-            )}
-            {pemState === "confirm" && (
+                <PemImporter
+                  onImported={(key, appId) => {
+                    pendingPemKey.current = key;
+                    setPemAppId(appId);
+                    setPemConfirming(true);
+                  }}
+                />
+              </>
+            ) : (
               <div className="space-y-3">
                 <Input
                   label="App ID"
                   value={pemAppId}
                   onChange={(e) => setPemAppId(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") confirmPemKey(); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") void confirmPemKey(); }}
                   className="font-mono"
                   autoFocus
                 />
-                <Button onClick={confirmPemKey} disabled={!pemAppId.trim()}>
+                <Button onClick={() => void confirmPemKey()} disabled={!pemAppId.trim()}>
                   Lagre nøkkel
                 </Button>
               </div>
             )}
-            {pemState === "error" && <Alert type="error" message={pemError} className="mt-3" />}
           </div>
         )}
       </Card>
