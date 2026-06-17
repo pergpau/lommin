@@ -15,6 +15,7 @@ import MonthlyChart, { type ChartMode, type MonthBar } from "../components/chart
 import TransactionTable from "../components/transactions/TransactionTable";
 import { ArrowLeftIcon, RefreshCwIcon } from "../components/ui/icons";
 import { isDemoMode } from "../lib/demoData";
+import { loadKey } from "../lib/keystore";
 
 function txSection(t: Transaction): "income" | "expense" | "saving" | null {
   if (t.categoryId != null) {
@@ -38,6 +39,13 @@ export default function AccountPage() {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [chartMode, setChartMode] = useState<ChartMode>("month");
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isDemo, setIsDemo] = useState(false);
+  const [hasKey, setHasKey] = useState(true);
+
+  useEffect(() => {
+    void isDemoMode().then(setIsDemo);
+    void loadKey().then((kv) => setHasKey(!!kv));
+  }, []);
 
   useEffect(() => {
     if (syncMsg) showSnackbar(syncMsg, "ok");
@@ -184,7 +192,11 @@ export default function AccountPage() {
             Synkroniser
           </Button>
         ) : (
-          <Button size="sm" disabled={isDemoMode()} onClick={() => navigate("/connect")}>
+          <Button
+            size="sm"
+            disabled={isDemo}
+            onClick={() => navigate(hasKey ? "/connect" : "/settings#pem")}
+          >
             Koble til bank
           </Button>
         )}
