@@ -190,3 +190,23 @@ export const PencilIcon = icon(
   ),
   1.5,
 );
+
+export const HardDriveIcon = icon(() => (
+  <>
+    <line x1="2" y1="12" x2="22" y2="12" />
+    <path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" />
+    <circle cx="6" cy="16" r="0.5" fill="currentColor" />
+    <circle cx="10" cy="16" r="0.5" fill="currentColor" />
+  </>
+));
+
+export const GoogleDriveIcon = icon(
+  () => (
+    <path
+      d="M21.4231,13.88785,15.33356,3.33792H8.66663l6.09,10.54993ZM8.08917,4.33835,2,14.88736l3.33356,5.77472,6.08911-10.54926Zm1.73273,10.549L6.48877,20.66208H18.66663L22,14.88736Z"
+      stroke="none"
+      fill="currentColor"
+    />
+  ),
+  1.5,
+);

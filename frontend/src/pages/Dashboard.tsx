@@ -8,7 +8,7 @@ import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
 import { useSnackbar } from "../components/ui/Snackbar";
 import EmptyState from "../components/ui/EmptyState";
-import { DownloadIcon, MenuIcon, PlusIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
+import { GoogleDriveIcon, HardDriveIcon, MenuIcon, PlusIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
 import Input from "../components/ui/Input";
 import Spinner from "../components/ui/Spinner";
 import { useAccounts } from "../hooks/useAccounts";
@@ -106,6 +106,7 @@ export default function Dashboard() {
   }, [navigate]);
 
   const connectTarget = hasKey ? "/connect" : "/onboarding";
+  const BackupIcon = backupMethod === "drive" ? GoogleDriveIcon : HardDriveIcon;
   const hasLiveAccounts = accounts.some((acc) => !!getEnableBankingSource(acc));
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [chartMode, setChartMode] = useState<ChartMode>("month");
@@ -249,8 +250,8 @@ export default function Dashboard() {
               + Legg til konto
             </Link>
           )}
-          <Button variant="ghost" loading={dashBackupSaving} disabled={isDemo} onClick={handleQuickSaveClick}>
-            <DownloadIcon size={14} />
+          <Button loading={dashBackupSaving} disabled={isDemo} onClick={handleQuickSaveClick}>
+            <BackupIcon size={14} />
             Lagre
           </Button>
           {hasLiveAccounts && (
@@ -292,7 +293,7 @@ export default function Dashboard() {
                   handleQuickSaveClick();
                 }}
               >
-                <DownloadIcon size={13} />
+                <BackupIcon size={13} />
                 {dashBackupSaving ? "Lagrer…" : "Lagre"}
               </button>
               {hasLiveAccounts && (
