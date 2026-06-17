@@ -521,15 +521,17 @@ export default function Settings() {
             </label>
           </div>
 
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={usePassphrase}
-              onChange={(e) => { setUsePassphrase(e.target.checked); void setSetting("usePassphrase", e.target.checked); }}
-              className="w-4 h-4 accent-accent"
-            />
-            <span className="text-xs text-text">Bruk passord for å kryptere data</span>
-          </label>
+          {(backupMethod === "file" || (backupMethod === "drive" && !!driveToken)) && (
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={usePassphrase}
+                onChange={(e) => { setUsePassphrase(e.target.checked); void setSetting("usePassphrase", e.target.checked); }}
+                className="w-4 h-4 accent-accent"
+              />
+              <span className="text-xs text-text">Bruk passord for å kryptere data</span>
+            </label>
+          )}
 
           {backupMethod === "drive" ? (
             <div>
@@ -545,6 +547,26 @@ export default function Settings() {
                 </Button>
               ) : (
                 <div className="flex flex-col gap-3">
+                  <label className={`flex items-start gap-2 cursor-pointer${usePassphrase ? " opacity-50" : ""}`}>
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-accent mt-0.5 shrink-0"
+                      checked={driveAutosave && !usePassphrase}
+                      disabled={usePassphrase}
+                      onChange={(e) => {
+                        setDriveAutosave(e.target.checked);
+                        void setSetting("driveAutosave", e.target.checked);
+                      }}
+                    />
+                    <span className="text-xs text-text leading-snug">
+                      Lagre automatisk til Drive
+                      {usePassphrase && (
+                        <span className="block text-muted mt-0.5">
+                          Ikke tilgjengelig når passord er aktivert.
+                        </span>
+                      )}
+                    </span>
+                  </label>
                   <div className="flex gap-2 flex-wrap">
                     <Button
                       className="flex-1 justify-center"
@@ -573,26 +595,6 @@ export default function Settings() {
                       Koble fra
                     </Button>
                   </div>
-                  <label className={`flex items-start gap-2 cursor-pointer${usePassphrase ? " opacity-50" : ""}`}>
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 accent-accent mt-0.5 shrink-0"
-                      checked={driveAutosave && !usePassphrase}
-                      disabled={usePassphrase}
-                      onChange={(e) => {
-                        setDriveAutosave(e.target.checked);
-                        void setSetting("driveAutosave", e.target.checked);
-                      }}
-                    />
-                    <span className="text-xs text-text leading-snug">
-                      Lagre automatisk til Drive
-                      {usePassphrase && (
-                        <span className="block text-muted mt-0.5">
-                          Ikke tilgjengelig når passord er aktivert.
-                        </span>
-                      )}
-                    </span>
-                  </label>
                 </div>
               )}
             </div>
