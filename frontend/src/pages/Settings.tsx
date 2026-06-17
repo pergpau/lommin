@@ -36,7 +36,10 @@ export default function Settings() {
   useEffect(() => {
     if (!hash || isDemo === null || isDemo) return;
     const el = document.querySelector(hash);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 72;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
     setHighlightedHash(hash);
     const t = setTimeout(() => setHighlightedHash(null), 1200);
     return () => clearTimeout(t);
