@@ -1,16 +1,17 @@
 import type { Account, Transaction } from "./store";
+import i18n, { getLocale } from "./i18n";
 
 export function fmtDate(s?: string, options?: Intl.DateTimeFormatOptions): string {
   if (!s) return "—";
   try {
-    return new Date(s).toLocaleDateString("nb-NO", options ?? { month: "short", day: "numeric" });
+    return new Date(s).toLocaleDateString(getLocale(), options ?? { month: "short", day: "numeric" });
   } catch {
     return s;
   }
 }
 
 export function statusLabel(status: string): string {
-  return status === "PNDG" ? "Reservert" : status;
+  return status === "PNDG" ? i18n.t("transactions:status.pending") : status;
 }
 
 const DEFAULT_CURRENCY = "NOK";
@@ -20,7 +21,7 @@ const DEFAULT_CURRENCY = "NOK";
 export function fmtAmount(amount: number, currency?: string, fractionDigits = 2): string {
   const cur = currency || DEFAULT_CURRENCY;
   if (cur === DEFAULT_CURRENCY) {
-    return new Intl.NumberFormat("nb-NO", {
+    return new Intl.NumberFormat(getLocale(), {
       minimumFractionDigits: fractionDigits,
       maximumFractionDigits: fractionDigits,
     }).format(amount);

@@ -1,5 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { accountLabel, fmtAmount } from "../lib/format";
+import { getLocale } from "../lib/i18n";
 import { type Account, type Transaction } from "../lib/store";
 import Button from "./ui/Button";
 import { AlertCircleIcon } from "./ui/icons";
@@ -14,8 +16,8 @@ interface Props {
 }
 
 function fmtSyncTime(ts?: number): string {
-  if (!ts) return "Ikke syncet";
-  return new Date(ts).toLocaleString("nb-NO", {
+  if (!ts) return "";
+  return new Date(ts).toLocaleString(getLocale(), {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -25,9 +27,11 @@ function fmtSyncTime(ts?: number): string {
 
 export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg }: Props) {
   const navigate = useNavigate();
+  const { t } = useTranslation("components");
 
   if (errorMsg) {
     const isRateLimit = errorMsg.startsWith("429");
+    const syncTime = fmtSyncTime(acc.balanceFetchedAt);
     return (
       <Link
         to={isRateLimit ? `/account/${acc.uid}` : "#"}
@@ -44,9 +48,7 @@ export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg }:
           <div className="mono text-xs text-muted mb-2 truncate">{acc.bban ?? acc.iban}</div>
         )}
         {isRateLimit ? (
-          <div className="text-xs text-muted">
-            Oops, du har prøvd for mange ganger. Prøv igjen senere.
-          </div>
+          <div className="text-xs text-muted">{t("accountCard.rateLimit")}</div>
         ) : (
           <>
             <div className="text-xs text-negative mb-3 line-clamp-2">{errorMsg}</div>
@@ -62,12 +64,14 @@ export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg }:
                 navigate(`/connect?${p}`);
               }}
             >
-              Koble til på nytt
+              {t("accountCard.reconnect")}
             </Button>
           </>
         )}
         <div className="text-xs text-muted mt-3">
-          Sist syncet: {fmtSyncTime(acc.balanceFetchedAt)}
+          {syncTime
+            ? t("accountCard.lastSynced", { time: syncTime })
+            : t("accountCard.notSynced")}
         </div>
       </Link>
     );
@@ -85,13 +89,14 @@ export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg }:
         {(acc.bban || acc.iban) && (
           <div className="mono text-xs text-muted mb-2 truncate">{acc.bban ?? acc.iban}</div>
         )}
-        <div className="text-xs text-muted">Henter transaksjoner…</div>
-        <div className="text-xs text-muted mt-3">Synkroniserer…</div>
+        <div className="text-xs text-muted">{t("accountCard.fetching")}</div>
+        <div className="text-xs text-muted mt-3">{t("accountCard.syncing")}</div>
       </div>
     );
   }
 
   const isImported = acc.sources.some((s) => s.type === "spiir");
+  const syncTime = fmtSyncTime(acc.balanceFetchedAt);
 
   return (
     <Link
@@ -114,15 +119,19 @@ export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg }:
         </div>
       )}
       <div className="text-xs text-muted mt-0.5">
-        {txns.length} transaksjon{txns.length !== 1 ? "er" : ""}
+        {t("accountCard.transactions", { count: txns.length })}
       </div>
       <div className="mt-2">
         {isImported ? (
           <span className="inline-flex items-center text-xs text-accent/80 bg-accent/8 border border-accent/20 rounded px-1.5 py-0.5 leading-none">
-            Importert fra Spiir
+            {t("accountCard.importedFromSpiir")}
           </span>
         ) : (
-          <span className="text-xs text-muted">{`Sist syncet: ${fmtSyncTime(acc.balanceFetchedAt)}`}</span>
+          <span className="text-xs text-muted">
+            {syncTime
+              ? t("accountCard.lastSynced", { time: syncTime })
+              : t("accountCard.notSynced")}
+          </span>
         )}
       </div>
     </Link>

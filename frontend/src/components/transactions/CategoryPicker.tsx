@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   MAIN_CATEGORIES,
   SUB_CATEGORY_MAP,
-  TYPE_LABELS,
   type CategoryType,
   type MainCategory,
 } from "../../lib/categories";
@@ -27,6 +27,7 @@ export default function CategoryPicker({
   onSelect,
   onClose,
 }: CategoryPickerProps) {
+  const { t } = useTranslation(["transactions", "categories"]);
   const currentSub = currentCategoryId != null ? SUB_CATEGORY_MAP[currentCategoryId] : undefined;
   const [activeType, setActiveType] = useState<CategoryType | null>(currentSub?.type ?? null);
   const [activeMainId, setActiveMainId] = useState<number | null>(
@@ -55,7 +56,6 @@ export default function CategoryPicker({
       setActiveType(null);
     } else {
       setActiveType(type);
-      // Clear main selection if it's no longer visible under the new type
       if (activeMainId != null) {
         const still = mainCategoriesForType(type).find((m) => m.id === activeMainId);
         if (!still) setActiveMainId(null);
@@ -73,7 +73,7 @@ export default function CategoryPicker({
       <div className="bg-surface border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg h-[630px] max-h-[90vh] flex flex-col shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-          <span className="font-semibold text-text text-sm">Velg kategori</span>
+          <span className="font-semibold text-text text-sm">{t("transactions:categoryPicker.title")}</span>
           <button className="text-muted hover:text-text text-lg leading-none" onClick={onClose}>
             ✕
           </button>
@@ -91,7 +91,7 @@ export default function CategoryPicker({
                   : "border-border text-muted hover:text-text hover:border-text/20"
               }`}
             >
-              {TYPE_LABELS[type]}
+              {t("categories:types." + type)}
             </button>
           ))}
         </div>
@@ -99,7 +99,6 @@ export default function CategoryPicker({
         {/* Main categories + sub-categories */}
         <div className="flex flex-1 overflow-hidden">
           {singleMainMode ? (
-            /* Full-width subcategory list when there's only one main category */
             <div className="w-full overflow-y-auto">
               {visibleSubs.map((s) => (
                 <button
@@ -116,7 +115,7 @@ export default function CategoryPicker({
                     className="w-3.5 h-3.5 shrink-0"
                     style={{ color: effectiveMain?.color }}
                   />
-                  {s.name}
+                  {t("categories:sub." + s.id)}
                 </button>
               ))}
             </div>
@@ -139,7 +138,7 @@ export default function CategoryPicker({
                       className="w-3.5 h-3.5 shrink-0"
                       style={{ color: m.color }}
                     />
-                    {m.name}
+                    {t("categories:main." + m.id)}
                   </button>
                 ))}
               </div>
@@ -162,11 +161,11 @@ export default function CategoryPicker({
                         className="w-3.5 h-3.5 shrink-0"
                         style={{ color: activeMain?.color }}
                       />
-                      {s.name}
+                      {t("categories:sub." + s.id)}
                     </button>
                   ))
                 ) : (
-                  <div className="px-4 py-4 text-xs text-muted">Velg en hovedkategori</div>
+                  <div className="px-4 py-4 text-xs text-muted">{t("transactions:categoryPicker.selectMain")}</div>
                 )}
               </div>
             </>
@@ -180,13 +179,13 @@ export default function CategoryPicker({
               className="text-xs text-muted hover:text-red-400 transition-colors"
               onClick={() => onSelect(undefined)}
             >
-              Fjern kategori
+              {t("transactions:categoryPicker.removeCategory")}
             </button>
           ) : (
             <span />
           )}
           <button className="btn-ghost text-xs px-3 py-1.5" onClick={onClose}>
-            Avbryt
+            {t("transactions:categoryPicker.cancel")}
           </button>
         </div>
       </div>

@@ -1,0 +1,25 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "import": "Import",
+    "delete": "Delete",
+    "update": "Update",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "retry": "Try again",
+    "reload": "Reload",
+    "add": "Add",
+    "confirm": "Confirm",
+    "close": "Close",
+    "saving": "Saving…",
+    "loading": "Loading…"
+  },
+  "dialog": {
+    "passwordLabel": "Password (optional)",
+    "passwordPlaceholder": "Leave blank for no encryption",
+    "passwordPlaceholderRequired": "Leave blank if you didn't use a password"
+  }
+}

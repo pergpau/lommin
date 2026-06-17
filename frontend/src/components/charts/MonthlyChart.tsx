@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { fmtAmount } from "../../lib/format";
 import { ArrowLeftIcon, ArrowRightIcon } from "../ui/icons";
 
@@ -42,6 +43,7 @@ export default function MonthlyChart({
   mode,
   onModeChange,
 }: MonthlyChartProps) {
+  const { t } = useTranslation("charts");
   const isMobile = useIsMobile();
   const pageSize = isMobile ? PAGE_SIZE_MOBILE : PAGE_SIZE;
   const [windowStart, setWindowStart] = useState(() => Math.max(0, bars.length - pageSize));
@@ -137,13 +139,13 @@ export default function MonthlyChart({
         className={`px-3 py-1 transition-colors ${mode === "month" ? "bg-accent text-white" : "text-muted hover:text-text"}`}
         onClick={() => onModeChange("month")}
       >
-        Måneder
+        {t("monthly.months")}
       </button>
       <button
         className={`px-3 py-1 transition-colors ${mode === "year" ? "bg-accent text-white" : "text-muted hover:text-text"}`}
         onClick={() => onModeChange("year")}
       >
-        År
+        {t("monthly.years")}
       </button>
     </div>
   );
@@ -156,30 +158,30 @@ export default function MonthlyChart({
       <div className="flex items-start justify-between mb-5">
         <div className="flex gap-6">
           <div>
-            <div className="text-xs text-muted uppercase tracking-wider mb-1">Inntekt</div>
+            <div className="text-xs text-muted uppercase tracking-wider mb-1">{t("monthly.income")}</div>
             <div className="text-2xl font-semibold text-positive">
               {fmtAmount(selected?.income ?? 0, undefined, 0)}
             </div>
             <div className="text-xs text-muted mt-0.5">
-              Snitt: {fmtAmount(avgIncome, undefined, 0)}
+              {t("monthly.avg", { amount: fmtAmount(avgIncome, undefined, 0) })}
             </div>
           </div>
           <div>
-            <div className="text-xs text-muted uppercase tracking-wider mb-1">Sparing</div>
+            <div className="text-xs text-muted uppercase tracking-wider mb-1">{t("monthly.saving")}</div>
             <div className="text-2xl font-semibold" style={{ color: "#7c3aed" }}>
               {fmtAmount(selected?.saving ?? 0, undefined, 0)}
             </div>
             <div className="text-xs text-muted mt-0.5">
-              Snitt: {fmtAmount(avgSaving, undefined, 0)}
+              {t("monthly.avg", { amount: fmtAmount(avgSaving, undefined, 0) })}
             </div>
           </div>
           <div>
-            <div className="text-xs text-muted uppercase tracking-wider mb-1">Utgifter</div>
+            <div className="text-xs text-muted uppercase tracking-wider mb-1">{t("monthly.expenses")}</div>
             <div className="text-2xl font-semibold text-negative">
               {fmtAmount(selected?.expenses ?? 0, undefined, 0)}
             </div>
             <div className="text-xs text-muted mt-0.5">
-              Snitt: {fmtAmount(avgExpenses, undefined, 0)}
+              {t("monthly.avg", { amount: fmtAmount(avgExpenses, undefined, 0) })}
             </div>
           </div>
         </div>
@@ -193,7 +195,7 @@ export default function MonthlyChart({
             className="shrink-0 p-2 rounded-lg text-muted hover:text-text hover:bg-surface disabled:opacity-20 disabled:cursor-default transition-colors"
             onClick={() => setWindowStart(Math.max(0, windowStart - pageSize))}
             disabled={!canGoBack}
-            aria-label="Forrige"
+            aria-label={t("monthly.prevAria")}
           >
             <ArrowLeftIcon size={22} />
           </button>
@@ -225,7 +227,7 @@ export default function MonthlyChart({
               setWindowStart(Math.min(bars.length - pageSize, windowStart + pageSize))
             }
             disabled={!canGoForward}
-            aria-label="Neste"
+            aria-label={t("monthly.nextAria")}
           >
             <ArrowRightIcon size={22} />
           </button>

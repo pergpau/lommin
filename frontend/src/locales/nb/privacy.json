@@ -1,0 +1,28 @@
+{
+  "back": "← Tilbake",
+  "title": "Personvernerklæring",
+  "effectiveDate": "Gjelder fra: juni 2025",
+  "sections": {
+    "noData": {
+      "heading": "Vi samler ingen data",
+      "body": "Lommin samler ikke inn, lagrer eller overfører noen personopplysninger til noen server vi drifter. Det er ingen analyse, ingen sporingsskript, ingen informasjonskapsler og ingen kontoer. Alt — signeringsnøkkelen din, transaksjonshistorikk og innstillinger — ligger utelukkende i nettleserens IndexedDB."
+    },
+    "signingKey": {
+      "heading": "Signeringsnøkkelen din",
+      "body": "Den private <pem>.pem</pem>-nøkkelen din importeres som et ikke-ekstraherbart <crypto>CryptoKey</crypto>-objekt. Rå nøkkelmateriale er aldri tilgjengelig for JavaScript etter import og forlater aldri enheten din."
+    },
+    "proxy": {
+      "heading": "Proxyen og tilgangstokenet ditt",
+      "body1": "For å omgå nettleserens CORS-begrensninger rutes API-kall til Enable Banking gjennom en proxy. Denne proxyen ser <strong>det kortvarige tilgangstokenet</strong> (Bearer-token) som brukes til å autorisere hver forespørsel — ikke den private nøkkelen din.",
+      "body2": "Som standard bruker Lommin en delt proxy. Ønsker du full kontroll, kan du kjøre din egen proxy og peke Lommin mot den under <settingsLink>Innstillinger → CORS-proxy</settingsLink>. Selvhosting av proxyen betyr at ingen tredjepart ser noen del av økten din."
+    },
+    "thirdParty": {
+      "heading": "Tredjepartstjenester",
+      "body": "Lommin kommuniserer med Enable Bankings API på dine vegne, ved hjelp av legitimasjon du oppgir. Enable Bankings egen personvernerklæring regulerer hva de gjør med disse forespørslene. Lommin har ingen innsikt i det."
+    },
+    "contact": {
+      "heading": "Kontakt",
+      "body": "Spørsmål? Åpne et issue eller ta kontakt via prosjektets repository."
+    }
+  }
+}

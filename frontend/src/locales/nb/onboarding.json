@@ -1,0 +1,116 @@
+{
+  "back": "Tilbake",
+  "intro": {
+    "label": "Lommin",
+    "title": "Ta kontroll på pengebruken",
+    "body1": "Lommin kobler seg direkte til bankkontoene og kredittkortene dine og gir deg et klart bilde av forbruket ditt — kategorisert og alltid oppdatert.",
+    "body2": "Alle data lagres lokalt på enheten din. Ingenting deles med noen tredjeparter.",
+    "start": "Kom i gang"
+  },
+  "pick": {
+    "title": "Kom i gang",
+    "subtitle": "Hvordan vil du bruke Lommin?",
+    "bank": {
+      "title": "Koble til bankkontoer",
+      "description": "Synkroniser direkte fra din bank via Enable Banking"
+    },
+    "import": {
+      "title": "Importer",
+      "description": "Historiske data fra Spiir eller egne filer"
+    },
+    "restore": {
+      "title": "Gjenopprett",
+      "description": "Fra lokal fil eller Google Drive-sikkerhetskopi"
+    },
+    "demo": {
+      "title": "Prøv demo",
+      "description": "Utforsk Lommin med syntetiske testdata — ingen konto nødvendig"
+    }
+  },
+  "bankExplain": {
+    "title": "Koble til bankkontoer",
+    "body": "Lommin bruker Enable Banking for å hente transaksjoner direkte fra dine kontoer eller kort. Du trenger en gratis Enable Banking-konto og en signeringsnøkkel.",
+    "next": "Neste"
+  },
+  "bankProxy": {
+    "title": "CORS-proxy",
+    "body": "For å bruke Enable Banking må alle API-kall sendes gjennom en proxy. Standardproxyen er hostet av Lommin og kan i teorien se transaksjonsdata og tilgangstokens i transitt. For full kontroll kan du bruke din egen proxy.",
+    "lommin": "Lommin proxy (standard)",
+    "custom": "Egendefinert",
+    "urlLabel": "Proxy-URL",
+    "urlPlaceholder": "https://din-proxy.workers.dev",
+    "saveAndNext": "Lagre og fortsett",
+    "saveFailed": "Lagring feilet"
+  },
+  "bankPem": {
+    "title": "Importer signeringsnøkkel",
+    "body": "Last opp <pem>.pem</pem>-filen fra Enable Banking, eller lim inn innholdet direkte."
+  },
+  "bankConfirm": {
+    "title": "Bekreft App ID",
+    "body": "App ID-en er hentet fra filnavnet. Sjekk at den stemmer med ID-en i <link>Enable Banking-dashbordet</link>. På mobil kan filnavnet noen ganger endres automatisk.",
+    "appIdLabel": "App ID",
+    "saveAndNext": "Lagre og fortsett",
+    "keyImported": "Nøkkel importert",
+    "sendingToDash": "Sender deg til dashbordet…",
+    "saveFailed": "Klarte ikke å lagre nøkkelen"
+  },
+  "importPick": {
+    "title": "Importer data",
+    "subtitle": "Velg kilden for historiske transaksjoner.",
+    "fromSpiir": {
+      "title": "Fra Spiir",
+      "description": "Importer CSV- eller ZIP-eksport fra Spiir"
+    },
+    "fromOwn": {
+      "title": "Fra egne data",
+      "description": "Importer egne CSV-filer og andre formater"
+    }
+  },
+  "importSpiir": {
+    "title": "Importer fra Spiir"
+  },
+  "importOwn": {
+    "title": "Import fra egne data",
+    "body": "Importer transaksjoner fra egne CSV-filer og andre kilder.",
+    "comingSoon": "Kommer snart"
+  },
+  "restore": {
+    "title": "Gjenopprett",
+    "body": "Dekrypter og flett inn kontoer og transaksjoner fra en tidligere sikkerhetskopi.",
+    "fromFile": {
+      "title": "Fra lokal fil",
+      "body": "Dekrypter en <enc>.enc</enc>-sikkerhetskopi fra din enhet.",
+      "passwordLabel": "Passord",
+      "passwordPlaceholder": "La stå tomt hvis du ikke har brukt passord",
+      "button": "Velg fil og gjenopprett"
+    },
+    "fromDrive": {
+      "title": "Fra Google Drive",
+      "body": "Last ned og dekrypter sikkerhetskopien din fra Google Drive.",
+      "connectButton": "Koble til Google Drive",
+      "passwordLabel": "Passord",
+      "passwordPlaceholder": "La stå tomt hvis du ikke har brukt passord",
+      "loadButton": "Last fra Drive"
+    },
+    "errors": {
+      "wrongPassword": "Feil passord.",
+      "encrypted": "Filen er kryptert med passord.",
+      "connectFailed": "Tilkobling feilet",
+      "loadDriveFailed": "Klarte ikke å laste fra Google Drive",
+      "restoreFailed": "Klarte ikke å gjenopprette sikkerhetskopien"
+    },
+    "restored": "Gjenopprettet {{count}} transaksjoner."
+  },
+  "demo": {
+    "title": "Prøv demo",
+    "body": "Utforsk alle funksjoner i Lommin med syntetiske testdata. Ingen ekte data lastes opp eller lagres eksternt. Du kan avslutte demoen når som helst.",
+    "includes": "Inkluderer:",
+    "bullet1": "· 2 kontoer (brukskonto og kredittkort)",
+    "bullet2": "· ~35 transaksjoner over 3 måneder med kategorier",
+    "bullet3": "· Eksempel på budsjett og forbruksoversikt",
+    "startButton": "Start demo",
+    "hasDataError": "Du har allerede data. Slett eksisterende data i innstillingene før du starter demo.",
+    "startFailed": "Klarte ikke å starte demo"
+  }
+}

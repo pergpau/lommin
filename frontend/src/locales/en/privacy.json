@@ -1,0 +1,28 @@
+{
+  "back": "← Back",
+  "title": "Privacy Policy",
+  "effectiveDate": "Effective: June 2025",
+  "sections": {
+    "noData": {
+      "heading": "We collect no data",
+      "body": "Lommin does not collect, store or transfer any personal data to any server we operate. There is no analytics, no tracking scripts, no cookies and no accounts. Everything — your signing key, transaction history and settings — lives exclusively in the browser's IndexedDB."
+    },
+    "signingKey": {
+      "heading": "Your signing key",
+      "body": "Your private <pem>.pem</pem> key is imported as a non-extractable <crypto>CryptoKey</crypto> object. Raw key material is never accessible to JavaScript after import and never leaves your device."
+    },
+    "proxy": {
+      "heading": "The proxy and your access token",
+      "body1": "To bypass browser CORS restrictions, API calls to Enable Banking are routed through a proxy. This proxy sees <strong>the short-lived access token</strong> (Bearer token) used to authorise each request — not your private key.",
+      "body2": "By default Lommin uses a shared proxy. For full control, you can run your own proxy and point Lommin at it under <settingsLink>Settings → CORS proxy</settingsLink>. Self-hosting the proxy means no third party sees any part of your session."
+    },
+    "thirdParty": {
+      "heading": "Third-party services",
+      "body": "Lommin communicates with Enable Banking's API on your behalf, using credentials you provide. Enable Banking's own privacy policy governs what they do with those requests. Lommin has no insight into that."
+    },
+    "contact": {
+      "heading": "Contact",
+      "body": "Questions? Open an issue or get in touch via the project repository."
+    }
+  }
+}

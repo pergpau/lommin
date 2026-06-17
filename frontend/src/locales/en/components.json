@@ -1,0 +1,64 @@
+{
+  "accountCard": {
+    "notSynced": "Not synced",
+    "lastSynced": "Last synced: {{time}}",
+    "fetching": "Fetching transactions…",
+    "syncing": "Syncing…",
+    "reconnect": "Reconnect",
+    "rateLimit": "Too many requests. Please try again later.",
+    "importedFromSpiir": "Imported from Spiir",
+    "transactions_one": "{{count}} transaction",
+    "transactions_other": "{{count}} transactions"
+  },
+  "pemImporter": {
+    "tabFile": "Upload file",
+    "tabPaste": "Paste key",
+    "dropping": "Drop to import",
+    "dropText": "Drop .pem file here",
+    "clickText": "or click to select file",
+    "importing": "Importing key…",
+    "importButton": "Import key",
+    "importFailed": "Failed to import key"
+  },
+  "bankSetupGuide": {
+    "step1": {
+      "title": "Create a free account",
+      "body": "Go to <link>enablebanking.com</link> and register. Confirm your email address."
+    },
+    "step2": {
+      "title": "Create an application",
+      "body": "Click <app>Applications</app> and then <newapp>New application</newapp>. Fill in:"
+    },
+    "step3": {
+      "title": "Link your accounts",
+      "body": "Link the accounts you want to sync with Lommin."
+    },
+    "step4": {
+      "title": "Download the key file",
+      "body": "Click <register>Register</register> — a <pem>.pem</pem> file will be downloaded. Keep it safe, it cannot be downloaded again."
+    },
+    "copyTooltip": "Copy"
+  },
+  "spiirImport": {
+    "description": "Import historical transactions from Spiir. Choose CSV export for simple import, or ZIP export (full data export) for better data with account names, bank and categories from Spiir. Duplicates are skipped.",
+    "csvButton": "Choose CSV file",
+    "zipButton": "Choose ZIP export",
+    "newAccount": "Create new account",
+    "import": "Import",
+    "cancel": "Cancel",
+    "success_one": "Imported {{txCount}} transactions from {{count}} account{{skipNote}}.",
+    "success_other": "Imported {{txCount}} transactions from {{count}} accounts{{skipNote}}.",
+    "skipNote": " ({{skipped}} skipped — already existed)",
+    "noAccounts": "No accounts found in the file. Check that the file is a valid Spiir export.",
+    "noAccountsZip": "No accounts found in the ZIP file. Check that the file is a valid Spiir data export.",
+    "unreadableZip": "Could not read ZIP file.",
+    "importFailed": "Import failed"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "body": "An unexpected error occurred. Your data is safe locally — try again, or reload the page.",
+    "retry": "Try again",
+    "reload": "Reload",
+    "consoleLabel": "Unexpected UI error:"
+  }
+}

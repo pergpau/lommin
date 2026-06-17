@@ -1,0 +1,64 @@
+{
+  "accountCard": {
+    "notSynced": "Ikke syncet",
+    "lastSynced": "Sist syncet: {{time}}",
+    "fetching": "Henter transaksjoner…",
+    "syncing": "Synkroniserer…",
+    "reconnect": "Koble til på nytt",
+    "rateLimit": "Oops, du har prøvd for mange ganger. Prøv igjen senere.",
+    "importedFromSpiir": "Importert fra Spiir",
+    "transactions_one": "{{count}} transaksjon",
+    "transactions_other": "{{count}} transaksjoner"
+  },
+  "pemImporter": {
+    "tabFile": "Last opp fil",
+    "tabPaste": "Lim inn nøkkel",
+    "dropping": "Slipp for å importere",
+    "dropText": "Slipp .pem-fila her",
+    "clickText": "eller klikk for å velge fil",
+    "importing": "Importerer nøkkel…",
+    "importButton": "Importer nøkkel",
+    "importFailed": "Klarte ikke å importere nøkkelen"
+  },
+  "bankSetupGuide": {
+    "step1": {
+      "title": "Opprett en gratis konto",
+      "body": "Gå til <link>enablebanking.com</link> og registrer deg. Bekreft e-postadressen din."
+    },
+    "step2": {
+      "title": "Opprett en applikasjon",
+      "body": "Klikk <app>Applications</app> og deretter <newapp>New application</newapp>. Fyll inn:"
+    },
+    "step3": {
+      "title": "Koble til kontoene dine",
+      "body": "Link kontoene du vil synkronisere med Lommin."
+    },
+    "step4": {
+      "title": "Last ned nøkkelfila",
+      "body": "Klikk <register>Registrer</register> — en <pem>.pem</pem>-fil lastes ned. Ta vare på den, den kan ikke lastes ned igjen."
+    },
+    "copyTooltip": "Kopier"
+  },
+  "spiirImport": {
+    "description": "Importer historiske transaksjoner fra Spiir. Velg CSV-eksport for enkel import, eller ZIP-eksport (full dataeksport) for bedre data med kontonavn, bank og kategorier fra Spiir. Duplikater hoppes over.",
+    "csvButton": "Velg CSV-fil",
+    "zipButton": "Velg ZIP-eksport",
+    "newAccount": "Opprett ny konto",
+    "import": "Importer",
+    "cancel": "Avbryt",
+    "success_one": "Importerte {{txCount}} transaksjoner fra {{count}} konto{{skipNote}}.",
+    "success_other": "Importerte {{txCount}} transaksjoner fra {{count}} kontoer{{skipNote}}.",
+    "skipNote": " ({{skipped}} hoppet over – fantes allerede)",
+    "noAccounts": "Fant ingen kontoer i filen. Sjekk at filen er en gyldig Spiir-eksport.",
+    "noAccountsZip": "Fant ingen kontoer i ZIP-filen. Sjekk at filen er en gyldig Spiir dataeksport.",
+    "unreadableZip": "Kunne ikke lese ZIP-filen.",
+    "importFailed": "Import feilet"
+  },
+  "errorBoundary": {
+    "title": "Noe gikk galt",
+    "body": "En uventet feil oppsto. Dataene dine er trygge lokalt — prøv igjen, eller last siden på nytt.",
+    "retry": "Prøv igjen",
+    "reload": "Last på nytt",
+    "consoleLabel": "Uventet feil i grensesnittet:"
+  }
+}

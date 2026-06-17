@@ -1,12 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { isDemoMode } from "../lib/demoData";
 import { MoonIcon, SunIcon } from "./ui/icons";
-
-const nav = [
-  { to: "/dashboard", label: "Oversikt" },
-  { to: "/settings", label: "Innstillinger" },
-];
 
 type Theme = "dark" | "light";
 
@@ -16,9 +12,17 @@ function getInitialTheme(): Theme {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
+  const { t, i18n } = useTranslation("nav");
   const showNav = pathname !== "/setup" && pathname !== "/onboarding";
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [isDemo, setIsDemo] = useState(false);
+
+  const currentLang = i18n.language === "en" ? "en" : "nb";
+
+  const nav = [
+    { to: "/dashboard", label: t("items.overview") },
+    { to: "/settings", label: t("items.settings") },
+  ];
 
   useEffect(() => {
     if (showNav) isDemoMode().then(setIsDemo);
@@ -33,6 +37,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     requestAnimationFrame(() =>
       requestAnimationFrame(() => document.documentElement.classList.remove("theme-switching")),
     );
+  }
+
+  function toggleLanguage() {
+    void i18n.changeLanguage(currentLang === "nb" ? "en" : "nb");
   }
 
   return (
@@ -63,9 +71,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </nav>
             )}
             <button
+              onClick={toggleLanguage}
+              className="ml-1 px-2 py-1 rounded text-xs font-medium text-muted hover:text-text hover:bg-surface-2 transition-colors"
+              aria-label={t("languageSwitcher.ariaLabel")}
+            >
+              {currentLang === "nb" ? "EN" : "NB"}
+            </button>
+            <button
               onClick={toggle}
               className="ml-1 p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 transition-colors"
-              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              aria-label={theme === "dark" ? t("themeToggle.toLight") : t("themeToggle.toDark")}
             >
               {theme === "dark" ? <SunIcon size={16} /> : <MoonIcon size={16} />}
             </button>
@@ -76,11 +91,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <footer className="border-t border-border py-4">
         <div className="max-w-3xl mx-auto px-4 flex items-center justify-center gap-4">
           <Link to="/privacy" className="text-xs text-muted hover:text-text transition-colors">
-            Personvern
+            {t("footer.privacy")}
           </Link>
           <span className="text-border">·</span>
           <Link to="/terms" className="text-xs text-muted hover:text-text transition-colors">
-            Vilkår
+            {t("footer.terms")}
           </Link>
         </div>
       </footer>

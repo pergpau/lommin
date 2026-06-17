@@ -1,0 +1,37 @@
+{
+  "title": "Koble til en bank",
+  "subtitle": "Velg land og bank. Du blir videresendt for å gi tilgang.",
+  "previousBanks": {
+    "label": "Tidligere tilkoblede banker",
+    "connect": "Koble til →"
+  },
+  "countryLabel": "Land",
+  "bankLabel": "Bank",
+  "searchPlaceholder": "Søk banker…",
+  "noBanksFound": "Ingen banker funnet",
+  "loadingBanks": "Laster banker…",
+  "connectButton": "Koble til {{name}} →",
+  "connectButtonGeneric": "Koble til bank →",
+  "redirecting": "Videresender…",
+  "statuses": {
+    "connecting": "Kobler til bank…",
+    "creatingSession": "Oppretter økt…",
+    "fetchingTransactions": "Henter transaksjoner…",
+    "connected": "Tilkoblet",
+    "loadingOverview": "Laster oversikt…"
+  },
+  "csrfError": "State-mismatch — mulig CSRF. Oppdater siden og prøv igjen.",
+  "authFailed": "Kunne ikke starte autentisering",
+  "oauthSuccess": "Autentisering vellykket – du kan lukke dette vinduet.",
+  "oauthError": "Autentisering feilet. Du kan lukke dette vinduet.",
+  "countries": {
+    "NO": "Norge",
+    "SE": "Sverige",
+    "FI": "Finland",
+    "DK": "Danmark",
+    "GB": "Storbritannia",
+    "DE": "Tyskland",
+    "FR": "Frankrike",
+    "NL": "Nederland"
+  }
+}

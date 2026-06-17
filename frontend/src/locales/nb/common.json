@@ -1,0 +1,25 @@
+{
+  "actions": {
+    "save": "Lagre",
+    "cancel": "Avbryt",
+    "back": "Tilbake",
+    "next": "Neste",
+    "import": "Importer",
+    "delete": "Slett",
+    "update": "Oppdater",
+    "connect": "Koble til",
+    "disconnect": "Koble fra",
+    "retry": "Prøv igjen",
+    "reload": "Last på nytt",
+    "add": "Legg til",
+    "confirm": "Bekreft",
+    "close": "Lukk",
+    "saving": "Lagrer…",
+    "loading": "Laster…"
+  },
+  "dialog": {
+    "passwordLabel": "Passord (valgfritt)",
+    "passwordPlaceholder": "La stå tomt for ingen kryptering",
+    "passwordPlaceholderRequired": "La stå tomt hvis du ikke har brukt passord"
+  }
+}

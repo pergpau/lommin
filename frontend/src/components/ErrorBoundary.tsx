@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import i18n from "../lib/i18n";
 import Button from "./ui/Button";
 
 interface Props {
@@ -21,26 +22,26 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     // Local-only log; no telemetry is sent off-device by design.
-    console.error("Uventet feil i grensesnittet:", error, info.componentStack);
+    console.error(i18n.t("components:errorBoundary.consoleLabel"), error, info.componentStack);
   }
 
   handleReset = () => this.setState({ error: null });
 
   render() {
+    const { t } = i18n;
     if (!this.state.error) return this.props.children;
     return (
       <div className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="max-w-md text-center">
-          <h1 className="text-lg font-semibold text-text mb-2">Noe gikk galt</h1>
-          <p className="text-sm text-muted mb-6">
-            En uventet feil oppsto. Dataene dine er trygge lokalt — prøv igjen, eller last siden på
-            nytt.
-          </p>
+          <h1 className="text-lg font-semibold text-text mb-2">
+            {t("components:errorBoundary.title")}
+          </h1>
+          <p className="text-sm text-muted mb-6">{t("components:errorBoundary.body")}</p>
           <p className="text-xs text-muted/80 mono mb-6 break-words">{this.state.error.message}</p>
           <div className="flex gap-2 justify-center">
-            <Button onClick={this.handleReset}>Prøv igjen</Button>
+            <Button onClick={this.handleReset}>{t("components:errorBoundary.retry")}</Button>
             <Button variant="ghost" onClick={() => window.location.reload()}>
-              Last på nytt
+              {t("components:errorBoundary.reload")}
             </Button>
           </div>
         </div>

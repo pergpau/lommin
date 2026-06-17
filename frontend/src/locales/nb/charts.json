@@ -1,0 +1,22 @@
+{
+  "monthly": {
+    "income": "Inntekt",
+    "saving": "Sparing",
+    "expenses": "Utgifter",
+    "avg": "Snitt: {{amount}}",
+    "months": "Måneder",
+    "years": "År",
+    "prevAria": "Forrige",
+    "nextAria": "Neste"
+  },
+  "breakdown": {
+    "expenses": "Utgifter",
+    "income": "Inntekter",
+    "saving": "Sparing",
+    "excluded": "Ekskludert",
+    "showAll": "Vis alle",
+    "back": "← Tilbake",
+    "noTransactions": "Ingen transaksjoner denne måneden.",
+    "uncategorized": "Ukategorisert"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "title": "Innstillinger",
+  "signingKey": {
+    "title": "Signeringsnøkkel",
+    "imported": "✓ importert",
+    "removeKey": "Fjern nøkkel",
+    "noKey": "Ingen nøkkel er lagret. Last opp <pem>.pem</pem>-filen fra Enable Banking for å aktivere synkronisering.",
+    "guideShow": "Trenger du hjelp med å skaffe nøkkelen?",
+    "guideHide": "Skjul guide",
+    "saveKey": "Lagre nøkkel"
+  },
+  "appId": {
+    "label": "App ID",
+    "placeholder": "f.eks. abc123de-f456-...",
+    "update": "Oppdater"
+  },
+  "proxy": {
+    "title": "CORS Proxy",
+    "description": "Alle Enable Banking API-kall rutes gjennom denne proxyen. Deploy worker med <wrangler>wrangler deploy</wrangler>.",
+    "lommin": "Lommin proxy (standard)",
+    "custom": "Egendefinert",
+    "warning": "OBS! Lommis egen proxy videresender trafikken din til Enable Banking og kan i teorien lese dine transaksjonsdata og ditt kortlivede tilgangstoken (men aldri signeringsnøkkelen). Lommi lagrer ingen av dine data, men du må rett og slett bare stole på at det er sant. Hvis du ikke gjør det kan du velge å registrere din egen proxy her.",
+    "urlLabel": "Proxy-URL",
+    "urlPlaceholder": "https://din-proxy.workers.dev"
+  },
+  "sync": {
+    "title": "Synkronisering",
+    "description": "Hvor langt tilbake første synkronisering av en konto henter transaksjoner. Senere synkroniseringer fortsetter der forrige slapp.",
+    "lookbackLabel": "Historikk ved første synk (dager)"
+  },
+  "backup": {
+    "title": "Lagre og gjenopprett",
+    "description": "Sikkerhetskopier dataene dine kryptert. Passordet forlater aldri enheten.",
+    "methodDrive": "Google Drive",
+    "methodFile": "Lokal fil",
+    "usePassword": "Bruk passord for å kryptere data",
+    "autoSave": "Lagre automatisk til Drive",
+    "notAvailableWithPassword": "Ikke tilgjengelig når passord er aktivert.",
+    "connectDrive": "Koble til Google Drive",
+    "saveToDrive": "Lagre til Drive",
+    "loadFromDrive": "Last fra Drive",
+    "saveFile": "Lagre fil",
+    "loadFile": "Last inn fil",
+    "driveNotConfigured": "Google Drive er ikke konfigurert.",
+    "dialogSave": "Lagre sikkerhetskopi",
+    "dialogLoad": "Last inn sikkerhetskopi",
+    "dialogDriveSave": "Lagre til Google Drive",
+    "dialogDriveLoad": "Last fra Google Drive",
+    "dialogSaveHint": "Valgfritt: beskytt filen med et passord. La feltet stå tomt for å lagre uten kryptering.",
+    "dialogLoadHint": "Skriv inn passordet du brukte ved lagring, eller la feltet stå tomt.",
+    "dialogActionSave": "Lagre",
+    "dialogActionLoad": "Last inn"
+  },
+  "spiir": {
+    "title": "Importer fra Spiir"
+  },
+  "ownImport": {
+    "title": "Import fra egne data",
+    "comingSoon": "Kommer snart. Her vil du kunne importere transaksjoner fra egne CSV-filer og andre kilder."
+  },
+  "danger": {
+    "title": "Faresone",
+    "deleteTransactions": "Slett transaksjoner",
+    "deleteAccounts": "Slett alle kontoer",
+    "deleteAll": "Slett alt",
+    "confirmDeleteTransactions": "Slett alle lagrede transaksjoner? Kontoene forblir tilkoblet; neste synkronisering henter dem på nytt.",
+    "confirmDeleteAccounts": "Slett alle kontoer og tilhørende transaksjoner? Dette kan ikke angres.",
+    "wipeAllTitle": "Slett alt",
+    "wipeAllBody": "Dette sletter signeringsnøkkelen, alle kontoer og alle transaksjoner permanent. Du sendes tilbake til innledende oppsett. Handlingen kan ikke angres."
+  },
+  "snackbar": {
+    "proxySet": "Proxy satt til Lommin standard.",
+    "proxySaved": "Proxy-URL lagret.",
+    "syncPeriodSaved": "Synkroniseringsperiode lagret.",
+    "appIdUpdated": "App ID oppdatert.",
+    "accountsDeleted": "Alle kontoer og transaksjoner er slettet.",
+    "txDeleted": "Transaksjoner slettet. Kjør Synkroniser på oversikten for å hente på nytt.",
+    "saveFailed": "Lagring feilet",
+    "deleteFailed": "Sletting feilet",
+    "savedToDrive": "Sikkerhetskopi lagret til Google Drive.",
+    "savedToFile": "Sikkerhetskopi lagret.",
+    "restoreSuccess": "Data hentet fra sikkerhetskopi.",
+    "driveRestoreSuccess": "Data hentet fra Google Drive.",
+    "wrongPassword": "Feil passord.",
+    "encryptedFile": "Filen er kryptert med passord. Huk av «Bruk passord» og prøv igjen.",
+    "loadFailed": "Lasting feilet",
+    "connectFailed": "Tilkobling feilet",
+    "saveKeyFailed": "Klarte ikke å lagre nøkkelen",
+    "restoreFailed": "Klarte ikke å gjenopprette sikkerhetskopien",
+    "noKey": "Ingen nøkkel lagret."
+  }
+}

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { GOOGLE_OAUTH_CHANNEL } from "../lib/googleDrive";
 
 export default function OAuthCallback() {
+  const { t } = useTranslation("connect");
   const [status, setStatus] = useState<"pending" | "ok" | "error">("pending");
 
   useEffect(() => {
@@ -28,8 +30,8 @@ export default function OAuthCallback() {
   return (
     <div className="flex-1 flex items-center justify-center p-8">
       <p className="text-sm text-muted text-center">
-        {status === "ok" && "Autentisering vellykket – du kan lukke dette vinduet."}
-        {status === "error" && "Autentisering feilet. Du kan lukke dette vinduet."}
+        {status === "ok" && t("oauthSuccess")}
+        {status === "error" && t("oauthError")}
       </p>
     </div>
   );

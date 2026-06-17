@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "./ui/Button";
 import { UploadIcon } from "./ui/icons";
 import { useSnackbar } from "./ui/Snackbar";
@@ -15,6 +16,7 @@ import { getAccounts, importAll, type Account } from "../lib/store";
 type Props = { onSuccess?: () => void };
 
 export default function SpiirImportPanel({ onSuccess }: Props) {
+  const { t } = useTranslation("components");
   const { showSnackbar } = useSnackbar();
   const spiirFileRef = useRef<HTMLInputElement>(null);
   const spiirZipRef = useRef<HTMLInputElement>(null);
@@ -33,10 +35,7 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
       const text = await file.text();
       const parsed = parseSpiirCsvAccounts(text);
       if (parsed.length === 0) {
-        showSnackbar(
-          "Fant ingen kontoer i filen. Sjekk at filen er en gyldig Spiir-eksport.",
-          "error",
-        );
+        showSnackbar(t("spiirImport.noAccounts"), "error");
         return;
       }
       const existing = await getAccounts();
@@ -50,7 +49,7 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
       setSpiirStep("mapping");
       if (spiirFileRef.current) spiirFileRef.current.value = "";
     },
-    [showSnackbar],
+    [showSnackbar, t],
   );
 
   const onSpiirZipChange = useCallback(
@@ -61,10 +60,7 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
         const buf = await file.arrayBuffer();
         const parsed = await parseSpiirZipAccounts(buf);
         if (parsed.length === 0) {
-          showSnackbar(
-            "Fant ingen kontoer i ZIP-filen. Sjekk at filen er en gyldig Spiir dataeksport.",
-            "error",
-          );
+          showSnackbar(t("spiirImport.noAccountsZip"), "error");
           return;
         }
         const existing = await getAccounts();
@@ -91,14 +87,14 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
         setSpiirStep("mapping");
       } catch (err) {
         showSnackbar(
-          err instanceof Error ? err.message : "Kunne ikke lese ZIP-filen.",
+          err instanceof Error ? err.message : t("spiirImport.unreadableZip"),
           "error",
         );
       } finally {
         if (spiirZipRef.current) spiirZipRef.current.value = "";
       }
     },
-    [showSnackbar],
+    [showSnackbar, t],
   );
 
   const doSpiirImport = useCallback(async () => {
@@ -109,19 +105,19 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
           ? await buildImportPayloadFromZip(spiirZipBuf!, accountMap)
           : buildImportPayload(spiirText, accountMap);
       const { inserted, skipped } = await importAll({ ...payload, cursors: [] });
-      const skipNote = skipped > 0 ? ` (${skipped} hoppet over – fantes allerede)` : "";
+      const skipNote = skipped > 0 ? t("spiirImport.skipNote", { skipped }) : "";
       showSnackbar(
-        `Importerte ${inserted} transaksjoner fra ${spiirAccounts.length} konto${spiirAccounts.length !== 1 ? "er" : ""}${skipNote}.`,
+        t("spiirImport.success", { count: spiirAccounts.length, txCount: inserted, skipNote }),
         "ok",
       );
       void triggerAutosave();
       setSpiirStep("idle");
       onSuccess?.();
     } catch (e) {
-      showSnackbar(e instanceof Error ? e.message : "Import feilet", "error");
+      showSnackbar(e instanceof Error ? e.message : t("spiirImport.importFailed"), "error");
       setSpiirStep("mapping");
     }
-  }, [spiirMode, spiirText, spiirZipBuf, accountMap, spiirAccounts, showSnackbar, onSuccess]);
+  }, [spiirMode, spiirText, spiirZipBuf, accountMap, spiirAccounts, showSnackbar, onSuccess, t]);
 
   const cancelSpiirImport = useCallback(() => {
     setSpiirStep("idle");
@@ -129,11 +125,7 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
 
   return (
     <>
-      <p className="text-xs text-muted mb-4">
-        Importer historiske transaksjoner fra Spiir. Velg CSV-eksport for enkel import, eller
-        ZIP-eksport (full dataeksport) for bedre data med kontonavn, bank og kategorier fra Spiir.
-        Duplikater hoppes over.
-      </p>
+      <p className="text-xs text-muted mb-4">{t("spiirImport.description")}</p>
 
       {spiirStep === "idle" && (
         <>
@@ -154,11 +146,11 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
           <div className="flex gap-2">
             <Button variant="ghost" onClick={() => spiirFileRef.current?.click()}>
               <UploadIcon size={13} />
-              Velg CSV-fil
+              {t("spiirImport.csvButton")}
             </Button>
             <Button onClick={() => spiirZipRef.current?.click()}>
               <UploadIcon size={13} />
-              Velg ZIP-eksport
+              {t("spiirImport.zipButton")}
             </Button>
           </div>
         </>
@@ -183,7 +175,7 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
                   }
                   disabled={spiirStep === "importing"}
                 >
-                  <option value={`spiir::${sa.accountId}`}>Opprett ny konto</option>
+                  <option value={`spiir::${sa.accountId}`}>{t("spiirImport.newAccount")}</option>
                   {existingAccounts.map((acc) => (
                     <option key={acc.uid} value={acc.uid}>
                       {acc.name ?? acc.uid}
@@ -195,14 +187,14 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
           </div>
           <div className="flex gap-2">
             <Button loading={spiirStep === "importing"} onClick={doSpiirImport}>
-              Importer
+              {t("spiirImport.import")}
             </Button>
             <Button
               variant="ghost"
               disabled={spiirStep === "importing"}
               onClick={cancelSpiirImport}
             >
-              Avbryt
+              {t("spiirImport.cancel")}
             </Button>
           </div>
         </>

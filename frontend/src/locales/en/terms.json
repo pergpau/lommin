@@ -1,0 +1,28 @@
+{
+  "back": "← Back",
+  "title": "Terms of Service",
+  "effectiveDate": "Effective: June 2025",
+  "sections": {
+    "noWarranty": {
+      "heading": "Free to use, without warranty",
+      "body": "Lommin is available free of charge, as is, without any warranty — either express or implied. Use at your own risk. We make no guarantees about availability, accuracy or fitness for any particular purpose."
+    },
+    "yourData": {
+      "heading": "Your data, your responsibility",
+      "body": "All data is stored locally in your browser. We do not have access to it and cannot restore it if you clear browser storage. Back up using the encrypted backup feature under Settings."
+    },
+    "proxy": {
+      "heading": "Proxy access",
+      "body1": "API requests are forwarded through a proxy to handle CORS. The proxy sees the short-lived Bearer token associated with each request. It does not see your private key.",
+      "body2": "If this is a concern, you can set up your own proxy and configure it under <settingsLink>Settings → CORS proxy</settingsLink>. You can run the included Cloudflare Worker locally with <wrangler>wrangler dev</wrangler>."
+    },
+    "enableBanking": {
+      "heading": "Enable Banking API",
+      "body": "Lommin uses the Enable Banking API. Your use of this API is governed by Enable Banking's own terms of service. You are responsible for ensuring you have the correct credentials and necessary permissions."
+    },
+    "changes": {
+      "heading": "Changes",
+      "body": "These terms may be updated at any time. Continued use of Lommin after changes constitutes acceptance of the updated terms."
+    }
+  }
+}

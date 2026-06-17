@@ -1,0 +1,17 @@
+{
+  "items": {
+    "overview": "Oversikt",
+    "settings": "Innstillinger"
+  },
+  "footer": {
+    "privacy": "Personvern",
+    "terms": "Vilkår"
+  },
+  "languageSwitcher": {
+    "ariaLabel": "Bytt til engelsk"
+  },
+  "themeToggle": {
+    "toLight": "Bytt til lyst tema",
+    "toDark": "Bytt til mørkt tema"
+  }
+}

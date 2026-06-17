@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import BankSetupGuide from "../components/BankSetupGuide";
 import PemImporter from "../components/PemImporter";
 import SpiirImportPanel from "../components/SpiirImport";
@@ -28,6 +29,7 @@ import {
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
 export default function Settings() {
+  const { t } = useTranslation(["settings", "common"]);
   const navigate = useNavigate();
   const { hash } = useLocation();
   const [hasKey, setHasKey] = useState(true);
@@ -41,8 +43,8 @@ export default function Settings() {
       window.scrollTo({ top, behavior: "smooth" });
     }
     setHighlightedHash(hash);
-    const t = setTimeout(() => setHighlightedHash(null), 1200);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setHighlightedHash(null), 1200);
+    return () => clearTimeout(timer);
   }, [hash, isDemo]);
   const [pemConfirming, setPemConfirming] = useState(false);
   const [pemAppId, setPemAppId] = useState("");
@@ -104,45 +106,45 @@ export default function Settings() {
       setHasKey(true);
       setPemConfirming(false);
     } catch (e) {
-      showSnackbar(e instanceof Error ? e.message : "Klarte ikke å lagre nøkkelen", "error");
+      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.saveKeyFailed"), "error");
     }
-  }, [pemAppId, showSnackbar]);
+  }, [pemAppId, showSnackbar, t]);
 
   const changeProxyMode = useCallback(async (mode: "lommin" | "custom") => {
     setProxyMode(mode);
     if (mode === "lommin") {
       try {
         await setSetting("proxyUrl", HOSTED_PROXY_URL);
-        showSnackbar("Proxy satt til Lommin standard.", "ok");
+        showSnackbar(t("settings:snackbar.proxySet"), "ok");
       } catch (e) {
-        showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
+        showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.saveFailed"), "error");
       }
     }
-  }, [showSnackbar]);
+  }, [showSnackbar, t]);
 
   const saveProxy = useCallback(async () => {
     setSaving(true);
     try {
       await setSetting("proxyUrl", customProxyUrl.trim());
-      showSnackbar("Proxy-URL lagret.", "ok");
+      showSnackbar(t("settings:snackbar.proxySaved"), "ok");
     } catch (e) {
-      showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
+      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.saveFailed"), "error");
     } finally {
       setSaving(false);
     }
-  }, [customProxyUrl, showSnackbar]);
+  }, [customProxyUrl, showSnackbar, t]);
 
   const saveLookback = useCallback(async () => {
     setSavingLookback(true);
     try {
       await setSetting("lookbackDays", parseInt(lookbackDays, 10));
-      showSnackbar("Synkroniseringsperiode lagret.", "ok");
+      showSnackbar(t("settings:snackbar.syncPeriodSaved"), "ok");
     } catch (e) {
-      showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
+      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.saveFailed"), "error");
     } finally {
       setSavingLookback(false);
     }
-  }, [lookbackDays, showSnackbar]);
+  }, [lookbackDays, showSnackbar, t]);
 
   const saveAppIdFn = useCallback(async () => {
     const trimmed = appId.trim();
@@ -150,17 +152,17 @@ export default function Settings() {
     setSavingAppId(true);
     try {
       const kv = await loadKey();
-      if (!kv) throw new Error("Ingen nøkkel lagret.");
+      if (!kv) throw new Error(t("settings:snackbar.noKey"));
       await saveKey(kv.key, trimmed);
       setAppId(trimmed);
       savedAppId.current = trimmed;
-      showSnackbar("App ID oppdatert.", "ok");
+      showSnackbar(t("settings:snackbar.appIdUpdated"), "ok");
     } catch (e) {
-      showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
+      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.saveFailed"), "error");
     } finally {
       setSavingAppId(false);
     }
-  }, [appId, showSnackbar]);
+  }, [appId, showSnackbar, t]);
 
   const openDialog = useCallback((mode: "save" | "load" | "drive-save" | "drive-load") => {
     setDialogPassphrase("");
@@ -183,15 +185,15 @@ export default function Settings() {
     try {
       const data = await exportAll();
       await saveEncryptedFile(data, passphrase);
-      showSnackbar("Sikkerhetskopi lagret.", "ok");
+      showSnackbar(t("settings:snackbar.savedToFile"), "ok");
     } catch (e) {
       if ((e as Error).name !== "AbortError")
-        showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
+        showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.saveFailed"), "error");
     } finally {
       setSyncing(null);
       setDialogPassphrase("");
     }
-  }, [showSnackbar]);
+  }, [showSnackbar, t]);
 
   const loadFile = useCallback(async (passphrase: string) => {
     setDialog(null);
@@ -199,22 +201,22 @@ export default function Settings() {
     try {
       const data = await loadEncryptedFile(passphrase);
       await importAll(data);
-      showSnackbar("Data hentet fra sikkerhetskopi.", "ok");
+      showSnackbar(t("settings:snackbar.restoreSuccess"), "ok");
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
         const isDecryptErr = e instanceof DOMException && e.name === "OperationError";
         const text = isDecryptErr
           ? passphrase
-            ? "Feil passord."
-            : "Filen er kryptert med passord. Huk av «Bruk passord» og prøv igjen."
-          : e instanceof Error ? e.message : "Lasting feilet";
+            ? t("settings:snackbar.wrongPassword")
+            : t("settings:snackbar.encryptedFile")
+          : e instanceof Error ? e.message : t("settings:snackbar.loadFailed");
         showSnackbar(text, "error");
       }
     } finally {
       setSyncing(null);
       setDialogPassphrase("");
     }
-  }, [showSnackbar]);
+  }, [showSnackbar, t]);
 
   const connectDrive = useCallback(async () => {
     if (!GOOGLE_CLIENT_ID) return;
@@ -224,11 +226,11 @@ export default function Settings() {
       await persistDriveToken(token, expiresIn);
       setDriveToken(token);
     } catch (e) {
-      showSnackbar(e instanceof Error ? e.message : "Tilkobling feilet", "error");
+      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.connectFailed"), "error");
     } finally {
       setDriveSyncing(null);
     }
-  }, [showSnackbar]);
+  }, [showSnackbar, t]);
 
   const saveDrive = useCallback(async (passphrase: string) => {
     if (!driveToken) return;
@@ -237,15 +239,15 @@ export default function Settings() {
     try {
       const data = await exportAll();
       await saveBackupToDrive(driveToken, data, passphrase);
-      showSnackbar("Sikkerhetskopi lagret til Google Drive.", "ok");
+      showSnackbar(t("settings:snackbar.savedToDrive"), "ok");
     } catch (e) {
       if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
-      showSnackbar(e instanceof Error ? e.message : "Lagring feilet", "error");
+      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.saveFailed"), "error");
     } finally {
       setDriveSyncing(null);
       setDialogPassphrase("");
     }
-  }, [driveToken, showSnackbar]);
+  }, [driveToken, showSnackbar, t]);
 
   const loadDrive = useCallback(async (passphrase: string) => {
     if (!driveToken) return;
@@ -254,21 +256,21 @@ export default function Settings() {
     try {
       const data = await loadBackupFromDrive(driveToken, passphrase);
       await importAll(data);
-      showSnackbar("Data hentet fra Google Drive.", "ok");
+      showSnackbar(t("settings:snackbar.driveRestoreSuccess"), "ok");
     } catch (e) {
       if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
       const isDecryptErr = e instanceof DOMException && e.name === "OperationError";
       const text = isDecryptErr
         ? passphrase
-          ? "Feil passord."
-          : "Filen er kryptert med passord. Huk av «Bruk passord» og prøv igjen."
-        : e instanceof Error ? e.message : "Lasting feilet";
+          ? t("settings:snackbar.wrongPassword")
+          : t("settings:snackbar.encryptedFile")
+        : e instanceof Error ? e.message : t("settings:snackbar.loadFailed");
       showSnackbar(text, "error");
     } finally {
       setDriveSyncing(null);
       setDialogPassphrase("");
     }
-  }, [driveToken, showSnackbar]);
+  }, [driveToken, showSnackbar, t]);
 
   const forgetKey = useCallback(async () => {
     await clearKey();
@@ -277,36 +279,31 @@ export default function Settings() {
   }, [navigate]);
 
   const wipeAccounts = useCallback(async () => {
-    if (!confirm("Slett alle kontoer og tilhørende transaksjoner? Dette kan ikke angres.")) return;
+    if (!confirm(t("settings:danger.confirmDeleteAccounts"))) return;
     setWipingAccounts(true);
     try {
       await clearTransactions();
       await clearAccounts();
-      showSnackbar("Alle kontoer og transaksjoner er slettet.", "ok");
+      showSnackbar(t("settings:snackbar.accountsDeleted"), "ok");
     } catch (e) {
-      showSnackbar(e instanceof Error ? e.message : "Sletting feilet", "error");
+      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.deleteFailed"), "error");
     } finally {
       setWipingAccounts(false);
     }
-  }, [showSnackbar]);
+  }, [showSnackbar, t]);
 
   const wipeTransactions = useCallback(async () => {
-    if (
-      !confirm(
-        "Slett alle lagrede transaksjoner? Kontoene forblir tilkoblet; neste synkronisering henter dem på nytt.",
-      )
-    )
-      return;
+    if (!confirm(t("settings:danger.confirmDeleteTransactions"))) return;
     setWiping(true);
     try {
       await clearTransactions();
-      showSnackbar("Transaksjoner slettet. Kjør Synkroniser på oversikten for å hente på nytt.", "ok");
+      showSnackbar(t("settings:snackbar.txDeleted"), "ok");
     } catch (e) {
-      showSnackbar(e instanceof Error ? e.message : "Sletting feilet", "error");
+      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.deleteFailed"), "error");
     } finally {
       setWiping(false);
     }
-  }, [showSnackbar]);
+  }, [showSnackbar, t]);
 
   const wipeAll = useCallback(async () => {
     setWipeAllDialog(false);
@@ -318,25 +315,43 @@ export default function Settings() {
       await clearDriveToken();
       navigate("/onboarding");
     } catch (e) {
-      showSnackbar(e instanceof Error ? e.message : "Sletting feilet", "error");
+      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.deleteFailed"), "error");
       setWipingAll(false);
     }
-  }, [navigate, showSnackbar]);
+  }, [navigate, showSnackbar, t]);
 
   if (isDemo === null || isDemo) return null;
 
+  const dialogTitle =
+    dialog === "save"
+      ? t("settings:backup.dialogSave")
+      : dialog === "load"
+        ? t("settings:backup.dialogLoad")
+        : dialog === "drive-save"
+          ? t("settings:backup.dialogDriveSave")
+          : t("settings:backup.dialogDriveLoad");
+
+  const dialogHint =
+    dialog === "save" || dialog === "drive-save"
+      ? t("settings:backup.dialogSaveHint")
+      : t("settings:backup.dialogLoadHint");
+
+  const dialogAction =
+    dialog === "save" || dialog === "drive-save"
+      ? t("settings:backup.dialogActionSave")
+      : t("settings:backup.dialogActionLoad");
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-semibold text-text mb-6">Innstillinger</h1>
-
+      <h1 className="text-xl font-semibold text-text mb-6">{t("settings:title")}</h1>
 
       <Card id="pem" className={`p-5 mb-4 transition-shadow duration-300 ${highlightedHash === "#pem" ? "ring-2 ring-accent" : ""} ${!hasKey ? "border-accent/30 bg-accent/5" : ""}`}>
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-text">Signeringsnøkkel</h2>
+            <h2 className="text-sm font-semibold text-text">{t("settings:signingKey.title")}</h2>
             {hasKey && (
               <span className="inline-flex items-center gap-1 rounded-full bg-positive/10 px-2 py-0.5 text-xs font-medium text-positive">
-                ✓ importert
+                {t("settings:signingKey.imported")}
               </span>
             )}
           </div>
@@ -346,7 +361,7 @@ export default function Settings() {
               onClick={forgetKey}
             >
               <TrashIcon size={12} />
-              Fjern nøkkel
+              {t("settings:signingKey.removeKey")}
             </button>
           )}
         </div>
@@ -355,22 +370,25 @@ export default function Settings() {
           <div className="space-y-3 mt-4">
             <div>
               <Input
-                label="App ID"
+                label={t("settings:appId.label")}
                 value={appId}
                 onChange={(e) => setAppId(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") saveAppIdFn(); }}
-                placeholder="f.eks. abc123de-f456-..."
+                placeholder={t("settings:appId.placeholder")}
                 className="w-full font-mono"
               />
             </div>
             <Button loading={savingAppId} onClick={saveAppIdFn} disabled={!appId.trim() || appId.trim() === savedAppId.current}>
-              Oppdater
+              {t("settings:appId.update")}
             </Button>
           </div>
         ) : (
           <div className="space-y-3">
             <p className="text-xs text-muted">
-              Ingen nøkkel er lagret. Last opp <span className="mono">.pem</span>-filen fra Enable Banking for å aktivere synkronisering.
+              <Trans
+                i18nKey="settings:signingKey.noKey"
+                components={{ pem: <span className="mono" /> }}
+              />
             </p>
             {!pemConfirming ? (
               <>
@@ -378,7 +396,7 @@ export default function Settings() {
                   className="text-xs text-accent hover:underline"
                   onClick={() => setShowGuide((v) => !v)}
                 >
-                  {showGuide ? "Skjul guide" : "Trenger du hjelp med å skaffe nøkkelen?"}
+                  {showGuide ? t("settings:signingKey.guideHide") : t("settings:signingKey.guideShow")}
                 </button>
                 {showGuide && (
                   <div className="border border-border rounded-xl p-4 mt-1">
@@ -386,9 +404,9 @@ export default function Settings() {
                   </div>
                 )}
                 <PemImporter
-                  onImported={(key, appId) => {
+                  onImported={(key, id) => {
                     pendingPemKey.current = key;
-                    setPemAppId(appId);
+                    setPemAppId(id);
                     setPemConfirming(true);
                   }}
                 />
@@ -396,7 +414,7 @@ export default function Settings() {
             ) : (
               <div className="space-y-3">
                 <Input
-                  label="App ID"
+                  label={t("settings:appId.label")}
                   value={pemAppId}
                   onChange={(e) => setPemAppId(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") void confirmPemKey(); }}
@@ -404,7 +422,7 @@ export default function Settings() {
                   autoFocus
                 />
                 <Button onClick={() => void confirmPemKey()} disabled={!pemAppId.trim()}>
-                  Lagre nøkkel
+                  {t("settings:signingKey.saveKey")}
                 </Button>
               </div>
             )}
@@ -413,10 +431,12 @@ export default function Settings() {
       </Card>
 
       <Card className="p-5 mb-4">
-        <h2 className="text-sm font-semibold text-text mb-1">CORS Proxy</h2>
+        <h2 className="text-sm font-semibold text-text mb-1">{t("settings:proxy.title")}</h2>
         <p className="text-xs text-muted mb-3">
-          Alle Enable Banking API-kall rutes gjennom denne proxyen. Deploy worker med{" "}
-          <span className="mono text-text/70">wrangler deploy</span>.
+          <Trans
+            i18nKey="settings:proxy.description"
+            components={{ wrangler: <span className="mono text-text/70" /> }}
+          />
         </p>
 
         <div className="flex gap-4 mb-3">
@@ -429,7 +449,7 @@ export default function Settings() {
               onChange={() => changeProxyMode("lommin")}
               className="w-4 h-4 accent-accent"
             />
-            <span className="text-xs text-text">Lommin proxy (standard)</span>
+            <span className="text-xs text-text">{t("settings:proxy.lommin")}</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <input
@@ -440,43 +460,39 @@ export default function Settings() {
               onChange={() => changeProxyMode("custom")}
               className="w-4 h-4 accent-accent"
             />
-            <span className="text-xs text-text">Egendefinert</span>
+            <span className="text-xs text-text">{t("settings:proxy.custom")}</span>
           </label>
         </div>
 
         <div className="mb-4 border border-warning/20 bg-warning/5 rounded-lg p-3">
           <p className="text-xs text-muted leading-relaxed">
             <span className="text-text/80 font-medium">OBS! </span>
-            Lommis egen proxy videresender trafikken din til Enable Banking og kan i teorien lese dine transaksjonsdata og ditt kortlivede
-            tilgangstoken (men aldri signeringsnøkkelen). Lommi lagrer ingen av dine data, men du må rett og slett bare stole på at det er sant. Hvis du ikke gjør det kan du velge å registrere din egen proxy her.
+            {t("settings:proxy.warning")}
           </p>
         </div>
 
         {proxyMode === "custom" && (
           <div>
             <Input
-              label="Proxy-URL"
+              label={t("settings:proxy.urlLabel")}
               value={customProxyUrl}
               onChange={(e) => setCustomProxyUrl(e.target.value)}
-              placeholder="https://din-proxy.workers.dev"
+              placeholder={t("settings:proxy.urlPlaceholder")}
               className="mb-2"
             />
             <Button loading={saving} onClick={saveProxy}>
-              Lagre
+              {t("common:actions.save")}
             </Button>
           </div>
         )}
       </Card>
 
       <Card className="p-5 mb-4">
-        <h2 className="text-sm font-semibold text-text mb-1">Synkronisering</h2>
-        <p className="text-xs text-muted mb-3">
-          Hvor langt tilbake første synkronisering av en konto henter transaksjoner. Senere
-          synkroniseringer fortsetter der forrige slapp.
-        </p>
+        <h2 className="text-sm font-semibold text-text mb-1">{t("settings:sync.title")}</h2>
+        <p className="text-xs text-muted mb-3">{t("settings:sync.description")}</p>
         <div className="flex gap-2">
           <Input
-            label="Historikk ved første synk (dager)"
+            label={t("settings:sync.lookbackLabel")}
             type="number"
             min={1}
             max={3650}
@@ -486,17 +502,15 @@ export default function Settings() {
           />
           <div className="self-end">
             <Button loading={savingLookback} onClick={saveLookback}>
-              Lagre
+              {t("common:actions.save")}
             </Button>
           </div>
         </div>
       </Card>
 
       <Card id="backup" className={`p-5 mb-4 transition-shadow duration-300 ${highlightedHash === "#backup" ? "ring-2 ring-accent" : ""}`}>
-        <h2 className="text-sm font-semibold text-text mb-1">Lagre og gjenopprett</h2>
-        <p className="text-xs text-muted mb-3">
-          Sikkerhetskopier dataene dine kryptert. Passordet forlater aldri enheten.
-        </p>
+        <h2 className="text-sm font-semibold text-text mb-1">{t("settings:backup.title")}</h2>
+        <p className="text-xs text-muted mb-3">{t("settings:backup.description")}</p>
 
         <div className="space-y-4">
           <div className="flex gap-4">
@@ -509,7 +523,7 @@ export default function Settings() {
                 onChange={() => changeBackupMethod("drive")}
                 className="w-4 h-4 accent-accent"
               />
-              <span className="text-xs text-text">Google Drive</span>
+              <span className="text-xs text-text">{t("settings:backup.methodDrive")}</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
@@ -520,7 +534,7 @@ export default function Settings() {
                 onChange={() => changeBackupMethod("file")}
                 className="w-4 h-4 accent-accent"
               />
-              <span className="text-xs text-text">Lokal fil</span>
+              <span className="text-xs text-text">{t("settings:backup.methodFile")}</span>
             </label>
           </div>
 
@@ -532,7 +546,7 @@ export default function Settings() {
                 onChange={(e) => { setUsePassphrase(e.target.checked); void setSetting("usePassphrase", e.target.checked); }}
                 className="w-4 h-4 accent-accent"
               />
-              <span className="text-xs text-text">Bruk passord for å kryptere data</span>
+              <span className="text-xs text-text">{t("settings:backup.usePassword")}</span>
             </label>
           )}
 
@@ -540,13 +554,12 @@ export default function Settings() {
             <div>
               {!GOOGLE_CLIENT_ID ? (
                 <p className="text-xs text-muted">
-                  Google Drive er ikke konfigurert.{" "}
-                  <span className="mono text-text/70">VITE_GOOGLE_CLIENT_ID</span> mangler i
-                  byggemiljøet.
+                  {t("settings:backup.driveNotConfigured")}{" "}
+                  <span className="mono text-text/70">VITE_GOOGLE_CLIENT_ID</span>
                 </p>
               ) : !driveToken ? (
                 <Button loading={driveSyncing === "connect"} onClick={connectDrive}>
-                  Koble til Google Drive
+                  {t("settings:backup.connectDrive")}
                 </Button>
               ) : (
                 <div className="flex flex-col gap-3">
@@ -562,10 +575,10 @@ export default function Settings() {
                       }}
                     />
                     <span className="text-xs text-text leading-snug">
-                      Lagre automatisk til Drive
+                      {t("settings:backup.autoSave")}
                       {usePassphrase && (
                         <span className="block text-muted mt-0.5">
-                          Ikke tilgjengelig når passord er aktivert.
+                          {t("settings:backup.notAvailableWithPassword")}
                         </span>
                       )}
                     </span>
@@ -578,7 +591,7 @@ export default function Settings() {
                       onClick={() => usePassphrase ? openDialog("drive-save") : void saveDrive("")}
                     >
                       <DownloadIcon size={13} />
-                      Lagre til Drive
+                      {t("settings:backup.saveToDrive")}
                     </Button>
                     <Button
                       variant="ghost"
@@ -588,14 +601,14 @@ export default function Settings() {
                       onClick={() => usePassphrase ? openDialog("drive-load") : void loadDrive("")}
                     >
                       <UploadIcon size={13} />
-                      Last fra Drive
+                      {t("settings:backup.loadFromDrive")}
                     </Button>
                     <Button
                       variant="ghost"
                       disabled={!!driveSyncing}
                       onClick={() => { setDriveToken(null); void clearDriveToken(); }}
                     >
-                      Koble fra
+                      {t("common:actions.disconnect")}
                     </Button>
                   </div>
                 </div>
@@ -611,7 +624,7 @@ export default function Settings() {
                   onClick={() => usePassphrase ? openDialog("save") : void saveFile("")}
                 >
                   <DownloadIcon size={13} />
-                  Lagre fil
+                  {t("settings:backup.saveFile")}
                 </Button>
                 <Button
                   variant="ghost"
@@ -621,7 +634,7 @@ export default function Settings() {
                   onClick={() => usePassphrase ? openDialog("load") : void loadFile("")}
                 >
                   <UploadIcon size={13} />
-                  Last inn fil
+                  {t("settings:backup.loadFile")}
                 </Button>
               </div>
             </div>
@@ -633,15 +646,13 @@ export default function Settings() {
         id="spiir"
         className={`p-5 mb-4 transition-shadow duration-300 ${highlightedHash === "#spiir" ? "ring-2 ring-accent" : ""}`}
       >
-        <h2 className="text-sm font-semibold text-text mb-1">Importer fra Spiir</h2>
+        <h2 className="text-sm font-semibold text-text mb-1">{t("settings:spiir.title")}</h2>
         <SpiirImportPanel />
       </Card>
 
       <Card id="import" className="p-5 mb-4">
-        <h2 className="text-sm font-semibold text-text mb-1">Import fra egne data</h2>
-        <p className="text-xs text-muted">
-          Kommer snart. Her vil du kunne importere transaksjoner fra egne CSV-filer og andre kilder.
-        </p>
+        <h2 className="text-sm font-semibold text-text mb-1">{t("settings:ownImport.title")}</h2>
+        <p className="text-xs text-muted">{t("settings:ownImport.comingSoon")}</p>
       </Card>
 
       {dialog && (
@@ -653,24 +664,16 @@ export default function Settings() {
             className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-sm font-semibold text-text mb-1">
-              {dialog === "save"
-                ? "Lagre sikkerhetskopi"
-                : dialog === "load"
-                  ? "Last inn sikkerhetskopi"
-                  : dialog === "drive-save"
-                    ? "Lagre til Google Drive"
-                    : "Last fra Google Drive"}
-            </h3>
-            <p className="text-xs text-muted mb-4">
-              {dialog === "save" || dialog === "drive-save"
-                ? "Valgfritt: beskytt filen med et passord. La feltet stå tomt for å lagre uten kryptering."
-                : "Skriv inn passordet du brukte ved lagring, eller la feltet stå tomt."}
-            </p>
+            <h3 className="text-sm font-semibold text-text mb-1">{dialogTitle}</h3>
+            <p className="text-xs text-muted mb-4">{dialogHint}</p>
             <Input
-              label="Passord (valgfritt)"
+              label={t("common:dialog.passwordLabel")}
               type="password"
-              placeholder="La stå tomt for ingen kryptering"
+              placeholder={
+                dialog === "save" || dialog === "drive-save"
+                  ? t("common:dialog.passwordPlaceholder")
+                  : t("common:dialog.passwordPlaceholderRequired")
+              }
               value={dialogPassphrase}
               onChange={(e) => setDialogPassphrase(e.target.value)}
               onKeyDown={(e) => {
@@ -687,7 +690,7 @@ export default function Settings() {
             />
             <div className="flex gap-2 justify-end">
               <Button variant="ghost" onClick={closeDialog}>
-                Avbryt
+                {t("common:actions.cancel")}
               </Button>
               <Button
                 onClick={
@@ -700,7 +703,7 @@ export default function Settings() {
                         : () => loadDrive(dialogPassphrase)
                 }
               >
-                {dialog === "save" || dialog === "drive-save" ? "Lagre" : "Last inn"}
+                {dialogAction}
               </Button>
             </div>
           </div>
@@ -708,16 +711,16 @@ export default function Settings() {
       )}
 
       <Card className="p-5 border-negative/10">
-        <h2 className="text-sm font-semibold text-text mb-1">Faresone</h2>
+        <h2 className="text-sm font-semibold text-text mb-1">{t("settings:danger.title")}</h2>
         <div className="flex gap-2 flex-wrap">
           <Button variant="danger" loading={wiping} onClick={wipeTransactions}>
-            Slett transaksjoner
+            {t("settings:danger.deleteTransactions")}
           </Button>
           <Button variant="danger" loading={wipingAccounts} onClick={wipeAccounts}>
-            Slett alle kontoer
+            {t("settings:danger.deleteAccounts")}
           </Button>
           <Button variant="danger" loading={wipingAll} onClick={() => setWipeAllDialog(true)}>
-            Slett alt
+            {t("settings:danger.deleteAll")}
           </Button>
         </div>
       </Card>
@@ -731,17 +734,14 @@ export default function Settings() {
             className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-sm font-semibold text-text mb-2">Slett alt</h3>
-            <p className="text-xs text-muted mb-6">
-              Dette sletter signeringsnøkkelen, alle kontoer og alle transaksjoner permanent.
-              Du sendes tilbake til innledende oppsett. Handlingen kan ikke angres.
-            </p>
+            <h3 className="text-sm font-semibold text-text mb-2">{t("settings:danger.wipeAllTitle")}</h3>
+            <p className="text-xs text-muted mb-6">{t("settings:danger.wipeAllBody")}</p>
             <div className="flex gap-2 justify-end">
               <Button variant="ghost" onClick={() => setWipeAllDialog(false)}>
-                Avbryt
+                {t("common:actions.cancel")}
               </Button>
               <Button variant="danger" onClick={wipeAll}>
-                Slett alt
+                {t("settings:danger.deleteAll")}
               </Button>
             </div>
           </div>

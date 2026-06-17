@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { triggerAutosave } from "../lib/autosave";
 import { deleteAccount, resetAccountSync, setCategoryId, type Transaction } from "../lib/store";
 import { accountLabel } from "../lib/format";
+import { getLocale } from "../lib/i18n";
 import { SUB_CATEGORY_MAP } from "../lib/categories";
 import { useAccounts } from "../hooks/useAccounts";
 import { useTransactions } from "../hooks/useTransactions";
@@ -17,18 +19,19 @@ import { ArrowLeftIcon, RefreshCwIcon } from "../components/ui/icons";
 import { isDemoMode } from "../lib/demoData";
 import { loadKey } from "../lib/keystore";
 
-function txSection(t: Transaction): "income" | "expense" | "saving" | null {
-  if (t.categoryId != null) {
-    const type = SUB_CATEGORY_MAP[t.categoryId]?.type;
+function txSection(tx: Transaction): "income" | "expense" | "saving" | null {
+  if (tx.categoryId != null) {
+    const type = SUB_CATEGORY_MAP[tx.categoryId]?.type;
     if (type === "exclude") return null;
     if (type === "income") return "income";
     if (type === "saving") return "saving";
     return "expense";
   }
-  return t.amount > 0 ? "income" : "expense";
+  return tx.amount > 0 ? "income" : "expense";
 }
 
 export default function AccountPage() {
+  const { t } = useTranslation("account");
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
   const { accounts, loading: accountsLoading, reload } = useAccounts();
@@ -67,39 +70,39 @@ export default function AccountPage() {
 
   const monthlyData = useMemo<MonthBar[]>(() => {
     const map = new Map<string, { income: number; expenses: number; saving: number }>();
-    for (const t of sorted) {
-      const section = txSection(t);
+    for (const tx of sorted) {
+      const section = txSection(tx);
       if (!section) continue;
-      const date = t.bookingDate ?? t.transactionDate;
+      const date = tx.bookingDate ?? tx.transactionDate;
       if (!date) continue;
       const key = date.slice(0, 7);
       const entry = map.get(key) ?? { income: 0, expenses: 0, saving: 0 };
-      if (section === "income") entry.income += t.amount;
-      else if (section === "saving") entry.saving += -t.amount;
-      else entry.expenses += -t.amount;
+      if (section === "income") entry.income += tx.amount;
+      else if (section === "saving") entry.saving += -tx.amount;
+      else entry.expenses += -tx.amount;
       map.set(key, entry);
     }
     return [...map.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, { income, expenses, saving }]) => {
         const d = new Date(key + "-15");
-        const raw = d.toLocaleDateString("nb-NO", { month: "long" });
+        const raw = d.toLocaleDateString(getLocale(), { month: "long" });
         return { key, label: raw.charAt(0).toUpperCase() + raw.slice(1), income, expenses, saving };
       });
   }, [sorted]);
 
   const yearlyData = useMemo<MonthBar[]>(() => {
     const map = new Map<string, { income: number; expenses: number; saving: number }>();
-    for (const t of sorted) {
-      const section = txSection(t);
+    for (const tx of sorted) {
+      const section = txSection(tx);
       if (!section) continue;
-      const date = t.bookingDate ?? t.transactionDate;
+      const date = tx.bookingDate ?? tx.transactionDate;
       if (!date) continue;
       const key = date.slice(0, 4);
       const entry = map.get(key) ?? { income: 0, expenses: 0, saving: 0 };
-      if (section === "income") entry.income += t.amount;
-      else if (section === "saving") entry.saving += -t.amount;
-      else entry.expenses += -t.amount;
+      if (section === "income") entry.income += tx.amount;
+      else if (section === "saving") entry.saving += -tx.amount;
+      else entry.expenses += -tx.amount;
       map.set(key, entry);
     }
     return [...map.entries()]
@@ -112,8 +115,8 @@ export default function AccountPage() {
   const filtered = useMemo(
     () =>
       selectedMonth
-        ? sorted.filter((t) => {
-            const date = t.bookingDate ?? t.transactionDate ?? "";
+        ? sorted.filter((tx) => {
+            const date = tx.bookingDate ?? tx.transactionDate ?? "";
             return chartMode === "year"
               ? date.slice(0, 4) === selectedMonth
               : date.slice(0, 7) === selectedMonth;
@@ -122,7 +125,6 @@ export default function AccountPage() {
     [selectedMonth, sorted, chartMode],
   );
 
-  // Reset filter/mode when navigating to a different account (render-phase setState)
   const [prevUid, setPrevUid] = useState(uid);
   if (prevUid !== uid) {
     setPrevUid(uid);
@@ -131,26 +133,19 @@ export default function AccountPage() {
   }
 
   const isConnected = account ? account.sources.some((s) => s.type === "enableBanking") : false;
-  const currency = account?.currency ?? filtered[0]?.currency ?? "NOK";
 
   const removeAccount = useCallback(async () => {
-    if (!uid || !confirm("Fjern denne kontoen og alle tilhørende transaksjoner?")) return;
+    if (!uid || !confirm(t("confirm.removeAccount"))) return;
     await deleteAccount(uid);
     void triggerAutosave();
     navigate("/dashboard");
-  }, [uid, navigate]);
+  }, [uid, navigate, t]);
 
   const resetSync = useCallback(async () => {
-    if (
-      !uid ||
-      !confirm(
-        "Slett lagrede transaksjoner for denne kontoen og nullstill synk-markøren? Neste synkronisering henter alt på nytt basert på historikkinnstillingen.",
-      )
-    )
-      return;
+    if (!uid || !confirm(t("confirm.deleteTransactions"))) return;
     await resetAccountSync(uid);
     void triggerAutosave();
-  }, [uid]);
+  }, [uid, t]);
 
   if (loading) {
     return (
@@ -169,11 +164,11 @@ export default function AccountPage() {
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold text-text">
-              {account ? accountLabel(account) : "Konto"}
+              {account ? accountLabel(account) : t("fallbackTitle")}
             </h1>
             {isConnected && (
               <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-positive/10 text-positive border border-positive/20 leading-none">
-                Tilkoblet
+                {t("connectedBadge")}
               </span>
             )}
           </div>
@@ -189,7 +184,7 @@ export default function AccountPage() {
             onClick={() => account && runSync([account], () => { reload(); void triggerAutosave(); })}
           >
             <RefreshCwIcon size={12} />
-            Synkroniser
+            {t("sync")}
           </Button>
         ) : (
           <Button
@@ -197,14 +192,14 @@ export default function AccountPage() {
             disabled={isDemo}
             onClick={() => navigate(hasKey ? "/connect" : "/settings#pem")}
           >
-            Koble til bank
+            {t("connectBank")}
           </Button>
         )}
         <Button size="sm" variant="ghost" onClick={resetSync}>
-          Slett transaksjoner
+          {t("deleteTransactions")}
         </Button>
         <Button size="sm" variant="danger" onClick={removeAccount}>
-          Fjern konto
+          {t("removeAccount")}
         </Button>
       </div>
 
@@ -225,7 +220,7 @@ export default function AccountPage() {
       )}
 
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-muted uppercase tracking-wider">Transaksjoner</span>
+        <span className="text-xs text-muted uppercase tracking-wider">{t("transactionsLabel")}</span>
         <span className="text-sm font-semibold text-text mono">{filtered.length}</span>
       </div>
 

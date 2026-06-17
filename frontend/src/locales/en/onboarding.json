@@ -1,0 +1,116 @@
+{
+  "back": "Back",
+  "intro": {
+    "label": "Lommin",
+    "title": "Take control of your spending",
+    "body1": "Lommin connects directly to your bank accounts and credit cards and gives you a clear picture of your spending — categorised and always up to date.",
+    "body2": "All data is stored locally on your device. Nothing is shared with any third parties.",
+    "start": "Get started"
+  },
+  "pick": {
+    "title": "Get started",
+    "subtitle": "How would you like to use Lommin?",
+    "bank": {
+      "title": "Connect bank accounts",
+      "description": "Sync directly from your bank via Enable Banking"
+    },
+    "import": {
+      "title": "Import",
+      "description": "Historical data from Spiir or your own files"
+    },
+    "restore": {
+      "title": "Restore",
+      "description": "From a local file or Google Drive backup"
+    },
+    "demo": {
+      "title": "Try demo",
+      "description": "Explore Lommin with synthetic test data — no account needed"
+    }
+  },
+  "bankExplain": {
+    "title": "Connect bank accounts",
+    "body": "Lommin uses Enable Banking to fetch transactions directly from your accounts or cards. You need a free Enable Banking account and a signing key.",
+    "next": "Next"
+  },
+  "bankProxy": {
+    "title": "CORS proxy",
+    "body": "To use Enable Banking, all API calls must be sent through a proxy. The default proxy is hosted by Lommin and could in theory see transaction data and access tokens in transit. For full control you can use your own proxy.",
+    "lommin": "Lommin proxy (default)",
+    "custom": "Custom",
+    "urlLabel": "Proxy URL",
+    "urlPlaceholder": "https://your-proxy.workers.dev",
+    "saveAndNext": "Save and continue",
+    "saveFailed": "Save failed"
+  },
+  "bankPem": {
+    "title": "Import signing key",
+    "body": "Upload the <pem>.pem</pem> file from Enable Banking, or paste the contents directly."
+  },
+  "bankConfirm": {
+    "title": "Confirm App ID",
+    "body": "The App ID was extracted from the filename. Verify it matches the ID in the <link>Enable Banking dashboard</link>. On mobile, the filename may sometimes change automatically.",
+    "appIdLabel": "App ID",
+    "saveAndNext": "Save and continue",
+    "keyImported": "Key imported",
+    "sendingToDash": "Taking you to the dashboard…",
+    "saveFailed": "Failed to save key"
+  },
+  "importPick": {
+    "title": "Import data",
+    "subtitle": "Choose the source for historical transactions.",
+    "fromSpiir": {
+      "title": "From Spiir",
+      "description": "Import CSV or ZIP export from Spiir"
+    },
+    "fromOwn": {
+      "title": "From your own data",
+      "description": "Import your own CSV files and other formats"
+    }
+  },
+  "importSpiir": {
+    "title": "Import from Spiir"
+  },
+  "importOwn": {
+    "title": "Import from your own data",
+    "body": "Import transactions from your own CSV files and other sources.",
+    "comingSoon": "Coming soon"
+  },
+  "restore": {
+    "title": "Restore",
+    "body": "Decrypt and merge accounts and transactions from a previous backup.",
+    "fromFile": {
+      "title": "From local file",
+      "body": "Decrypt an <enc>.enc</enc> backup from your device.",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Leave blank if you didn't use a password",
+      "button": "Choose file and restore"
+    },
+    "fromDrive": {
+      "title": "From Google Drive",
+      "body": "Download and decrypt your backup from Google Drive.",
+      "connectButton": "Connect Google Drive",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Leave blank if you didn't use a password",
+      "loadButton": "Load from Drive"
+    },
+    "errors": {
+      "wrongPassword": "Wrong password.",
+      "encrypted": "File is encrypted with a password.",
+      "connectFailed": "Connection failed",
+      "loadDriveFailed": "Failed to load from Google Drive",
+      "restoreFailed": "Failed to restore backup"
+    },
+    "restored": "Restored {{count}} transactions."
+  },
+  "demo": {
+    "title": "Try demo",
+    "body": "Explore all features of Lommin with synthetic test data. No real data is uploaded or stored externally. You can exit the demo at any time.",
+    "includes": "Includes:",
+    "bullet1": "· 2 accounts (current account and credit card)",
+    "bullet2": "· ~35 transactions over 3 months with categories",
+    "bullet3": "· Example budget and spending overview",
+    "startButton": "Start demo",
+    "hasDataError": "You already have data. Delete existing data in settings before starting the demo.",
+    "startFailed": "Failed to start demo"
+  }
+}

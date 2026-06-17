@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import BankSetupGuide from "../components/BankSetupGuide";
 import PemImporter from "../components/PemImporter";
 import SpiirImportPanel from "../components/SpiirImport";
@@ -39,7 +40,6 @@ type OnboardingStep =
 
 type GoTo = (step: OnboardingStep) => void;
 
-
 function PickCard({
   icon,
   title,
@@ -66,54 +66,51 @@ function PickCard({
 // --- Step components ---
 
 function StepIntro({ onNext }: { onNext: GoTo }) {
+  const { t } = useTranslation("onboarding");
   return (
     <div>
-      <div className="mono text-accent text-sm mb-4 tracking-widest uppercase">Lommin</div>
+      <div className="mono text-accent text-sm mb-4 tracking-widest uppercase">{t("intro.label")}</div>
       <h1 className="text-2xl font-semibold text-text tracking-tight leading-tight mb-4">
-        Ta kontroll på pengebruken
+        {t("intro.title")}
       </h1>
-      <p className="text-muted text-sm leading-relaxed mb-2">
-        Lommin kobler seg direkte til bankkontoene og kredittkortene dine og gir deg et klart bilde
-        av forbruket ditt — kategorisert og alltid oppdatert.
-      </p>
-      <p className="text-muted text-sm leading-relaxed mb-10">
-        Alle data lagres lokalt på enheten din. Ingenting deles med noen tredjeparter.
-      </p>
+      <p className="text-muted text-sm leading-relaxed mb-2">{t("intro.body1")}</p>
+      <p className="text-muted text-sm leading-relaxed mb-10">{t("intro.body2")}</p>
       <Button className="w-full justify-center" onClick={() => onNext({ kind: "pick" })}>
-        Kom i gang
+        {t("intro.start")}
       </Button>
     </div>
   );
 }
 
 function StepPick({ onNext }: { onNext: GoTo }) {
+  const { t } = useTranslation("onboarding");
   return (
     <div>
-      <h2 className="text-xl font-semibold text-text mb-1">Kom i gang</h2>
-      <p className="text-sm text-muted mb-6">Hvordan vil du bruke Lommin?</p>
+      <h2 className="text-xl font-semibold text-text mb-1">{t("pick.title")}</h2>
+      <p className="text-sm text-muted mb-6">{t("pick.subtitle")}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <PickCard
           icon={<ShieldIcon size={20} />}
-          title="Koble til bankkontoer"
-          description="Synkroniser direkte fra din bank via Enable Banking"
+          title={t("pick.bank.title")}
+          description={t("pick.bank.description")}
           onClick={() => onNext({ kind: "bank-explain" })}
         />
         <PickCard
           icon={<UploadIcon size={20} />}
-          title="Importer"
-          description="Historiske data fra Spiir eller egne filer"
+          title={t("pick.import.title")}
+          description={t("pick.import.description")}
           onClick={() => onNext({ kind: "import-pick" })}
         />
         <PickCard
           icon={<DownloadIcon size={20} />}
-          title="Gjenopprett"
-          description="Fra lokal fil eller Google Drive-sikkerhetskopi"
+          title={t("pick.restore.title")}
+          description={t("pick.restore.description")}
           onClick={() => onNext({ kind: "restore" })}
         />
         <PickCard
           icon={<PlusIcon size={20} />}
-          title="Prøv demo"
-          description="Utforsk Lommin med syntetiske testdata — ingen konto nødvendig"
+          title={t("pick.demo.title")}
+          description={t("pick.demo.description")}
           onClick={() => onNext({ kind: "demo" })}
         />
       </div>
@@ -122,24 +119,23 @@ function StepPick({ onNext }: { onNext: GoTo }) {
 }
 
 function StepBankExplain({ onNext }: { onNext: GoTo }) {
+  const { t } = useTranslation("onboarding");
   return (
     <div>
-      <h2 className="text-xl font-semibold text-text mb-1">Koble til bankkontoer</h2>
-      <p className="text-sm text-muted mb-6 leading-relaxed">
-        Lommin bruker Enable Banking for å hente transaksjoner direkte fra dine kontoer eller kort. Du trenger en
-        gratis Enable Banking-konto og en signeringsnøkkel.
-      </p>
+      <h2 className="text-xl font-semibold text-text mb-1">{t("bankExplain.title")}</h2>
+      <p className="text-sm text-muted mb-6 leading-relaxed">{t("bankExplain.body")}</p>
       <div className="mb-8">
         <BankSetupGuide />
       </div>
       <Button className="w-full justify-center" onClick={() => onNext({ kind: "bank-proxy" })}>
-        Neste
+        {t("bankExplain.next")}
       </Button>
     </div>
   );
 }
 
 function StepBankProxy({ onNext }: { onNext: GoTo }) {
+  const { t } = useTranslation("onboarding");
   const [proxyMode, setProxyMode] = useState<"lommin" | "custom">("lommin");
   const [customUrl, setCustomUrl] = useState("");
   const [saving, setSaving] = useState(false);
@@ -164,20 +160,16 @@ function StepBankProxy({ onNext }: { onNext: GoTo }) {
       if (url) await setSetting("proxyUrl", url);
       onNext({ kind: "bank-pem" });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Lagring feilet");
+      setError(e instanceof Error ? e.message : t("bankProxy.saveFailed"));
     } finally {
       setSaving(false);
     }
-  }, [proxyMode, customUrl, onNext]);
+  }, [proxyMode, customUrl, onNext, t]);
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-text mb-1">CORS-proxy</h2>
-      <p className="text-sm text-muted mb-4 leading-relaxed">
-        For å bruke Enable Banking må alle API-kall sendes gjennom en proxy. Standardproxyen er hostet av Lommin og kan i
-        teorien se transaksjonsdata og tilgangstokens i transitt. For full kontroll kan du
-        bruke din egen proxy.
-      </p>
+      <h2 className="text-xl font-semibold text-text mb-1">{t("bankProxy.title")}</h2>
+      <p className="text-sm text-muted mb-4 leading-relaxed">{t("bankProxy.body")}</p>
 
       <div className="flex gap-4 mb-4">
         <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -189,7 +181,7 @@ function StepBankProxy({ onNext }: { onNext: GoTo }) {
             onChange={() => setProxyMode("lommin")}
             className="w-4 h-4 accent-accent"
           />
-          <span className="text-sm text-text">Lommin proxy (standard)</span>
+          <span className="text-sm text-text">{t("bankProxy.lommin")}</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <input
@@ -200,19 +192,19 @@ function StepBankProxy({ onNext }: { onNext: GoTo }) {
             onChange={() => setProxyMode("custom")}
             className="w-4 h-4 accent-accent"
           />
-          <span className="text-sm text-text">Egendefinert</span>
+          <span className="text-sm text-text">{t("bankProxy.custom")}</span>
         </label>
       </div>
 
       {proxyMode === "custom" && (
         <Input
-          label="Proxy-URL"
+          label={t("bankProxy.urlLabel")}
           value={customUrl}
           onChange={(e) => setCustomUrl(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") void saveAndNext();
           }}
-          placeholder="https://din-proxy.workers.dev"
+          placeholder={t("bankProxy.urlPlaceholder")}
           className="mb-4"
         />
       )}
@@ -220,7 +212,7 @@ function StepBankProxy({ onNext }: { onNext: GoTo }) {
       {error && <Alert type="error" message={error} className="mb-4" />}
       <div className="flex gap-2">
         <Button className="flex-1 justify-center" loading={saving} onClick={saveAndNext}>
-          Lagre og fortsett
+          {t("bankProxy.saveAndNext")}
         </Button>
       </div>
     </div>
@@ -228,12 +220,15 @@ function StepBankProxy({ onNext }: { onNext: GoTo }) {
 }
 
 function StepBankPem({ onNext }: { onNext: GoTo }) {
+  const { t } = useTranslation("onboarding");
   return (
     <div>
-      <h2 className="text-xl font-semibold text-text mb-1">Importer signeringsnøkkel</h2>
+      <h2 className="text-xl font-semibold text-text mb-1">{t("bankPem.title")}</h2>
       <p className="text-sm text-muted mb-6 leading-relaxed">
-        Last opp <span className="mono">.pem</span>-filen fra Enable Banking, eller lim inn
-        innholdet direkte.
+        <Trans
+          i18nKey="onboarding:bankPem.body"
+          components={{ pem: <span className="mono" /> }}
+        />
       </p>
       <PemImporter
         onImported={(key, appId) => onNext({ kind: "bank-confirm", pendingKey: key, appId })}
@@ -249,6 +244,7 @@ function StepBankConfirm({
   step: { pendingKey: CryptoKey; appId: string };
   navigate: ReturnType<typeof useNavigate>;
 }) {
+  const { t } = useTranslation("onboarding");
   const [appId, setAppId] = useState(step.appId);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
@@ -263,11 +259,11 @@ function StepBankConfirm({
       setDone(true);
       setTimeout(() => navigate("/dashboard"), 1000);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Klarte ikke å lagre nøkkelen");
+      setError(e instanceof Error ? e.message : t("bankConfirm.saveFailed"));
     } finally {
       setConfirming(false);
     }
-  }, [appId, step.pendingKey, navigate]);
+  }, [appId, step.pendingKey, navigate, t]);
 
   if (done) {
     return (
@@ -277,9 +273,9 @@ function StepBankConfirm({
             <CheckIcon size={16} className="text-positive" />
           </div>
           <div>
-            <div className="text-sm font-medium text-text">Nøkkel importert</div>
+            <div className="text-sm font-medium text-text">{t("bankConfirm.keyImported")}</div>
             <div className="mono text-xs text-muted mt-1 break-all">{appId}</div>
-            <div className="text-xs text-muted mt-2">Sender deg til dashbordet…</div>
+            <div className="text-xs text-muted mt-2">{t("bankConfirm.sendingToDash")}</div>
           </div>
         </div>
       </div>
@@ -288,21 +284,24 @@ function StepBankConfirm({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-text mb-1">Bekreft App ID</h2>
+      <h2 className="text-xl font-semibold text-text mb-1">{t("bankConfirm.title")}</h2>
       <p className="text-sm text-muted mb-6 leading-relaxed">
-        App ID-en er hentet fra filnavnet. Sjekk at den stemmer med ID-en i{" "}
-        <a
-          href="https://enablebanking.com/sign-in/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-accent hover:underline"
-        >
-          Enable Banking-dashbordet
-        </a>
-        . På mobil kan filnavnet noen ganger endres automatisk.
+        <Trans
+          i18nKey="onboarding:bankConfirm.body"
+          components={{
+            link: (
+              <a
+                href="https://enablebanking.com/sign-in/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent hover:underline"
+              />
+            ),
+          }}
+        />
       </p>
       <Input
-        label="App ID"
+        label={t("bankConfirm.appIdLabel")}
         value={appId}
         onChange={(e) => setAppId(e.target.value)}
         onKeyDown={(e) => {
@@ -318,28 +317,29 @@ function StepBankConfirm({
         onClick={confirm}
         disabled={!appId.trim()}
       >
-        Lagre og fortsett
+        {t("bankConfirm.saveAndNext")}
       </Button>
     </div>
   );
 }
 
 function StepImportPick({ onNext }: { onNext: GoTo }) {
+  const { t } = useTranslation("onboarding");
   return (
     <div>
-      <h2 className="text-xl font-semibold text-text mb-1">Importer data</h2>
-      <p className="text-sm text-muted mb-6">Velg kilden for historiske transaksjoner.</p>
+      <h2 className="text-xl font-semibold text-text mb-1">{t("importPick.title")}</h2>
+      <p className="text-sm text-muted mb-6">{t("importPick.subtitle")}</p>
       <div className="space-y-3">
         <PickCard
           icon={<UploadIcon size={20} />}
-          title="Fra Spiir"
-          description="Importer CSV- eller ZIP-eksport fra Spiir"
+          title={t("importPick.fromSpiir.title")}
+          description={t("importPick.fromSpiir.description")}
           onClick={() => onNext({ kind: "import-spiir" })}
         />
         <PickCard
           icon={<FileUpIcon size={20} />}
-          title="Fra egne data"
-          description="Importer egne CSV-filer og andre formater"
+          title={t("importPick.fromOwn.title")}
+          description={t("importPick.fromOwn.description")}
           onClick={() => onNext({ kind: "import-own" })}
         />
       </div>
@@ -348,20 +348,20 @@ function StepImportPick({ onNext }: { onNext: GoTo }) {
 }
 
 function StepImportOwn() {
+  const { t } = useTranslation("onboarding");
   return (
     <div>
-      <h2 className="text-xl font-semibold text-text mb-1">Import fra egne data</h2>
-      <p className="text-sm text-muted mb-6 leading-relaxed">
-        Importer transaksjoner fra egne CSV-filer og andre kilder.
-      </p>
+      <h2 className="text-xl font-semibold text-text mb-1">{t("importOwn.title")}</h2>
+      <p className="text-sm text-muted mb-6 leading-relaxed">{t("importOwn.body")}</p>
       <div className="card p-8 text-center">
-        <p className="text-sm text-muted">Kommer snart</p>
+        <p className="text-sm text-muted">{t("importOwn.comingSoon")}</p>
       </div>
     </div>
   );
 }
 
 function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
+  const { t } = useTranslation("onboarding");
   const [passphrase, setPassphrase] = useState("");
   const [fileState, setFileState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [fileMsg, setFileMsg] = useState("");
@@ -372,7 +372,7 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
     try {
       const { inserted } = await importAll(await loadEncryptedFile(passphrase));
       setFileState("done");
-      setFileMsg(`Gjenopprettet ${inserted} transaksjoner.`);
+      setFileMsg(t("restore.restored", { count: inserted }));
       setTimeout(() => navigate("/dashboard"), 1000);
     } catch (e) {
       if ((e as Error).name === "AbortError") {
@@ -384,14 +384,14 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
       setFileMsg(
         isDecryptErr
           ? passphrase
-            ? "Feil passord."
-            : "Filen er kryptert med passord."
+            ? t("restore.errors.wrongPassword")
+            : t("restore.errors.encrypted")
           : e instanceof Error
             ? e.message
-            : "Klarte ikke å gjenopprette sikkerhetskopien",
+            : t("restore.errors.restoreFailed"),
       );
     }
-  }, [passphrase, navigate]);
+  }, [passphrase, navigate, t]);
 
   const [driveToken, setDriveToken] = useState<string | null>(null);
   const [drivePassphrase, setDrivePassphrase] = useState("");
@@ -405,15 +405,15 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
     setDriveState("connecting");
     setDriveMsg("");
     try {
-      const { token: t, expiresIn } = await signInWithGoogle(GOOGLE_CLIENT_ID);
-      await persistDriveToken(t, expiresIn);
-      setDriveToken(t);
+      const { token: tok, expiresIn } = await signInWithGoogle(GOOGLE_CLIENT_ID);
+      await persistDriveToken(tok, expiresIn);
+      setDriveToken(tok);
       setDriveState("idle");
     } catch (e) {
       setDriveState("error");
-      setDriveMsg(e instanceof Error ? e.message : "Tilkobling feilet");
+      setDriveMsg(e instanceof Error ? e.message : t("restore.errors.connectFailed"));
     }
-  }, []);
+  }, [t]);
 
   const loadDrive = useCallback(async () => {
     if (!driveToken) return;
@@ -424,7 +424,7 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
         await loadBackupFromDrive(driveToken, drivePassphrase),
       );
       setDriveState("done");
-      setDriveMsg(`Gjenopprettet ${inserted} transaksjoner.`);
+      setDriveMsg(t("restore.restored", { count: inserted }));
       setTimeout(() => navigate("/dashboard"), 1000);
     } catch (e) {
       if (e instanceof DriveAuthError) setDriveToken(null);
@@ -433,32 +433,33 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
       setDriveMsg(
         isDecryptErr
           ? drivePassphrase
-            ? "Feil passord."
-            : "Filen er kryptert med passord."
+            ? t("restore.errors.wrongPassword")
+            : t("restore.errors.encrypted")
           : e instanceof Error
             ? e.message
-            : "Klarte ikke å laste fra Google Drive",
+            : t("restore.errors.loadDriveFailed"),
       );
     }
-  }, [driveToken, drivePassphrase, navigate]);
+  }, [driveToken, drivePassphrase, navigate, t]);
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-text mb-1">Gjenopprett</h2>
-      <p className="text-sm text-muted mb-6 leading-relaxed">
-        Dekrypter og flett inn kontoer og transaksjoner fra en tidligere sikkerhetskopi.
-      </p>
+      <h2 className="text-xl font-semibold text-text mb-1">{t("restore.title")}</h2>
+      <p className="text-sm text-muted mb-6 leading-relaxed">{t("restore.body")}</p>
 
       <div className="space-y-4">
         <div className="border border-border rounded-xl p-4">
-          <div className="text-sm font-medium text-text mb-1">Fra lokal fil</div>
+          <div className="text-sm font-medium text-text mb-1">{t("restore.fromFile.title")}</div>
           <p className="text-xs text-muted mb-3">
-            Dekrypter en <span className="mono">.enc</span>-sikkerhetskopi fra din enhet.
+            <Trans
+              i18nKey="onboarding:restore.fromFile.body"
+              components={{ enc: <span className="mono" /> }}
+            />
           </p>
           <Input
-            label="Passord"
+            label={t("restore.fromFile.passwordLabel")}
             type="password"
-            placeholder="La stå tomt hvis du ikke har brukt passord"
+            placeholder={t("restore.fromFile.passwordPlaceholder")}
             value={passphrase}
             onChange={(e) => setPassphrase(e.target.value)}
             onKeyDown={(e) => {
@@ -472,7 +473,7 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
             onClick={restore}
           >
             {fileState !== "loading" && <UploadIcon size={13} />}
-            Velg fil og gjenopprett
+            {t("restore.fromFile.button")}
           </Button>
           {fileMsg && (
             <Alert
@@ -485,24 +486,22 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
 
         {GOOGLE_CLIENT_ID && (
           <div className="border border-border rounded-xl p-4">
-            <div className="text-sm font-medium text-text mb-1">Fra Google Drive</div>
-            <p className="text-xs text-muted mb-3">
-              Last ned og dekrypter sikkerhetskopien din fra Google Drive.
-            </p>
+            <div className="text-sm font-medium text-text mb-1">{t("restore.fromDrive.title")}</div>
+            <p className="text-xs text-muted mb-3">{t("restore.fromDrive.body")}</p>
             {!driveToken ? (
               <Button
                 className="w-full justify-center"
                 loading={driveState === "connecting"}
                 onClick={connectDrive}
               >
-                Koble til Google Drive
+                {t("restore.fromDrive.connectButton")}
               </Button>
             ) : (
               <>
                 <Input
-                  label="Passord"
+                  label={t("restore.fromDrive.passwordLabel")}
                   type="password"
-                  placeholder="La stå tomt hvis du ikke har brukt passord"
+                  placeholder={t("restore.fromDrive.passwordPlaceholder")}
                   value={drivePassphrase}
                   onChange={(e) => setDrivePassphrase(e.target.value)}
                   onKeyDown={(e) => {
@@ -516,7 +515,7 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
                   onClick={loadDrive}
                 >
                   {driveState !== "loading" && <UploadIcon size={13} />}
-                  Last fra Drive
+                  {t("restore.fromDrive.loadButton")}
                 </Button>
               </>
             )}
@@ -535,6 +534,7 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
 }
 
 function StepDemo({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
+  const { t } = useTranslation("onboarding");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -544,36 +544,33 @@ function StepDemo({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
     try {
       const [key, accounts] = await Promise.all([loadKey(), getAccounts()]);
       if (key || accounts.length > 0) {
-        setError("Du har allerede data. Slett eksisterende data i innstillingene før du starter demo.");
+        setError(t("demo.hasDataError"));
         setLoading(false);
         return;
       }
       await seedDemoData();
       navigate("/dashboard");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Klarte ikke å starte demo");
+      setError(e instanceof Error ? e.message : t("demo.startFailed"));
       setLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, t]);
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-text mb-1">Prøv demo</h2>
-      <p className="text-sm text-muted mb-6 leading-relaxed">
-        Utforsk alle funksjoner i Lommin med syntetiske testdata. Ingen ekte data lastes opp eller
-        lagres eksternt. Du kan avslutte demoen når som helst.
-      </p>
+      <h2 className="text-xl font-semibold text-text mb-1">{t("demo.title")}</h2>
+      <p className="text-sm text-muted mb-6 leading-relaxed">{t("demo.body")}</p>
       <div className="card p-5 mb-6">
-        <div className="text-xs text-muted mb-2 font-medium">Inkluderer:</div>
+        <div className="text-xs text-muted mb-2 font-medium">{t("demo.includes")}</div>
         <ul className="text-xs text-muted space-y-1">
-          <li>· 2 kontoer (brukskonto og kredittkort)</li>
-          <li>· ~35 transaksjoner over 3 måneder med kategorier</li>
-          <li>· Eksempel på budsjett og forbruksoversikt</li>
+          <li>{t("demo.bullet1")}</li>
+          <li>{t("demo.bullet2")}</li>
+          <li>{t("demo.bullet3")}</li>
         </ul>
       </div>
       {error && <Alert type="error" message={error} className="mb-4" />}
       <Button className="w-full justify-center" loading={loading} onClick={startDemo}>
-        Start demo
+        {t("demo.startButton")}
       </Button>
     </div>
   );
@@ -582,6 +579,7 @@ function StepDemo({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
 // --- Wizard shell ---
 
 export default function Onboarding() {
+  const { t } = useTranslation("onboarding");
   const navigate = useNavigate();
   const [history, setHistory] = useState<OnboardingStep[]>([{ kind: "intro" }]);
 
@@ -609,7 +607,7 @@ export default function Onboarding() {
             className="flex items-center gap-1.5 text-sm text-muted hover:text-text mb-6 transition-colors"
           >
             <ArrowLeftIcon size={14} />
-            Tilbake
+            {t("back")}
           </button>
         )}
 
@@ -624,7 +622,7 @@ export default function Onboarding() {
         {current.kind === "import-pick" && <StepImportPick onNext={goTo} />}
         {current.kind === "import-spiir" && (
           <div>
-            <h2 className="text-xl font-semibold text-text mb-1">Importer fra Spiir</h2>
+            <h2 className="text-xl font-semibold text-text mb-1">{t("importSpiir.title")}</h2>
             <SpiirImportPanel onSuccess={() => navigate("/dashboard")} />
           </div>
         )}

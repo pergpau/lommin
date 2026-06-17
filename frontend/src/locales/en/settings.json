@@ -1,0 +1,92 @@
+{
+  "title": "Settings",
+  "signingKey": {
+    "title": "Signing key",
+    "imported": "✓ imported",
+    "removeKey": "Remove key",
+    "noKey": "No key stored. Upload the <pem>.pem</pem> file from Enable Banking to enable sync.",
+    "guideShow": "Need help getting the key?",
+    "guideHide": "Hide guide",
+    "saveKey": "Save key"
+  },
+  "appId": {
+    "label": "App ID",
+    "placeholder": "e.g. abc123de-f456-...",
+    "update": "Update"
+  },
+  "proxy": {
+    "title": "CORS Proxy",
+    "description": "All Enable Banking API calls are routed through this proxy. Deploy the worker with <wrangler>wrangler deploy</wrangler>.",
+    "lommin": "Lommin proxy (default)",
+    "custom": "Custom",
+    "warning": "Note! Lommin's shared proxy forwards your traffic to Enable Banking and could in theory read your transaction data and your short-lived access token (but never the signing key). Lommin stores none of your data, but you simply have to trust that. If you don't, you can register your own proxy here.",
+    "urlLabel": "Proxy URL",
+    "urlPlaceholder": "https://your-proxy.workers.dev"
+  },
+  "sync": {
+    "title": "Sync",
+    "description": "How far back the first sync of an account fetches transactions. Subsequent syncs continue from where the last one stopped.",
+    "lookbackLabel": "History for first sync (days)"
+  },
+  "backup": {
+    "title": "Save and restore",
+    "description": "Back up your data encrypted. The password never leaves your device.",
+    "methodDrive": "Google Drive",
+    "methodFile": "Local file",
+    "usePassword": "Use password to encrypt data",
+    "autoSave": "Auto-save to Drive",
+    "notAvailableWithPassword": "Not available when password is enabled.",
+    "connectDrive": "Connect Google Drive",
+    "saveToDrive": "Save to Drive",
+    "loadFromDrive": "Load from Drive",
+    "saveFile": "Save file",
+    "loadFile": "Load file",
+    "driveNotConfigured": "Google Drive is not configured.",
+    "dialogSave": "Save backup",
+    "dialogLoad": "Load backup",
+    "dialogDriveSave": "Save to Google Drive",
+    "dialogDriveLoad": "Load from Google Drive",
+    "dialogSaveHint": "Optional: protect the file with a password. Leave blank to save without encryption.",
+    "dialogLoadHint": "Enter the password you used when saving, or leave blank.",
+    "dialogActionSave": "Save",
+    "dialogActionLoad": "Load"
+  },
+  "spiir": {
+    "title": "Import from Spiir"
+  },
+  "ownImport": {
+    "title": "Import from your own data",
+    "comingSoon": "Coming soon. Here you'll be able to import transactions from your own CSV files and other sources."
+  },
+  "danger": {
+    "title": "Danger zone",
+    "deleteTransactions": "Delete transactions",
+    "deleteAccounts": "Delete all accounts",
+    "deleteAll": "Delete everything",
+    "confirmDeleteTransactions": "Delete all saved transactions? Accounts remain connected; the next sync will re-fetch them.",
+    "confirmDeleteAccounts": "Delete all accounts and their transactions? This cannot be undone.",
+    "wipeAllTitle": "Delete everything",
+    "wipeAllBody": "This permanently deletes the signing key, all accounts, and all transactions. You will be taken back to the initial setup. This action cannot be undone."
+  },
+  "snackbar": {
+    "proxySet": "Proxy set to Lommin default.",
+    "proxySaved": "Proxy URL saved.",
+    "syncPeriodSaved": "Sync period saved.",
+    "appIdUpdated": "App ID updated.",
+    "accountsDeleted": "All accounts and transactions deleted.",
+    "txDeleted": "Transactions deleted. Run Sync on the overview to re-fetch.",
+    "saveFailed": "Save failed",
+    "deleteFailed": "Delete failed",
+    "savedToDrive": "Backup saved to Google Drive.",
+    "savedToFile": "Backup saved.",
+    "restoreSuccess": "Data restored from backup.",
+    "driveRestoreSuccess": "Data restored from Google Drive.",
+    "wrongPassword": "Wrong password.",
+    "encryptedFile": "File is encrypted with a password. Check \"Use password\" and try again.",
+    "loadFailed": "Load failed",
+    "connectFailed": "Connection failed",
+    "saveKeyFailed": "Failed to save key",
+    "restoreFailed": "Failed to restore backup",
+    "noKey": "No key stored."
+  }
+}

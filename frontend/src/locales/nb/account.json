@@ -1,0 +1,13 @@
+{
+  "fallbackTitle": "Konto",
+  "connectedBadge": "Tilkoblet",
+  "sync": "Synkroniser",
+  "connectBank": "Koble til bank",
+  "deleteTransactions": "Slett transaksjoner",
+  "removeAccount": "Fjern konto",
+  "transactionsLabel": "Transaksjoner",
+  "confirm": {
+    "deleteTransactions": "Slett lagrede transaksjoner for denne kontoen og nullstill synk-markøren? Neste synkronisering henter alt på nytt basert på historikkinnstillingen.",
+    "removeAccount": "Fjern denne kontoen og alle tilhørende transaksjoner?"
+  }
+}

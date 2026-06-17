@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { amountClass, fmtAmount, fmtDate, statusLabel } from "../../lib/format";
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP, type MainCategory, type SubCategory } from "../../lib/categories";
@@ -13,14 +14,15 @@ interface TransactionDetailProps {
 const FULL_DATE: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
 
 export default function TransactionDetail({
-  transaction: t,
+  transaction: tx,
   onClose,
   onOpenCategoryPicker,
 }: TransactionDetailProps) {
-  const subCat = t.categoryId != null ? SUB_CATEGORY_MAP[t.categoryId] : undefined;
+  const { t } = useTranslation(["transactions", "categories"]);
+  const subCat = tx.categoryId != null ? SUB_CATEGORY_MAP[tx.categoryId] : undefined;
   const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
   const showTransactionDate =
-    t.transactionDate && t.transactionDate !== t.bookingDate;
+    tx.transactionDate && tx.transactionDate !== tx.bookingDate;
 
   return (
     <div
@@ -39,7 +41,7 @@ export default function TransactionDetail({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-          <span className="font-semibold text-text text-sm">Transaksjon</span>
+          <span className="font-semibold text-text text-sm">{t("transactions:detail.title")}</span>
           <button className="text-muted hover:text-text text-lg leading-none" onClick={onClose}>
             ✕
           </button>
@@ -49,50 +51,50 @@ export default function TransactionDetail({
         <div className="overflow-y-auto flex-1">
           {/* Hero amount */}
           <div className="px-6 pt-6 pb-4 text-center">
-            <div className={`mono text-3xl font-semibold tabular-nums ${amountClass(t)}`}>
-              {t.amount >= 0 ? "+" : ""}
-              {fmtAmount(t.amount, t.currency)}
+            <div className={`mono text-3xl font-semibold tabular-nums ${amountClass(tx)}`}>
+              {tx.amount >= 0 ? "+" : ""}
+              {fmtAmount(tx.amount, tx.currency)}
             </div>
-            {t.status === "PNDG" && (
+            {tx.status === "PNDG" && (
               <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
-                {statusLabel(t.status)}
+                {statusLabel(tx.status)}
               </span>
             )}
           </div>
 
           {/* Description */}
           <div className="px-6 pb-4">
-            <div className="text-xs text-muted mb-1">Beskrivelse</div>
-            <div className="text-sm text-text">{t.description || "—"}</div>
+            <div className="text-xs text-muted mb-1">{t("transactions:detail.description")}</div>
+            <div className="text-sm text-text">{tx.description || "—"}</div>
           </div>
 
           {/* Details list */}
           <div className="border-t border-border divide-y divide-border mx-0">
-            <DetailRow label="Bokføringsdato">
-              {fmtDate(t.bookingDate, FULL_DATE)}
+            <DetailRow label={t("transactions:detail.bookingDate")}>
+              {fmtDate(tx.bookingDate, FULL_DATE)}
             </DetailRow>
 
             {showTransactionDate && (
-              <DetailRow label="Transaksjonsdato">
-                {fmtDate(t.transactionDate, FULL_DATE)}
+              <DetailRow label={t("transactions:detail.transactionDate")}>
+                {fmtDate(tx.transactionDate, FULL_DATE)}
               </DetailRow>
             )}
 
             <div className="flex items-center justify-between px-6 py-3">
-              <span className="text-muted text-xs shrink-0 mr-4">Kategori</span>
+              <span className="text-muted text-xs shrink-0 mr-4">{t("transactions:detail.category")}</span>
               <CategoryPill
                 subCat={subCat}
                 mainCat={mainCat}
-                onClick={onOpenCategoryPicker ? () => onOpenCategoryPicker(t) : undefined}
+                onClick={onOpenCategoryPicker ? () => onOpenCategoryPicker(tx) : undefined}
               />
             </div>
 
-            {t.bankTransactionCode && (
-              <DetailRow label="Bankkode">{t.bankTransactionCode}</DetailRow>
+            {tx.bankTransactionCode && (
+              <DetailRow label={t("transactions:detail.bankCode")}>{tx.bankTransactionCode}</DetailRow>
             )}
 
-            <DetailRow label="Referanse">
-              <span className="mono text-xs">{t.entryReference}</span>
+            <DetailRow label={t("transactions:detail.reference")}>
+              <span className="mono text-xs">{tx.entryReference}</span>
             </DetailRow>
           </div>
 
@@ -100,10 +102,10 @@ export default function TransactionDetail({
           <div className="px-6 py-4">
             <details>
               <summary className="text-xs text-muted cursor-pointer select-none py-1">
-                Rådata
+                {t("transactions:detail.rawData")}
               </summary>
               <pre className="text-xs text-muted bg-surface-2 rounded p-3 overflow-x-auto mt-2 whitespace-pre-wrap break-all">
-                {JSON.stringify(t.raw, null, 2)}
+                {JSON.stringify(tx.raw, null, 2)}
               </pre>
             </details>
           </div>
@@ -122,6 +124,7 @@ function CategoryPill({
   mainCat?: MainCategory;
   onClick?: () => void;
 }) {
+  const { t } = useTranslation(["transactions", "categories"]);
   const base = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border";
   const hoverClass = onClick ? " transition-opacity hover:opacity-70" : "";
 
@@ -131,23 +134,25 @@ function CategoryPill({
       borderColor: mainCat.color + "44",
       color: mainCat.color,
     };
+    const label = t("categories:sub." + subCat.id);
     return onClick ? (
       <button className={base + hoverClass} style={style} onClick={onClick}>
-        <FontAwesomeIcon icon={getCategoryIcon(subCat.id)} className="w-3 h-3" /> {subCat.name}
+        <FontAwesomeIcon icon={getCategoryIcon(subCat.id)} className="w-3 h-3" /> {label}
       </button>
     ) : (
       <span className={base} style={style}>
-        <FontAwesomeIcon icon={getCategoryIcon(subCat.id)} className="w-3 h-3" /> {subCat.name}
+        <FontAwesomeIcon icon={getCategoryIcon(subCat.id)} className="w-3 h-3" /> {label}
       </span>
     );
   }
 
+  const uncategorized = t("categories:uncategorized");
   return onClick ? (
     <button className={`${base} bg-surface-2 border-border text-muted${hoverClass}`} onClick={onClick}>
-      Ukategorisert
+      {uncategorized}
     </button>
   ) : (
-    <span className={`${base} bg-surface-2 border-border text-muted`}>Ukategorisert</span>
+    <span className={`${base} bg-surface-2 border-border text-muted`}>{uncategorized}</span>
   );
 }
 

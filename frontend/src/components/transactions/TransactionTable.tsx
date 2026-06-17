@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Transaction } from "../../lib/store";
 import { PAGE_SIZE } from "../../constants";
 import CategoryPicker from "./CategoryPicker";
@@ -18,11 +19,12 @@ export default function TransactionTable({
   title,
   onCategoryChange,
 }: TransactionTableProps) {
+  const { t } = useTranslation("transactions");
   const [page, setPage] = useState(0);
   const [prevTransactions, setPrevTransactions] = useState(transactions);
   const [pickerFor, setPickerFor] = useState<Transaction | null>(null);
   const [detailForId, setDetailForId] = useState<string | null>(null);
-  const detailFor = detailForId ? (transactions.find((t) => t.id === detailForId) ?? null) : null;
+  const detailFor = detailForId ? (transactions.find((tx) => tx.id === detailForId) ?? null) : null;
 
   if (prevTransactions !== transactions) {
     setPrevTransactions(transactions);
@@ -40,7 +42,7 @@ export default function TransactionTable({
 
   if (transactions.length === 0) {
     return (
-      <div className="card p-10 text-center text-muted text-sm">Ingen transaksjoner funnet.</div>
+      <div className="card p-10 text-center text-muted text-sm">{t("table.empty")}</div>
     );
   }
 
@@ -53,12 +55,12 @@ export default function TransactionTable({
           </div>
         )}
         <div className="divide-y divide-border">
-          {pageItems.map((t) => (
+          {pageItems.map((tx) => (
             <TransactionRow
-              key={t.id}
-              transaction={t}
-              onClick={() => setDetailForId(t.id)}
-              onCategoryClick={onCategoryChange ? () => setPickerFor(t) : undefined}
+              key={tx.id}
+              transaction={tx}
+              onClick={() => setDetailForId(tx.id)}
+              onCategoryClick={onCategoryChange ? () => setPickerFor(tx) : undefined}
             />
           ))}
         </div>
@@ -66,8 +68,11 @@ export default function TransactionTable({
         {totalPages > 1 && (
           <div className="px-4 py-3 border-t border-border flex items-center justify-between">
             <span className="text-xs text-muted">
-              {page * pageSize + 1}–{Math.min((page + 1) * pageSize, transactions.length)} av{" "}
-              {transactions.length}
+              {t("table.pagination", {
+                from: page * pageSize + 1,
+                to: Math.min((page + 1) * pageSize, transactions.length),
+                total: transactions.length,
+              })}
             </span>
             <div className="flex items-center gap-1">
               <button
@@ -75,14 +80,14 @@ export default function TransactionTable({
                 disabled={page === 0}
                 onClick={() => setPage(page - 1)}
               >
-                ← Forrige
+                {t("table.prevPage")}
               </button>
               <button
                 className="btn-ghost px-2 py-1 text-xs disabled:opacity-30"
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage(page + 1)}
               >
-                Neste →
+                {t("table.nextPage")}
               </button>
             </div>
           </div>
@@ -95,8 +100,8 @@ export default function TransactionTable({
           onClose={() => setDetailForId(null)}
           onOpenCategoryPicker={
             onCategoryChange
-              ? (t) => {
-                  setPickerFor(t);
+              ? (tx) => {
+                  setPickerFor(tx);
                 }
               : undefined
           }

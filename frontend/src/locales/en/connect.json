@@ -1,0 +1,37 @@
+{
+  "title": "Connect a bank",
+  "subtitle": "Choose country and bank. You will be redirected to grant access.",
+  "previousBanks": {
+    "label": "Previously connected banks",
+    "connect": "Connect →"
+  },
+  "countryLabel": "Country",
+  "bankLabel": "Bank",
+  "searchPlaceholder": "Search banks…",
+  "noBanksFound": "No banks found",
+  "loadingBanks": "Loading banks…",
+  "connectButton": "Connect to \"{{name}}\" →",
+  "connectButtonGeneric": "Connect bank →",
+  "redirecting": "Redirecting…",
+  "statuses": {
+    "connecting": "Connecting to bank…",
+    "creatingSession": "Creating session…",
+    "fetchingTransactions": "Fetching transactions…",
+    "connected": "Connected",
+    "loadingOverview": "Loading overview…"
+  },
+  "csrfError": "State mismatch — possible CSRF. Refresh the page and try again.",
+  "authFailed": "Could not start authentication",
+  "oauthSuccess": "Authentication successful — you can close this window.",
+  "oauthError": "Authentication failed. You can close this window.",
+  "countries": {
+    "NO": "Norway",
+    "SE": "Sweden",
+    "FI": "Finland",
+    "DK": "Denmark",
+    "GB": "United Kingdom",
+    "DE": "Germany",
+    "FR": "France",
+    "NL": "Netherlands"
+  }
+}

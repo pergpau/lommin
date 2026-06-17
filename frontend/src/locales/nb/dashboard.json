@@ -1,0 +1,42 @@
+{
+  "title": "Oversikt",
+  "subtitle_one": "{{count}} konto · {{txCount}} transaksjoner",
+  "subtitle_other": "{{count}} kontoer · {{txCount}} transaksjoner",
+  "demo": {
+    "banner": "Du er i demomodus — ingen ekte data er tilkoblet",
+    "exit": "Avslutt demo"
+  },
+  "tabs": {
+    "categories": "Kategorier",
+    "transactions": "Transaksjoner",
+    "accounts": "Kontoer"
+  },
+  "actions": {
+    "addAccount": "+ Legg til konto",
+    "newAccount": "Ny konto",
+    "sync": "Synkroniser",
+    "save": "Lagre",
+    "saving": "Lagrer…",
+    "syncing": "Synkroniserer…",
+    "mobile": "Handlinger"
+  },
+  "emptyAccounts": "Ingen kontoer tilkoblet ennå.",
+  "connectBankLink": "Koble til en bank",
+  "or": "eller",
+  "importSpiirLink": "Importer data fra Spiir",
+  "noTransactionsThisMonth": "Ingen transaksjoner denne måneden.",
+  "txTitleSelected": "Transaksjoner — {{month}}",
+  "txTitleRecent": "Siste transaksjoner",
+  "backup": {
+    "dialogTitle": "Lagre sikkerhetskopi",
+    "dialogHint": "Valgfritt: beskytt filen med et passord. La feltet stå tomt for å lagre uten kryptering."
+  },
+  "snackbar": {
+    "savedToDrive": "Sikkerhetskopi lagret til Google Drive.",
+    "savedToFile": "Sikkerhetskopi lagret som lokal fil.",
+    "saveFailed": "Lagring feilet",
+    "syncResult_one": "Synkronisert — {{count}} ny transaksjon",
+    "syncResult_other": "Synkronisert — {{count}} nye transaksjoner",
+    "syncFailed": "Synkronisering feilet"
+  }
+}

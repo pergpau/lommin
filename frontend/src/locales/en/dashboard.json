@@ -1,0 +1,42 @@
+{
+  "title": "Overview",
+  "subtitle_one": "{{count}} account · {{txCount}} transactions",
+  "subtitle_other": "{{count}} accounts · {{txCount}} transactions",
+  "demo": {
+    "banner": "You are in demo mode — no real data is connected",
+    "exit": "Exit demo"
+  },
+  "tabs": {
+    "categories": "Categories",
+    "transactions": "Transactions",
+    "accounts": "Accounts"
+  },
+  "actions": {
+    "addAccount": "+ Add account",
+    "newAccount": "New account",
+    "sync": "Sync",
+    "save": "Save",
+    "saving": "Saving…",
+    "syncing": "Syncing…",
+    "mobile": "Actions"
+  },
+  "emptyAccounts": "No accounts connected yet.",
+  "connectBankLink": "Connect a bank",
+  "or": "or",
+  "importSpiirLink": "Import data from Spiir",
+  "noTransactionsThisMonth": "No transactions this month.",
+  "txTitleSelected": "Transactions — {{month}}",
+  "txTitleRecent": "Recent transactions",
+  "backup": {
+    "dialogTitle": "Save backup",
+    "dialogHint": "Optional: protect the file with a password. Leave blank to save without encryption."
+  },
+  "snackbar": {
+    "savedToDrive": "Backup saved to Google Drive.",
+    "savedToFile": "Backup saved as local file.",
+    "saveFailed": "Save failed",
+    "syncResult_one": "Synced — {{count}} new transaction",
+    "syncResult_other": "Synced — {{count}} new transactions",
+    "syncFailed": "Sync failed"
+  }
+}

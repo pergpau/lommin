@@ -1,0 +1,31 @@
+{
+  "table": {
+    "empty": "No transactions found.",
+    "pagination": "{{from}}–{{to}} of {{total}}",
+    "prevPage": "← Previous",
+    "nextPage": "Next →"
+  },
+  "detail": {
+    "title": "Transaction",
+    "description": "Description",
+    "bookingDate": "Booking date",
+    "transactionDate": "Transaction date",
+    "category": "Category",
+    "bankCode": "Bank code",
+    "reference": "Reference",
+    "rawData": "Raw data"
+  },
+  "categoryPicker": {
+    "title": "Select category",
+    "selectMain": "Select a main category",
+    "removeCategory": "Remove category",
+    "cancel": "Cancel"
+  },
+  "row": {
+    "pending": "(Pending)",
+    "uncategorized": "Uncategorized"
+  },
+  "status": {
+    "pending": "Pending"
+  }
+}

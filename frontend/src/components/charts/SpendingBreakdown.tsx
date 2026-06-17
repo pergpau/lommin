@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faQuestion } from "@fortawesome/free-solid-svg-icons";
@@ -42,17 +44,30 @@ function mainType(mainId: MainId): SectionType {
   return firstType === "income" || firstType === "saving" ? firstType : "expense";
 }
 
-function mainMeta(mainId: MainId): { icon: IconDefinition; name: string; color: string } {
+function mainMeta(mainId: MainId): { icon: IconDefinition; color: string } {
   if (mainId === "uncategorized" || mainId === "uncategorized-income")
-    return { icon: faQuestion, name: "Ukategorisert", color: "#9ca3af" };
+    return { icon: faQuestion, color: "#9ca3af" };
   const cat = MAIN_CATEGORY_MAP[mainId as number];
-  return { icon: getCategoryIcon(cat.id), name: cat.name, color: cat.color };
+  return { icon: getCategoryIcon(cat.id), color: cat.color };
 }
 
-function subMeta(subId: SubId): { icon: IconDefinition; name: string } {
-  if (subId === "uncategorized") return { icon: faQuestion, name: "Ukategorisert" };
+function subMeta(subId: SubId): { icon: IconDefinition } {
+  if (subId === "uncategorized") return { icon: faQuestion };
   const sub = SUB_CATEGORY_MAP[subId as number];
-  return { icon: getCategoryIcon(sub?.id), name: sub?.name ?? "Ukjent" };
+  return { icon: getCategoryIcon(sub?.id) };
+}
+
+function getMainName(mainId: MainId, t: TFunction): string {
+  if (mainId === "uncategorized" || mainId === "uncategorized-income")
+    return t("categories:uncategorized");
+  return t("categories:main." + mainId);
+}
+
+function getSubName(subId: SubId, t: TFunction): string {
+  if (subId === "uncategorized") return t("categories:uncategorized");
+  const sub = SUB_CATEGORY_MAP[subId as number];
+  if (!sub) return t("categories:unknown");
+  return t("categories:sub." + sub.id);
 }
 
 type SubRow = { subId: SubId; total: number; count: number; mainId: MainId; isUncat?: boolean };
@@ -64,10 +79,10 @@ function buildSubRows(
 ): SubRow[] {
   const subMap = new Map<number, number>();
   const subCountMap = new Map<number, number>();
-  for (const t of pool) {
-    if (mainIdOf(t) === mainId && t.categoryId != null) {
-      subMap.set(t.categoryId, (subMap.get(t.categoryId) ?? 0) + sign * t.amount);
-      subCountMap.set(t.categoryId, (subCountMap.get(t.categoryId) ?? 0) + 1);
+  for (const tx of pool) {
+    if (mainIdOf(tx) === mainId && tx.categoryId != null) {
+      subMap.set(tx.categoryId, (subMap.get(tx.categoryId) ?? 0) + sign * tx.amount);
+      subCountMap.set(tx.categoryId, (subCountMap.get(tx.categoryId) ?? 0) + 1);
     }
   }
   const cat = MAIN_CATEGORY_MAP[mainId];
@@ -83,6 +98,7 @@ function buildSubRows(
 
 
 export default function SpendingBreakdown({ transactions, onCategoryChange }: Props) {
+  const { t } = useTranslation(["charts", "categories"]);
   const [view, setView] = useState<View>({ level: "main" });
   const [showAll, setShowAll] = useState(false);
   const [showAllIncome, setShowAllIncome] = useState(false);
@@ -94,7 +110,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
   const excludedPool = useMemo(
     () =>
       transactions.filter(
-        (t) => t.categoryId != null && SUB_CATEGORY_MAP[t.categoryId]?.type === "exclude",
+        (tx) => tx.categoryId != null && SUB_CATEGORY_MAP[tx.categoryId]?.type === "exclude",
       ),
     [transactions],
   );
@@ -102,9 +118,9 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
   const mainRows = useMemo(() => {
     const map = new Map<MainId, number>();
     const countMap = new Map<MainId, number>();
-    for (const t of eligible) {
-      const id = mainIdOf(t);
-      const delta = mainType(id) === "income" ? t.amount : -t.amount;
+    for (const tx of eligible) {
+      const id = mainIdOf(tx);
+      const delta = mainType(id) === "income" ? tx.amount : -tx.amount;
       map.set(id, (map.get(id) ?? 0) + delta);
       countMap.set(id, (countMap.get(id) ?? 0) + 1);
     }
@@ -120,8 +136,8 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
 
   const inntektSubRows = useMemo(() => {
     const rows = buildSubRows(eligible, 11, 1);
-    const uncatTxns = eligible.filter((t) => mainIdOf(t) === "uncategorized-income");
-    const uncatTotal = uncatTxns.reduce((sum, t) => sum + t.amount, 0);
+    const uncatTxns = eligible.filter((tx) => mainIdOf(tx) === "uncategorized-income");
+    const uncatTotal = uncatTxns.reduce((sum, tx) => sum + tx.amount, 0);
     if (uncatTxns.length > 0)
       rows.push({ subId: "uncategorized", total: uncatTotal, count: uncatTxns.length, mainId: "uncategorized-income", isUncat: true });
     return rows.sort((a, b) => b.total - a.total);
@@ -140,7 +156,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
   if (eligible.length === 0 && excludedPool.length === 0) {
     return (
       <div className="card p-10 text-center text-muted text-sm">
-        Ingen transaksjoner denne måneden.
+        {t("charts:breakdown.noTransactions")}
       </div>
     );
   }
@@ -151,8 +167,8 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
     const pool = excluded ? excludedPool : eligible;
     const m = mainMeta(mainId);
     const s = subMeta(subId);
-    const filtered = pool.filter((t) =>
-      subId === "uncategorized" ? !t.categoryId : t.categoryId === (subId as number),
+    const filtered = pool.filter((tx) =>
+      subId === "uncategorized" ? !tx.categoryId : tx.categoryId === (subId as number),
     );
     return (
       <div>
@@ -160,13 +176,13 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
           className="flex items-center gap-1.5 text-sm text-muted hover:text-text mb-4 transition-colors"
           onClick={() => setView({ level: "sub", mainId, ...(excluded ? { excluded: true } : {}) })}
         >
-          ← <span style={{ color: m.color }}><FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" /></span> {m.name}
+          ← <span style={{ color: m.color }}><FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" /></span> {getMainName(mainId, t)}
         </button>
         <div className="flex items-center gap-2 mb-4">
           <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
             <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
           </span>
-          <span className="text-sm font-medium text-text">{s.name}</span>
+          <span className="text-sm font-medium text-text">{getSubName(subId, t)}</span>
         </div>
         <TransactionTable transactions={filtered} onCategoryChange={onCategoryChange} />
       </div>
@@ -180,31 +196,31 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
     const m = mainMeta(mainId);
 
     if (mainId === "uncategorized" || mainId === "uncategorized-income") {
-      const filtered = pool.filter((t) => mainIdOf(t) === mainId);
+      const filtered = pool.filter((tx) => mainIdOf(tx) === mainId);
       return (
         <div>
           <button
             className="flex items-center gap-1.5 text-sm text-muted hover:text-text mb-4 transition-colors"
             onClick={() => setView({ level: "main" })}
           >
-            ← Tilbake
+            {t("charts:breakdown.back")}
           </button>
           <div className="flex items-center gap-2 mb-4">
             <span className="text-muted">?</span>
-            <span className="text-sm font-medium text-text">Ukategorisert</span>
+            <span className="text-sm font-medium text-text">{t("charts:breakdown.uncategorized")}</span>
           </div>
           <TransactionTable transactions={filtered} onCategoryChange={onCategoryChange} />
         </div>
       );
     }
 
-    const subTxns = pool.filter((t) => mainIdOf(t) === mainId);
+    const subTxns = pool.filter((tx) => mainIdOf(tx) === mainId);
     const subMap = new Map<number, number>();
-    for (const t of subTxns) {
-      if (t.categoryId != null) {
-        const subType = SUB_CATEGORY_MAP[t.categoryId]?.type;
-        const delta = subType === "income" ? t.amount : -t.amount;
-        subMap.set(t.categoryId, (subMap.get(t.categoryId) ?? 0) + delta);
+    for (const tx of subTxns) {
+      if (tx.categoryId != null) {
+        const subType = SUB_CATEGORY_MAP[tx.categoryId]?.type;
+        const delta = subType === "income" ? tx.amount : -tx.amount;
+        subMap.set(tx.categoryId, (subMap.get(tx.categoryId) ?? 0) + delta);
       }
     }
     const subRows = [...subMap.entries()]
@@ -218,14 +234,14 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
           className="flex items-center gap-1.5 text-sm text-muted hover:text-text mb-4 transition-colors"
           onClick={() => setView({ level: "main" })}
         >
-          ← Tilbake
+          {t("charts:breakdown.back")}
         </button>
         <div className="card overflow-hidden mb-6">
             <div className="px-4 py-3 border-b border-border flex items-center gap-2">
               <span className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
                 <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
               </span>
-              <span className="text-sm font-medium text-text">{m.name}</span>
+              <span className="text-sm font-medium text-text">{getMainName(mainId, t)}</span>
             </div>
             <div className="divide-y divide-border">
               {subRows.map(({ subId, total }) => {
@@ -248,7 +264,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
                     >
                       <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
                     </span>
-                    <span className="text-sm text-text flex-1 truncate">{s.name}</span>
+                    <span className="text-sm text-text flex-1 truncate">{getSubName(subId, t)}</span>
                     <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
                       {pct.toFixed(0)}%
                     </span>
@@ -293,7 +309,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
           <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
             <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
           </span>
-          <span className="text-sm text-text flex-1 truncate">{m.name}</span>
+          <span className="text-sm text-text flex-1 truncate">{getMainName(mainId, t)}</span>
           <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
             {count > 0 ? `${pct.toFixed(0)}%` : ""}
           </span>
@@ -329,7 +345,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
           >
             <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
           </span>
-          <span className="text-sm text-text flex-1 truncate">{s.name}</span>
+          <span className="text-sm text-text flex-1 truncate">{getSubName(subId, t)}</span>
           <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
             {count > 0 ? `${pct.toFixed(0)}%` : ""}
           </span>
@@ -359,9 +375,9 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
       {visibleExpenseRows.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Utgifter</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{t("charts:breakdown.expenses")}</h3>
             <button onClick={() => setShowAll((v) => !v)} className={pillClass(showAll)}>
-              Vis alle
+              {t("charts:breakdown.showAll")}
             </button>
           </div>
           <div className="card overflow-hidden">
@@ -373,9 +389,9 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
       {visibleIncomeRows.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Inntekter</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{t("charts:breakdown.income")}</h3>
             <button onClick={() => setShowAllIncome((v) => !v)} className={pillClass(showAllIncome)}>
-              Vis alle
+              {t("charts:breakdown.showAll")}
             </button>
           </div>
           <div className="card overflow-hidden">
@@ -389,9 +405,9 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
       {sparingSubRows.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Sparing</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{t("charts:breakdown.saving")}</h3>
             <button onClick={() => setShowAllSaving((v) => !v)} className={pillClass(showAllSaving)}>
-              Vis alle
+              {t("charts:breakdown.showAll")}
             </button>
           </div>
           {visibleSparingSubs.length > 0 && (
@@ -407,9 +423,9 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
       {excludedSubRows.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Ekskludert</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{t("charts:breakdown.excluded")}</h3>
             <button onClick={() => setShowAllExcluded((v) => !v)} className={pillClass(showAllExcluded)}>
-              Vis alle
+              {t("charts:breakdown.showAll")}
             </button>
           </div>
           {visibleExcludedSubs.length > 0 && (

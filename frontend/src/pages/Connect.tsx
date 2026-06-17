@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -10,16 +11,7 @@ import { createSession, initiateAuth, listBanks, type BankEntry } from "../lib/e
 import { getAccounts, saveAccount, type Account, type AccountSource } from "../lib/store";
 import { syncAccounts } from "../lib/sync";
 
-const COUNTRIES = [
-  { code: "NO", name: "Norge" },
-  { code: "SE", name: "Sverige" },
-  { code: "FI", name: "Finland" },
-  { code: "DK", name: "Danmark" },
-  { code: "GB", name: "Storbritannia" },
-  { code: "DE", name: "Tyskland" },
-  { code: "FR", name: "Frankrike" },
-  { code: "NL", name: "Nederland" },
-];
+const COUNTRY_CODES = ["NO", "SE", "FI", "DK", "GB", "DE", "FR", "NL"] as const;
 
 const STATE_KEY = "lommin_auth_state";
 const BANK_KEY = "lommin_auth_bank";
@@ -35,6 +27,7 @@ function phaseFromUrl(): Phase {
 }
 
 export default function Connect() {
+  const { t } = useTranslation("connect");
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -43,13 +36,10 @@ export default function Connect() {
   const [banks, setBanks] = useState<BankEntry[]>([]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<BankEntry | null>(null);
-  // Derived from URL on mount — no need to setPhase synchronously in effects
   const [phase, setPhase] = useState<Phase>(phaseFromUrl);
   const [error, setError] = useState("");
   const [syncMsg, setSyncMsg] = useState("");
-  // Track which country was last loaded to derive loading state without sync setState in effect
   const [loadedCountry, setLoadedCountry] = useState<string | null>(null);
-  // Guard against React StrictMode double-firing effects that consume localStorage
   const callbackStarted = useRef(false);
   const reauthStarted = useRef(false);
   const [previousBanks, setPreviousBanks] = useState<Array<{ name: string; country: string }>>([]);
@@ -68,7 +58,6 @@ export default function Connect() {
     return [...starts, ...contains];
   }, [query, banks]);
 
-  // No synchronous setPhase call — caller sets connecting before invoking
   const initiateConnectFor = useCallback(async (aspsp: { name: string; country: string }) => {
     try {
       const state = crypto.randomUUID();
@@ -82,19 +71,17 @@ export default function Connect() {
       const url = await initiateAuth({ aspsp, redirectUrl, validUntil, state });
       window.location.href = url;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Kunne ikke starte autentisering");
+      setError(e instanceof Error ? e.message : t("authFailed"));
       setPhase("error");
     }
-  }, []);
+  }, [t]);
 
-  // Event handler — setPhase is safe here (not an effect body)
   const connect = useCallback(async () => {
     if (!selected) return;
     setPhase("connecting");
     await initiateConnectFor(selected);
   }, [selected, initiateConnectFor]);
 
-  // Load previously connected banks from saved accounts
   useEffect(() => {
     if (params.get("code") || params.get("reauth") || params.get("uid")) return;
     getAccounts().then((accounts) => {
@@ -122,8 +109,6 @@ export default function Connect() {
     [initiateConnectFor],
   );
 
-  // Handle OAuth callback — phase is already 'callback' from phaseFromUrl()
-  // All setState calls are inside async .then()/.catch() callbacks
   useEffect(() => {
     const code = params.get("code");
     const returnedState = params.get("state");
@@ -134,7 +119,7 @@ export default function Connect() {
     const storedState = localStorage.getItem(STATE_KEY);
     const csrfError =
       !storedState || !returnedState || returnedState !== storedState
-        ? "State-mismatch — mulig CSRF. Oppdater siden og prøv igjen."
+        ? t("csrfError")
         : null;
 
     localStorage.removeItem(STATE_KEY);
@@ -145,7 +130,6 @@ export default function Connect() {
     localStorage.removeItem(BANK_KEY);
     localStorage.removeItem(BANK_COUNTRY_KEY);
 
-    // Drive all state transitions through the async chain — no sync setState
     (csrfError ? Promise.reject(new Error(csrfError)) : createSession(code))
       .then(async ({ sessionId, accounts }) => {
         const existing = await getAccounts();
@@ -209,10 +193,8 @@ export default function Connect() {
         setError(e.message);
         setPhase("error");
       });
-  }, [params, navigate]);
+  }, [params, navigate, t]);
 
-  // Auto-initiate re-auth — phase is already 'connecting' from phaseFromUrl()
-  // Defer initiateConnectFor via Promise so no sync setState in effect body
   useEffect(() => {
     if (params.get("code")) return;
     const reauth = params.get("reauth");
@@ -242,7 +224,6 @@ export default function Connect() {
     }
   }, [params, initiateConnectFor, navigate]);
 
-  // Load banks — all setState calls are in async callbacks
   useEffect(() => {
     if (params.get("code") || params.get("reauth") || params.get("uid")) return;
     listBanks(country)
@@ -266,7 +247,7 @@ export default function Connect() {
       <div className="min-h-screen bg-bg grid-bg flex items-center justify-center">
         <div className="text-center animate-fade-in">
           <Spinner size={32} />
-          <div className="text-muted text-sm mt-4">Kobler til bank…</div>
+          <div className="text-muted text-sm mt-4">{t("statuses.connecting")}</div>
         </div>
       </div>
     );
@@ -281,14 +262,16 @@ export default function Connect() {
               <div className="w-12 h-12 rounded-full bg-positive/10 border border-positive/20 flex items-center justify-center mx-auto mb-4">
                 <CheckIcon size={22} className="text-positive" />
               </div>
-              <div className="text-text font-medium">Tilkoblet</div>
-              <div className="text-muted text-sm mt-1">Laster oversikt…</div>
+              <div className="text-text font-medium">{t("statuses.connected")}</div>
+              <div className="text-muted text-sm mt-1">{t("statuses.loadingOverview")}</div>
             </>
           ) : (
             <>
               <Spinner size={32} />
               <div className="text-muted text-sm mt-4">
-                {phase === "syncing" ? syncMsg || "Henter transaksjoner…" : "Oppretter økt…"}
+                {phase === "syncing"
+                  ? syncMsg || t("statuses.fetchingTransactions")
+                  : t("statuses.creatingSession")}
               </div>
             </>
           )}
@@ -300,75 +283,73 @@ export default function Connect() {
   return (
     <div className="max-w-lg mx-auto px-4 py-8 animate-slide-up">
       <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-text tracking-tight">Koble til en bank</h1>
-          <p className="text-muted text-sm mt-1">
-            Velg land og bank. Du blir videresendt for å gi tilgang.
-          </p>
-        </div>
+        <h1 className="text-2xl font-semibold text-text tracking-tight">{t("title")}</h1>
+        <p className="text-muted text-sm mt-1">{t("subtitle")}</p>
+      </div>
 
-        {phase === "error" && <Alert type="error" message={error} className="mb-4" />}
+      {phase === "error" && <Alert type="error" message={error} className="mb-4" />}
 
-        {previousBanks.length > 0 && phase !== "connecting" && (
-          <Card className="p-4 mb-4">
-            <label className="label">Tidligere tilkoblede banker</label>
-            <div className="flex flex-col gap-1.5 mt-1">
-              {previousBanks.map((bank) => (
-                <button
-                  key={`${bank.country}::${bank.name}`}
-                  onClick={() => quickConnect(bank)}
-                  className="w-full text-left px-3 py-2 rounded text-sm text-text hover:bg-surface-2 border border-border/40 transition-colors flex items-center justify-between group"
-                >
-                  <span>{bank.name}</span>
-                  <span className="text-muted text-xs group-hover:text-accent transition-colors">
-                    Koble til →
-                  </span>
-                </button>
-              ))}
-            </div>
-          </Card>
-        )}
-
+      {previousBanks.length > 0 && phase !== "connecting" && (
         <Card className="p-4 mb-4">
-          <label className="label">Land</label>
-          <select
-            className="input bg-surface-2"
-            value={country}
-            onChange={(e) => {
-              setCountry(e.target.value);
-              setSelected(null);
-              setQuery("");
-            }}
-            disabled={banksLoading || phase === "connecting"}
-          >
-            {COUNTRIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name}
-              </option>
+          <label className="label">{t("previousBanks.label")}</label>
+          <div className="flex flex-col gap-1.5 mt-1">
+            {previousBanks.map((bank) => (
+              <button
+                key={`${bank.country}::${bank.name}`}
+                onClick={() => quickConnect(bank)}
+                className="w-full text-left px-3 py-2 rounded text-sm text-text hover:bg-surface-2 border border-border/40 transition-colors flex items-center justify-between group"
+              >
+                <span>{bank.name}</span>
+                <span className="text-muted text-xs group-hover:text-accent transition-colors">
+                  {t("previousBanks.connect")}
+                </span>
+              </button>
             ))}
-          </select>
+          </div>
         </Card>
+      )}
 
-        <Card className="p-4 mb-4">
-          <label className="label">Bank</label>
-          <div className="min-h-72">
+      <Card className="p-4 mb-4">
+        <label className="label">{t("countryLabel")}</label>
+        <select
+          className="input bg-surface-2"
+          value={country}
+          onChange={(e) => {
+            setCountry(e.target.value);
+            setSelected(null);
+            setQuery("");
+          }}
+          disabled={banksLoading || phase === "connecting"}
+        >
+          {COUNTRY_CODES.map((code) => (
+            <option key={code} value={code}>
+              {t("countries." + code)}
+            </option>
+          ))}
+        </select>
+      </Card>
+
+      <Card className="p-4 mb-4">
+        <label className="label">{t("bankLabel")}</label>
+        <div className="min-h-72">
           {banksLoading ? (
             <div className="flex items-center gap-2 text-muted text-sm py-2">
               <Spinner size={14} />
-              <span>Laster banker…</span>
+              <span>{t("loadingBanks")}</span>
             </div>
           ) : (
             <>
               <input
                 ref={searchRef}
                 className="input mb-3"
-                placeholder="Søk banker…"
+                placeholder={t("searchPlaceholder")}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
               <div className="max-h-56 overflow-y-auto -mx-1 space-y-0.5">
                 {filtered.length === 0 && (
                   <div className="text-muted text-sm px-2 py-4 text-center">
-                    Ingen banker funnet
+                    {t("noBanksFound")}
                   </div>
                 )}
                 {filtered.map((bank) => (
@@ -387,18 +368,20 @@ export default function Connect() {
               </div>
             </>
           )}
-          </div>
-        </Card>
+        </div>
+      </Card>
 
-        <Button
-          className="w-full py-2.5 justify-center"
-          disabled={!selected || phase === "connecting"}
-          loading={phase === "connecting"}
-          onClick={connect}
-        >
-          {phase !== "connecting" && <>Koble til {selected ? `"${selected.name}"` : "bank"} →</>}
-          {phase === "connecting" && "Videresender…"}
-        </Button>
+      <Button
+        className="w-full py-2.5 justify-center"
+        disabled={!selected || phase === "connecting"}
+        loading={phase === "connecting"}
+        onClick={connect}
+      >
+        {phase !== "connecting" && (
+          selected ? t("connectButton", { name: `"${selected.name}"` }) : t("connectButtonGeneric")
+        )}
+        {phase === "connecting" && t("redirecting")}
+      </Button>
     </div>
   );
 }

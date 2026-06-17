@@ -1,0 +1,31 @@
+{
+  "table": {
+    "empty": "Ingen transaksjoner funnet.",
+    "pagination": "{{from}}–{{to}} av {{total}}",
+    "prevPage": "← Forrige",
+    "nextPage": "Neste →"
+  },
+  "detail": {
+    "title": "Transaksjon",
+    "description": "Beskrivelse",
+    "bookingDate": "Bokføringsdato",
+    "transactionDate": "Transaksjonsdato",
+    "category": "Kategori",
+    "bankCode": "Bankkode",
+    "reference": "Referanse",
+    "rawData": "Rådata"
+  },
+  "categoryPicker": {
+    "title": "Velg kategori",
+    "selectMain": "Velg en hovedkategori",
+    "removeCategory": "Fjern kategori",
+    "cancel": "Avbryt"
+  },
+  "row": {
+    "pending": "(Reservert)",
+    "uncategorized": "Ukategorisert"
+  },
+  "status": {
+    "pending": "Reservert"
+  }
+}

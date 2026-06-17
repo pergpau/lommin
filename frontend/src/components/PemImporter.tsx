@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { importPemKey } from "../lib/keystore";
 import Alert from "./ui/Alert";
 import Button from "./ui/Button";
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function PemImporter({ onImported }: Props) {
+  const { t } = useTranslation("components");
   const inputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<"file" | "paste">("file");
   const [dragging, setDragging] = useState(false);
@@ -25,11 +27,11 @@ export default function PemImporter({ onImported }: Props) {
         const stem = filename.replace(/(\.(pem|crt|key))+$/i, "");
         onImported(key, stem);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Klarte ikke å importere nøkkelen");
+        setError(e instanceof Error ? e.message : t("pemImporter.importFailed"));
         setState("error");
       }
     },
-    [onImported],
+    [onImported, t],
   );
 
   const onFile = useCallback(
@@ -42,17 +44,17 @@ export default function PemImporter({ onImported }: Props) {
   return (
     <div>
       <div className="flex gap-1 mb-4 border-b border-border">
-        {(["file", "paste"] as const).map((t) => (
+        {(["file", "paste"] as const).map((tab_) => (
           <button
-            key={t}
+            key={tab_}
             className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              tab === t
+              tab === tab_
                 ? "border-accent text-accent"
                 : "border-transparent text-muted hover:text-text"
             }`}
-            onClick={() => setTab(t)}
+            onClick={() => setTab(tab_)}
           >
-            {t === "file" ? "Last opp fil" : "Lim inn nøkkel"}
+            {tab_ === "file" ? t("pemImporter.tabFile") : t("pemImporter.tabPaste")}
           </button>
         ))}
       </div>
@@ -95,7 +97,7 @@ export default function PemImporter({ onImported }: Props) {
             {state === "loading" ? (
               <div className="flex flex-col items-center gap-2">
                 <div className="animate-spin w-5 h-5 border-2 border-accent/20 border-t-accent rounded-full" />
-                <span className="text-muted text-xs">Importerer nøkkel…</span>
+                <span className="text-muted text-xs">{t("pemImporter.importing")}</span>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2">
@@ -104,9 +106,9 @@ export default function PemImporter({ onImported }: Props) {
                 </div>
                 <div>
                   <div className="text-sm text-text font-medium">
-                    {dragging ? "Slipp for å importere" : "Slipp .pem-fila her"}
+                    {dragging ? t("pemImporter.dropping") : t("pemImporter.dropText")}
                   </div>
-                  <div className="text-xs text-muted mt-0.5">eller klikk for å velge fil</div>
+                  <div className="text-xs text-muted mt-0.5">{t("pemImporter.clickText")}</div>
                 </div>
               </div>
             )}
@@ -130,7 +132,7 @@ export default function PemImporter({ onImported }: Props) {
             }}
             disabled={!pasteText.trim()}
           >
-            Importer nøkkel
+            {t("pemImporter.importButton")}
           </Button>
         </div>
       )}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { amountClass, fmtAmount, fmtDate } from "../../lib/format";
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
 import type { Transaction } from "../../lib/store";
@@ -9,8 +10,9 @@ type TransactionRowProps = {
   onCategoryClick?: () => void;
 };
 
-export default function TransactionRow({ transaction: t, onClick, onCategoryClick }: TransactionRowProps) {
-  const subCat = t.categoryId != null ? SUB_CATEGORY_MAP[t.categoryId] : undefined;
+export default function TransactionRow({ transaction: tx, onClick, onCategoryClick }: TransactionRowProps) {
+  const { t } = useTranslation("transactions");
+  const subCat = tx.categoryId != null ? SUB_CATEGORY_MAP[tx.categoryId] : undefined;
   const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
 
   return (
@@ -25,30 +27,30 @@ export default function TransactionRow({ transaction: t, onClick, onCategoryClic
     >
       <div onClick={(e) => e.stopPropagation()}>
         <CategoryBadge
-          categoryId={t.categoryId}
+          categoryId={tx.categoryId}
           onClick={onCategoryClick}
         />
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`text-sm truncate ${t.status === "PNDG" ? "italic text-muted" : "text-text"}`}>
-          {t.description || "—"}
-          {t.status === "PNDG" ? " (Reservert)" : ""}
+        <div className={`text-sm truncate ${tx.status === "PNDG" ? "italic text-muted" : "text-text"}`}>
+          {tx.description || "—"}
+          {tx.status === "PNDG" ? " " + t("row.pending") : ""}
         </div>
         {subCat && mainCat ? (
           <div className="text-[11px] mt-0.5 truncate" style={{ color: mainCat.color }}>
-            {subCat.name}
+            {t("categories:sub." + subCat.id)}
           </div>
         ) : (
-          <div className="text-[11px] text-muted mt-0.5">Ukategorisert</div>
+          <div className="text-[11px] text-muted mt-0.5">{t("row.uncategorized")}</div>
         )}
       </div>
       <div className="flex flex-col items-end shrink-0">
-        <div className={`mono text-sm font-medium tabular-nums ${amountClass(t)}`}>
-          {t.amount >= 0 ? "+" : ""}
-          {fmtAmount(t.amount, t.currency)}
+        <div className={`mono text-sm font-medium tabular-nums ${amountClass(tx)}`}>
+          {tx.amount >= 0 ? "+" : ""}
+          {fmtAmount(tx.amount, tx.currency)}
         </div>
         <div className="text-xs text-muted mt-0.5">
-          {fmtDate(t.bookingDate ?? t.transactionDate)}
+          {fmtDate(tx.bookingDate ?? tx.transactionDate)}
         </div>
       </div>
     </div>

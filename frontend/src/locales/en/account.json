@@ -1,0 +1,13 @@
+{
+  "fallbackTitle": "Account",
+  "connectedBadge": "Connected",
+  "sync": "Sync",
+  "connectBank": "Connect bank",
+  "deleteTransactions": "Delete transactions",
+  "removeAccount": "Remove account",
+  "transactionsLabel": "Transactions",
+  "confirm": {
+    "deleteTransactions": "Delete saved transactions for this account and reset the sync cursor? The next sync will re-fetch everything based on the history setting.",
+    "removeAccount": "Remove this account and all its transactions?"
+  }
+}

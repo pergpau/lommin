@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import { CheckIcon, CopyIcon, ExternalLinkIcon } from "./ui/icons";
 
 const REDIRECT_URL = "https://lommin.no/connect";
@@ -30,13 +31,14 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 }
 
 export default function BankSetupGuide() {
+  const { t } = useTranslation("components");
   const { copied, copy } = useCopy();
 
   const CopyBtn = ({ text, id }: { text: string; id: string }) => (
     <button
       onClick={() => copy(text, id)}
       className="ml-1.5 text-muted hover:text-accent transition-colors flex-shrink-0"
-      title="Kopier"
+      title={t("bankSetupGuide.copyTooltip")}
     >
       {copied === id ? <CheckIcon size={11} /> : <CopyIcon size={11} />}
     </button>
@@ -52,26 +54,36 @@ export default function BankSetupGuide() {
 
   return (
     <div className="space-y-5">
-      <Step n={1} title="Opprett en gratis konto">
+      <Step n={1} title={t("bankSetupGuide.step1.title")}>
         <p>
-          Gå til{" "}
-          <a
-            href="https://enablebanking.com/sign-in/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-accent hover:underline inline-flex items-center gap-0.5"
-          >
-            enablebanking.com
-            <ExternalLinkIcon size={10} />
-          </a>{" "}
-          og registrer deg. Bekreft e-postadressen din.
+          <Trans
+            i18nKey="components:bankSetupGuide.step1.body"
+            components={{
+              link: (
+                <a
+                  href="https://enablebanking.com/sign-in/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent hover:underline inline-flex items-center gap-0.5"
+                >
+                  enablebanking.com
+                  <ExternalLinkIcon size={10} />
+                </a>
+              ),
+            }}
+          />
         </p>
       </Step>
 
-      <Step n={2} title="Opprett en applikasjon">
+      <Step n={2} title={t("bankSetupGuide.step2.title")}>
         <p>
-          Klikk <strong className="text-text/80">Applications</strong> og deretter{" "}
-          <strong className="text-text/80">New application</strong>. Fyll inn:
+          <Trans
+            i18nKey="components:bankSetupGuide.step2.body"
+            components={{
+              app: <strong className="text-text/80" />,
+              newapp: <strong className="text-text/80" />,
+            }}
+          />
         </p>
         <div className="rounded-lg border border-border bg-surface/50 px-3 py-1 mt-2">
           <div className="flex items-center justify-between py-1.5 border-b border-border">
@@ -85,15 +97,19 @@ export default function BankSetupGuide() {
         </div>
       </Step>
 
-      <Step n={3} title="Koble til kontoene dine">
-        <p>Link kontoene du vil synkronisere med Lommin.</p>
+      <Step n={3} title={t("bankSetupGuide.step3.title")}>
+        <p>{t("bankSetupGuide.step3.body")}</p>
       </Step>
 
-      <Step n={4} title="Last ned nøkkelfila">
+      <Step n={4} title={t("bankSetupGuide.step4.title")}>
         <p>
-          Klikk <strong className="text-text/80">Registrer</strong> — en{" "}
-          <span className="mono text-text/70">.pem</span>-fil lastes ned. Ta vare på den, den
-          kan ikke lastes ned igjen.
+          <Trans
+            i18nKey="components:bankSetupGuide.step4.body"
+            components={{
+              register: <strong className="text-text/80" />,
+              pem: <span className="mono text-text/70" />,
+            }}
+          />
         </p>
       </Step>
     </div>

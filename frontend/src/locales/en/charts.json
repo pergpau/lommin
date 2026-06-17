@@ -1,0 +1,22 @@
+{
+  "monthly": {
+    "income": "Income",
+    "saving": "Saving",
+    "expenses": "Expenses",
+    "avg": "Avg: {{amount}}",
+    "months": "Months",
+    "years": "Years",
+    "prevAria": "Previous",
+    "nextAria": "Next"
+  },
+  "breakdown": {
+    "expenses": "Expenses",
+    "income": "Income",
+    "saving": "Saving",
+    "excluded": "Excluded",
+    "showAll": "Show all",
+    "back": "← Back",
+    "noTransactions": "No transactions this month.",
+    "uncategorized": "Uncategorized"
+  }
+}
