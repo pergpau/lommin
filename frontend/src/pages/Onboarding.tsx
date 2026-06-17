@@ -18,9 +18,9 @@ import Input from "../components/ui/Input";
 import { loadEncryptedFile } from "../lib/cryptoFile";
 import { seedDemoData } from "../lib/demoData";
 import { DriveAuthError, loadBackupFromDrive, signInWithGoogle } from "../lib/googleDrive";
-import { importPemKey, saveKey } from "../lib/keystore";
+import { importPemKey, loadKey, saveKey } from "../lib/keystore";
 import { getSetting, HOSTED_PROXY_URL, persistDriveToken, setSetting } from "../lib/settings";
-import { importAll } from "../lib/store";
+import { getAccounts, importAll } from "../lib/store";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 const REDIRECT_URL = "https://lommin.no/connect";
@@ -769,6 +769,12 @@ function StepDemo({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
     setLoading(true);
     setError("");
     try {
+      const [key, accounts] = await Promise.all([loadKey(), getAccounts()]);
+      if (key || accounts.length > 0) {
+        setError("Du har allerede data. Slett eksisterende data i innstillingene før du starter demo.");
+        setLoading(false);
+        return;
+      }
       await seedDemoData();
       navigate("/dashboard");
     } catch (e) {
@@ -805,6 +811,12 @@ function StepDemo({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
 export default function Onboarding() {
   const navigate = useNavigate();
   const [history, setHistory] = useState<OnboardingStep[]>([{ kind: "intro" }]);
+
+  useEffect(() => {
+    Promise.all([loadKey(), getAccounts()]).then(([key, accounts]) => {
+      if (key || accounts.length > 0) navigate("/dashboard", { replace: true });
+    });
+  }, [navigate]);
   const current = history[history.length - 1];
 
   const goTo = useCallback((step: OnboardingStep) => {
