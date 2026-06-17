@@ -458,7 +458,7 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
           <Input
             label="Passord"
             type="password"
-            placeholder="La stå tomt hvis ingen kryptering…"
+            placeholder="La stå tomt hvis du ikke har brukt passord"
             value={passphrase}
             onChange={(e) => setPassphrase(e.target.value)}
             onKeyDown={(e) => {
@@ -502,7 +502,7 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
                 <Input
                   label="Passord"
                   type="password"
-                  placeholder="La stå tomt hvis ingen kryptering…"
+                  placeholder="La stå tomt hvis du ikke har brukt passord"
                   value={drivePassphrase}
                   onChange={(e) => setDrivePassphrase(e.target.value)}
                   onKeyDown={(e) => {

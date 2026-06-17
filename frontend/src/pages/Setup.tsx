@@ -277,7 +277,7 @@ function DriveRestoreForm() {
           <Input
             label="Passord"
             type="password"
-            placeholder="La stå tomt hvis ingen kryptering…"
+            placeholder="La stå tomt hvis du ikke har brukt passord"
             value={passphrase}
             onChange={(e) => setPassphrase(e.target.value)}
             onKeyDown={(e) => {
