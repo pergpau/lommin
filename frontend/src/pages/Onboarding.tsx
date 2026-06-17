@@ -601,7 +601,7 @@ export default function Onboarding() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-bg grid-bg flex items-center justify-center p-4">
+    <div className="min-h-screen bg-bg grid-bg flex items-start justify-center pt-20 p-4">
       <div className="w-full max-w-lg animate-slide-up">
         {history.length > 1 && (
           <button
