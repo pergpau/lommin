@@ -253,14 +253,15 @@ export default function Dashboard() {
             <DownloadIcon size={14} />
             Lagre
           </Button>
-          <Button
-            loading={syncing}
-            disabled={!hasLiveAccounts}
-            onClick={() => runSync(accounts, () => { reload(); refresh(); })}
-          >
-            <RefreshCwIcon size={14} />
-            Synkroniser
-          </Button>
+          {hasLiveAccounts && (
+            <Button
+              loading={syncing}
+              onClick={() => runSync(accounts, () => { reload(); refresh(); })}
+            >
+              <RefreshCwIcon size={14} />
+              Synkroniser
+            </Button>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -294,17 +295,19 @@ export default function Dashboard() {
                 <DownloadIcon size={13} />
                 {dashBackupSaving ? "Lagrer…" : "Lagre"}
               </button>
-              <button
-                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
-                disabled={!hasLiveAccounts || syncing}
-                onClick={() => {
-                  setActionsOpen(false);
-                  runSync(accounts, () => { reload(); refresh(); });
-                }}
-              >
-                <RefreshCwIcon size={13} />
-                {syncing ? "Synkroniserer…" : "Synkroniser"}
-              </button>
+              {hasLiveAccounts && (
+                <button
+                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
+                  disabled={syncing}
+                  onClick={() => {
+                    setActionsOpen(false);
+                    runSync(accounts, () => { reload(); refresh(); });
+                  }}
+                >
+                  <RefreshCwIcon size={13} />
+                  {syncing ? "Synkroniserer…" : "Synkroniser"}
+                </button>
+              )}
             </div>
           )}
         </div>
