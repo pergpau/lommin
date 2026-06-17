@@ -34,10 +34,12 @@ export default function CategoryPicker({
   );
 
   const visibleMain = mainCategoriesForType(activeType);
+  const singleMainMode = visibleMain.length === 1;
   const activeMain =
     activeMainId != null ? (visibleMain.find((m) => m.id === activeMainId) ?? null) : null;
-  const visibleSubs = activeMain
-    ? activeMain.subCategories.filter((s) => !activeType || s.type === activeType)
+  const effectiveMain = singleMainMode ? visibleMain[0] : activeMain;
+  const visibleSubs = effectiveMain
+    ? effectiveMain.subCategories.filter((s) => !activeType || s.type === activeType)
     : [];
 
   function pickMain(id: number) {
@@ -96,32 +98,10 @@ export default function CategoryPicker({
 
         {/* Main categories + sub-categories */}
         <div className="flex flex-1 overflow-hidden">
-          {/* Main category list */}
-          <div className="w-1/2 border-r border-border overflow-y-auto">
-            {visibleMain.map((m) => (
-              <button
-                key={m.id}
-                onClick={() => pickMain(m.id)}
-                className={`w-full text-left text-sm px-4 py-2.5 transition-colors flex items-center gap-2 ${
-                  activeMainId === m.id
-                    ? "bg-accent/10 text-accent font-medium"
-                    : "text-text hover:bg-surface-2"
-                }`}
-              >
-                <FontAwesomeIcon
-                  icon={getCategoryIcon(m.id)}
-                  className="w-3.5 h-3.5 shrink-0"
-                  style={{ color: m.color }}
-                />
-                {m.name}
-              </button>
-            ))}
-          </div>
-
-          {/* Sub-category list */}
-          <div className="w-1/2 overflow-y-auto">
-            {activeMain ? (
-              visibleSubs.map((s) => (
+          {singleMainMode ? (
+            /* Full-width subcategory list when there's only one main category */
+            <div className="w-full overflow-y-auto">
+              {visibleSubs.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => onSelect(s.id)}
@@ -134,15 +114,63 @@ export default function CategoryPicker({
                   <FontAwesomeIcon
                     icon={getCategoryIcon(s.id)}
                     className="w-3.5 h-3.5 shrink-0"
-                    style={{ color: activeMain?.color }}
+                    style={{ color: effectiveMain?.color }}
                   />
                   {s.name}
                 </button>
-              ))
-            ) : (
-              <div className="px-4 py-4 text-xs text-muted">Velg en hovedkategori</div>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Main category list */}
+              <div className="w-1/2 border-r border-border overflow-y-auto">
+                {visibleMain.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => pickMain(m.id)}
+                    className={`w-full text-left text-sm px-4 py-2.5 transition-colors flex items-center gap-2 ${
+                      activeMainId === m.id
+                        ? "bg-accent/10 text-accent font-medium"
+                        : "text-text hover:bg-surface-2"
+                    }`}
+                  >
+                    <FontAwesomeIcon
+                      icon={getCategoryIcon(m.id)}
+                      className="w-3.5 h-3.5 shrink-0"
+                      style={{ color: m.color }}
+                    />
+                    {m.name}
+                  </button>
+                ))}
+              </div>
+
+              {/* Sub-category list */}
+              <div className="w-1/2 overflow-y-auto">
+                {activeMain ? (
+                  visibleSubs.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => onSelect(s.id)}
+                      className={`w-full text-left text-sm px-4 py-2.5 transition-colors flex items-center gap-2 ${
+                        s.id === currentCategoryId
+                          ? "bg-accent/10 text-accent font-medium"
+                          : "text-text hover:bg-surface-2"
+                      }`}
+                    >
+                      <FontAwesomeIcon
+                        icon={getCategoryIcon(s.id)}
+                        className="w-3.5 h-3.5 shrink-0"
+                        style={{ color: activeMain?.color }}
+                      />
+                      {s.name}
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-4 text-xs text-muted">Velg en hovedkategori</div>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}

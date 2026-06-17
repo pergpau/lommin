@@ -44,6 +44,17 @@ export const MAIN_CATEGORIES: MainCategory[] = [
     ],
   },
   {
+    id: 20,
+    name: "Pensjon & Sparing",
+    color: "#6d28d9",
+    subCategories: [
+      { id: 182, name: "Pensjonssparing", type: "saving", mainCategoryId: 20 },
+      { id: 183, name: "Barnesparing", type: "saving", mainCategoryId: 20 },
+      { id: 184, name: "Verdipapirhandel", type: "saving", mainCategoryId: 20 },
+      { id: 185, name: "Annen sparing", type: "saving", mainCategoryId: 20 },
+    ],
+  },
+  {
     id: 12,
     name: "Bolig",
     color: "#7c3d12",
@@ -165,17 +176,6 @@ export const MAIN_CATEGORIES: MainCategory[] = [
       { id: 179, name: "Forbrukslån", type: "expense", mainCategoryId: 19 },
       { id: 180, name: "Privatlån", type: "expense", mainCategoryId: 19 },
       { id: 181, name: "Renter", type: "expense", mainCategoryId: 19 },
-    ],
-  },
-  {
-    id: 20,
-    name: "Pensjon & Sparing",
-    color: "#6d28d9",
-    subCategories: [
-      { id: 182, name: "Pensjonssparing", type: "saving", mainCategoryId: 20 },
-      { id: 183, name: "Barnesparing", type: "saving", mainCategoryId: 20 },
-      { id: 184, name: "Verdipapirhandel", type: "saving", mainCategoryId: 20 },
-      { id: 185, name: "Annen sparing", type: "saving", mainCategoryId: 20 },
     ],
   },
 ];
