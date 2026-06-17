@@ -58,6 +58,8 @@ function subMeta(subId: SubId): { icon: IconDefinition; name: string } {
 
 export default function SpendingBreakdown({ transactions, onCategoryChange }: Props) {
   const [view, setView] = useState<View>({ level: "main" });
+  const [showAll, setShowAll] = useState(false);
+  const [showAllIncome, setShowAllIncome] = useState(false);
 
   const eligible = useMemo(() => transactions.filter(isEligible), [transactions]);
 
@@ -84,6 +86,29 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
     if (map.has("uncategorized-income"))
       rows.push({ mainId: "uncategorized-income", total: map.get("uncategorized-income")! });
     return rows;
+  }, [eligible]);
+
+  const inntektSubRows = useMemo(() => {
+    const inntektId = 11;
+    const subMap = new Map<number, number>();
+    for (const t of eligible) {
+      if (mainIdOf(t) === inntektId && t.categoryId != null) {
+        subMap.set(t.categoryId, (subMap.get(t.categoryId) ?? 0) + t.amount);
+      }
+    }
+    const uncatTotal = eligible
+      .filter((t) => mainIdOf(t) === "uncategorized-income")
+      .reduce((sum, t) => sum + t.amount, 0);
+    const cat = MAIN_CATEGORY_MAP[inntektId];
+    const rows: { subId: SubId; total: number; mainId: MainId; isUncat?: boolean }[] = cat
+      ? cat.subCategories
+          .filter((s) => s.type !== "exclude")
+          .map((s) => ({ subId: s.id as SubId, total: subMap.get(s.id) ?? 0, mainId: inntektId as MainId }))
+      : [];
+    if (uncatTotal > 0) {
+      rows.push({ subId: "uncategorized", total: uncatTotal, mainId: "uncategorized-income", isUncat: true });
+    }
+    return rows.sort((a, b) => b.total - a.total);
   }, [eligible]);
 
   const excludedMainRows = useMemo(() => {
@@ -214,7 +239,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
                       {pct.toFixed(0)}%
                     </span>
                     <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
-                      {fmtAmount(total)} kr
+                      {fmtAmount(total, undefined, 0)} kr
                     </span>
                   </button>
                 );
@@ -227,15 +252,23 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
   }
 
   // ── Level 0: main category breakdown ──
-  const expenseRows = mainRows.filter((r) => mainType(r.mainId) === "expense");
-  const incomeRows = mainRows.filter((r) => mainType(r.mainId) === "income");
-  const savingRows = mainRows.filter((r) => mainType(r.mainId) === "saving");
+  const expenseRows = mainRows.filter((r) => mainType(r.mainId) === "expense").sort((a, b) => b.total - a.total);
+  const savingRows = mainRows.filter((r) => mainType(r.mainId) === "saving").sort((a, b) => b.total - a.total);
+
+  function pillClass(active: boolean) {
+    return `text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors ${
+      active
+        ? "border-accent text-accent bg-accent/10"
+        : "border-border text-muted hover:text-text hover:border-text/30"
+    }`;
+  }
 
   function renderRows(rows: { mainId: MainId; total: number }[], excluded?: boolean) {
     const sectionTotal = rows.reduce((sum, r) => sum + r.total, 0);
     return rows.map(({ mainId, total }) => {
       const m = mainMeta(mainId);
       const pct = sectionTotal > 0 ? (total / sectionTotal) * 100 : 0;
+      const showPct = !excluded && total > 0;
       return (
         <button
           key={mainId}
@@ -250,37 +283,107 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
           </span>
           <span className="text-sm text-text flex-1 truncate">{m.name}</span>
           <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
-            {pct.toFixed(0)}%
+            {showPct ? `${pct.toFixed(0)}%` : ""}
           </span>
           <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
-            {fmtAmount(total)} kr
+            {fmtAmount(total, undefined, 0)} kr
           </span>
         </button>
       );
     });
   }
 
-  const sections: { label: string; rows: { mainId: MainId; total: number }[]; excluded?: boolean }[] = [
-    { label: "Utgifter", rows: expenseRows },
-    { label: "Inntekter", rows: incomeRows },
-    { label: "Sparing", rows: savingRows },
-    { label: "Ekskludert", rows: excludedMainRows, excluded: true },
-  ];
+  const visibleExpenseRows = showAll ? expenseRows : expenseRows.filter((r) => r.total > 0);
+  const visibleSavingRows = showAll ? savingRows : savingRows.filter((r) => r.total > 0);
+  const visibleExcludedRows = showAll ? excludedMainRows : excludedMainRows.filter((r) => r.total > 0);
+  const visibleIncomeRows = showAllIncome ? inntektSubRows : inntektSubRows.filter((r) => r.total > 0);
+  const incomeSectionTotal = inntektSubRows.reduce((sum, r) => sum + r.total, 0);
+  const inntektColor = MAIN_CATEGORY_MAP[11]?.color ?? "#16a34a";
 
   return (
     <div className="flex flex-col gap-6">
-      {sections.map(({ label, rows, excluded }) => {
-        return (
-          <div key={label}>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted mb-2 px-1">
-              {label}
-            </h3>
-            <div className="card overflow-hidden">
-              <div className="divide-y divide-border">{renderRows(rows, excluded)}</div>
+      {visibleExpenseRows.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Utgifter</h3>
+            <button onClick={() => setShowAll((v) => !v)} className={pillClass(showAll)}>
+              Vis alle
+            </button>
+          </div>
+          <div className="card overflow-hidden">
+            <div className="divide-y divide-border">{renderRows(visibleExpenseRows)}</div>
+          </div>
+        </div>
+      )}
+
+      {visibleIncomeRows.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Inntekter</h3>
+            <button onClick={() => setShowAllIncome((v) => !v)} className={pillClass(showAllIncome)}>
+              Vis alle
+            </button>
+          </div>
+          <div className="card overflow-hidden">
+            <div className="divide-y divide-border">
+              {visibleIncomeRows.map(({ subId, total, mainId, isUncat }) => {
+                const s = subMeta(subId);
+                const pct = incomeSectionTotal > 0 ? (total / incomeSectionTotal) * 100 : 0;
+                return (
+                  <button
+                    key={String(subId)}
+                    className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
+                    style={{ backgroundColor: isUncat ? "#9ca3af12" : inntektColor + "12" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isUncat ? "#9ca3af25" : inntektColor + "25")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = isUncat ? "#9ca3af12" : inntektColor + "12")}
+                    onClick={() =>
+                      isUncat
+                        ? setView({ level: "sub", mainId })
+                        : setView({ level: "txns", mainId, subId })
+                    }
+                  >
+                    <span
+                      className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
+                      style={isUncat ? { backgroundColor: "#9ca3af22", color: "#9ca3af" } : { backgroundColor: inntektColor + "22", color: inntektColor }}
+                    >
+                      <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
+                    </span>
+                    <span className="text-sm text-text flex-1 truncate">{s.name}</span>
+                    <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
+                      {total > 0 ? `${pct.toFixed(0)}%` : ""}
+                    </span>
+                    <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
+                      {fmtAmount(total, undefined, 0)} kr
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
-        );
-      })}
+        </div>
+      )}
+
+      {visibleSavingRows.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Sparing</h3>
+          </div>
+          <div className="card overflow-hidden">
+            <div className="divide-y divide-border">{renderRows(visibleSavingRows)}</div>
+          </div>
+        </div>
+      )}
+
+      {visibleExcludedRows.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Ekskludert</h3>
+          </div>
+          <div className="card overflow-hidden">
+            <div className="divide-y divide-border">{renderRows(visibleExcludedRows, true)}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
