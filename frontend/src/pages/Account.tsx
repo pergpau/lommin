@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { triggerAutosave } from "../lib/autosave";
-import { deleteAccount, resetAccountSync, setCategoryId } from "../lib/store";
+import { deleteAccount, resetAccountSync, setCategoryId, type Transaction } from "../lib/store";
 import { accountLabel } from "../lib/format";
+import { SUB_CATEGORY_MAP } from "../lib/categories";
 import { useAccounts } from "../hooks/useAccounts";
 import { useTransactions } from "../hooks/useTransactions";
 import { useSyncState } from "../hooks/useSyncState";
@@ -10,21 +11,20 @@ import Spinner from "../components/ui/Spinner";
 import Button from "../components/ui/Button";
 import Alert from "../components/ui/Alert";
 import { useSnackbar } from "../components/ui/Snackbar";
-import FlowSummaryChart from "../components/charts/FlowSummaryChart";
+import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import TransactionTable from "../components/transactions/TransactionTable";
 import { ArrowLeftIcon, RefreshCwIcon } from "../components/ui/icons";
 import { isDemoMode } from "../lib/demoData";
 
-function txMonth(date?: string): string {
-  return date ? date.slice(0, 7) : "";
-}
-
-function monthLabel(ym: string): string {
-  try {
-    return new Date(ym + "-01").toLocaleDateString("nb-NO", { month: "short", year: "numeric" });
-  } catch {
-    return ym;
+function txSection(t: Transaction): "income" | "expense" | "saving" | null {
+  if (t.categoryId != null) {
+    const type = SUB_CATEGORY_MAP[t.categoryId]?.type;
+    if (type === "exclude") return null;
+    if (type === "income") return "income";
+    if (type === "saving") return "saving";
+    return "expense";
   }
+  return t.amount > 0 ? "income" : "expense";
 }
 
 export default function AccountPage() {
@@ -36,6 +36,7 @@ export default function AccountPage() {
   const accountError = failedAccounts.get(uid ?? "");
   const { showSnackbar } = useSnackbar();
   const [selectedMonth, setSelectedMonth] = useState("");
+  const [chartMode, setChartMode] = useState<ChartMode>("month");
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -56,27 +57,69 @@ export default function AccountPage() {
     [all],
   );
 
-  const months = useMemo(
-    () =>
-      [
-        ...new Set(sorted.map((t) => txMonth(t.bookingDate ?? t.transactionDate)).filter(Boolean)),
-      ].sort((a, b) => b.localeCompare(a)),
-    [sorted],
-  );
+  const monthlyData = useMemo<MonthBar[]>(() => {
+    const map = new Map<string, { income: number; expenses: number; saving: number }>();
+    for (const t of sorted) {
+      const section = txSection(t);
+      if (!section) continue;
+      const date = t.bookingDate ?? t.transactionDate;
+      if (!date) continue;
+      const key = date.slice(0, 7);
+      const entry = map.get(key) ?? { income: 0, expenses: 0, saving: 0 };
+      if (section === "income") entry.income += t.amount;
+      else if (section === "saving") entry.saving += -t.amount;
+      else entry.expenses += -t.amount;
+      map.set(key, entry);
+    }
+    return [...map.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, { income, expenses, saving }]) => {
+        const d = new Date(key + "-15");
+        const raw = d.toLocaleDateString("nb-NO", { month: "long" });
+        return { key, label: raw.charAt(0).toUpperCase() + raw.slice(1), income, expenses, saving };
+      });
+  }, [sorted]);
+
+  const yearlyData = useMemo<MonthBar[]>(() => {
+    const map = new Map<string, { income: number; expenses: number; saving: number }>();
+    for (const t of sorted) {
+      const section = txSection(t);
+      if (!section) continue;
+      const date = t.bookingDate ?? t.transactionDate;
+      if (!date) continue;
+      const key = date.slice(0, 4);
+      const entry = map.get(key) ?? { income: 0, expenses: 0, saving: 0 };
+      if (section === "income") entry.income += t.amount;
+      else if (section === "saving") entry.saving += -t.amount;
+      else entry.expenses += -t.amount;
+      map.set(key, entry);
+    }
+    return [...map.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, { income, expenses, saving }]) => ({ key, label: key, income, expenses, saving }));
+  }, [sorted]);
+
+  const chartData = chartMode === "month" ? monthlyData : yearlyData;
 
   const filtered = useMemo(
     () =>
       selectedMonth
-        ? sorted.filter((t) => txMonth(t.bookingDate ?? t.transactionDate) === selectedMonth)
+        ? sorted.filter((t) => {
+            const date = t.bookingDate ?? t.transactionDate ?? "";
+            return chartMode === "year"
+              ? date.slice(0, 4) === selectedMonth
+              : date.slice(0, 7) === selectedMonth;
+          })
         : sorted,
-    [selectedMonth, sorted],
+    [selectedMonth, sorted, chartMode],
   );
 
-  // Reset month filter when navigating to a different account (render-phase setState)
+  // Reset filter/mode when navigating to a different account (render-phase setState)
   const [prevUid, setPrevUid] = useState(uid);
   if (prevUid !== uid) {
     setPrevUid(uid);
     setSelectedMonth("");
+    setChartMode("month");
   }
 
   const isConnected = account ? account.sources.some((s) => s.type === "enableBanking") : false;
@@ -157,34 +200,22 @@ export default function AccountPage() {
         <Alert type="error" message={accountError ?? syncError ?? ""} className="mb-4" />
       )}
 
-      <div className="card px-4 py-3 mb-6 inline-block">
-        <div className="text-xs text-muted uppercase tracking-wider mb-1">Transaksjoner</div>
-        <div className="text-lg font-semibold text-text mono">{filtered.length}</div>
-      </div>
-
-      {months.length > 0 && (
-        <div className="card p-4 mb-4">
-          <div className="flex flex-wrap gap-2">
-            <button
-              className={`text-xs px-3 py-1.5 rounded transition-colors ${!selectedMonth ? "bg-accent/10 text-accent border border-accent/20" : "btn-ghost"}`}
-              onClick={() => setSelectedMonth("")}
-            >
-              Alle
-            </button>
-            {months.map((m) => (
-              <button
-                key={m}
-                className={`text-xs px-3 py-1.5 rounded transition-colors ${selectedMonth === m ? "bg-accent/10 text-accent border border-accent/20" : "btn-ghost"}`}
-                onClick={() => setSelectedMonth(m)}
-              >
-                {monthLabel(m)}
-              </button>
-            ))}
-          </div>
+      {chartData.length > 0 && (
+        <div className="mb-4">
+          <MonthlyChart
+            bars={chartData}
+            activeKey={selectedMonth || null}
+            onSelect={(key) => setSelectedMonth((prev) => (prev === key ? "" : key))}
+            mode={chartMode}
+            onModeChange={(m) => { setChartMode(m); setSelectedMonth(""); }}
+          />
         </div>
       )}
 
-      {selectedMonth && <FlowSummaryChart transactions={filtered} currency={currency} />}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs text-muted uppercase tracking-wider">Transaksjoner</span>
+        <span className="text-sm font-semibold text-text mono">{filtered.length}</span>
+      </div>
 
       <TransactionTable
         transactions={filtered}

@@ -231,6 +231,7 @@ export default function MonthlyChart({
           </button>
         )}
       </div>
+
     </div>
   );
 }
