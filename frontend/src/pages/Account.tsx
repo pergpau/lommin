@@ -13,6 +13,7 @@ import { useSnackbar } from "../components/ui/Snackbar";
 import FlowSummaryChart from "../components/charts/FlowSummaryChart";
 import TransactionTable from "../components/transactions/TransactionTable";
 import { ArrowLeftIcon, RefreshCwIcon } from "../components/ui/icons";
+import { isDemoMode } from "../lib/demoData";
 
 function txMonth(date?: string): string {
   return date ? date.slice(0, 7) : "";
@@ -140,7 +141,7 @@ export default function AccountPage() {
             Synkroniser
           </Button>
         ) : (
-          <Button size="sm" onClick={() => navigate("/connect")}>
+          <Button size="sm" disabled={isDemoMode()} onClick={() => navigate("/connect")}>
             Koble til bank
           </Button>
         )}
