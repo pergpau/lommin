@@ -55,11 +55,39 @@ function subMeta(subId: SubId): { icon: IconDefinition; name: string } {
   return { icon: getCategoryIcon(sub?.id), name: sub?.name ?? "Ukjent" };
 }
 
+type SubRow = { subId: SubId; total: number; count: number; mainId: MainId; isUncat?: boolean };
+
+function buildSubRows(
+  pool: Transaction[],
+  mainId: number,
+  sign: 1 | -1,
+): SubRow[] {
+  const subMap = new Map<number, number>();
+  const subCountMap = new Map<number, number>();
+  for (const t of pool) {
+    if (mainIdOf(t) === mainId && t.categoryId != null) {
+      subMap.set(t.categoryId, (subMap.get(t.categoryId) ?? 0) + sign * t.amount);
+      subCountMap.set(t.categoryId, (subCountMap.get(t.categoryId) ?? 0) + 1);
+    }
+  }
+  const cat = MAIN_CATEGORY_MAP[mainId];
+  return cat
+    ? cat.subCategories.map((s) => ({
+        subId: s.id as SubId,
+        total: subMap.get(s.id) ?? 0,
+        count: subCountMap.get(s.id) ?? 0,
+        mainId: mainId as MainId,
+      }))
+    : [];
+}
+
 
 export default function SpendingBreakdown({ transactions, onCategoryChange }: Props) {
   const [view, setView] = useState<View>({ level: "main" });
   const [showAll, setShowAll] = useState(false);
   const [showAllIncome, setShowAllIncome] = useState(false);
+  const [showAllSaving, setShowAllSaving] = useState(false);
+  const [showAllExcluded, setShowAllExcluded] = useState(false);
 
   const eligible = useMemo(() => transactions.filter(isEligible), [transactions]);
 
@@ -73,55 +101,41 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
 
   const mainRows = useMemo(() => {
     const map = new Map<MainId, number>();
+    const countMap = new Map<MainId, number>();
     for (const t of eligible) {
       const id = mainIdOf(t);
       const delta = mainType(id) === "income" ? t.amount : -t.amount;
       map.set(id, (map.get(id) ?? 0) + delta);
+      countMap.set(id, (countMap.get(id) ?? 0) + 1);
     }
-    const rows: { mainId: MainId; total: number }[] = MAIN_CATEGORIES.filter((cat) =>
+    const rows: { mainId: MainId; total: number; count: number }[] = MAIN_CATEGORIES.filter((cat) =>
       cat.subCategories.some((s) => s.type !== "exclude"),
-    ).map((cat) => ({ mainId: cat.id as MainId, total: map.get(cat.id) ?? 0 }));
-    if (map.has("uncategorized"))
-      rows.push({ mainId: "uncategorized", total: map.get("uncategorized")! });
-    if (map.has("uncategorized-income"))
-      rows.push({ mainId: "uncategorized-income", total: map.get("uncategorized-income")! });
+    ).map((cat) => ({ mainId: cat.id as MainId, total: map.get(cat.id) ?? 0, count: countMap.get(cat.id) ?? 0 }));
+    if (countMap.has("uncategorized"))
+      rows.push({ mainId: "uncategorized", total: map.get("uncategorized")!, count: countMap.get("uncategorized")! });
+    if (countMap.has("uncategorized-income"))
+      rows.push({ mainId: "uncategorized-income", total: map.get("uncategorized-income")!, count: countMap.get("uncategorized-income")! });
     return rows;
   }, [eligible]);
 
   const inntektSubRows = useMemo(() => {
-    const inntektId = 11;
-    const subMap = new Map<number, number>();
-    for (const t of eligible) {
-      if (mainIdOf(t) === inntektId && t.categoryId != null) {
-        subMap.set(t.categoryId, (subMap.get(t.categoryId) ?? 0) + t.amount);
-      }
-    }
-    const uncatTotal = eligible
-      .filter((t) => mainIdOf(t) === "uncategorized-income")
-      .reduce((sum, t) => sum + t.amount, 0);
-    const cat = MAIN_CATEGORY_MAP[inntektId];
-    const rows: { subId: SubId; total: number; mainId: MainId; isUncat?: boolean }[] = cat
-      ? cat.subCategories
-          .filter((s) => s.type !== "exclude")
-          .map((s) => ({ subId: s.id as SubId, total: subMap.get(s.id) ?? 0, mainId: inntektId as MainId }))
-      : [];
-    if (uncatTotal > 0) {
-      rows.push({ subId: "uncategorized", total: uncatTotal, mainId: "uncategorized-income", isUncat: true });
-    }
+    const rows = buildSubRows(eligible, 11, 1);
+    const uncatTxns = eligible.filter((t) => mainIdOf(t) === "uncategorized-income");
+    const uncatTotal = uncatTxns.reduce((sum, t) => sum + t.amount, 0);
+    if (uncatTxns.length > 0)
+      rows.push({ subId: "uncategorized", total: uncatTotal, count: uncatTxns.length, mainId: "uncategorized-income", isUncat: true });
     return rows.sort((a, b) => b.total - a.total);
   }, [eligible]);
 
-  const excludedMainRows = useMemo(() => {
-    const map = new Map<MainId, number>();
-    for (const t of excludedPool) {
-      const id = mainIdOf(t);
-      const delta = mainType(id) === "income" ? t.amount : -t.amount;
-      map.set(id, (map.get(id) ?? 0) + delta);
-    }
-    return MAIN_CATEGORIES.filter((cat) =>
-      cat.subCategories.every((s) => s.type === "exclude"),
-    ).map((cat) => ({ mainId: cat.id as MainId, total: map.get(cat.id) ?? 0 }));
-  }, [excludedPool]);
+  const sparingSubRows = useMemo(
+    () => buildSubRows(eligible, 20, -1).sort((a, b) => b.total - a.total),
+    [eligible],
+  );
+
+  const excludedSubRows = useMemo(
+    () => buildSubRows(excludedPool, 10, -1).sort((a, b) => b.total - a.total),
+    [excludedPool],
+  );
 
   if (eligible.length === 0 && excludedPool.length === 0) {
     return (
@@ -253,7 +267,6 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
 
   // ── Level 0: main category breakdown ──
   const expenseRows = mainRows.filter((r) => mainType(r.mainId) === "expense").sort((a, b) => b.total - a.total);
-  const savingRows = mainRows.filter((r) => mainType(r.mainId) === "saving").sort((a, b) => b.total - a.total);
 
   function pillClass(active: boolean) {
     return `text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors ${
@@ -263,12 +276,11 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
     }`;
   }
 
-  function renderRows(rows: { mainId: MainId; total: number }[], excluded?: boolean) {
+  function renderRows(rows: { mainId: MainId; total: number; count: number }[]) {
     const sectionTotal = rows.reduce((sum, r) => sum + r.total, 0);
-    return rows.map(({ mainId, total }) => {
+    return rows.map(({ mainId, total, count }) => {
       const m = mainMeta(mainId);
       const pct = sectionTotal > 0 ? (total / sectionTotal) * 100 : 0;
-      const showPct = !excluded && total > 0;
       return (
         <button
           key={mainId}
@@ -276,14 +288,14 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
           style={{ backgroundColor: m.color + "12" }}
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = m.color + "25")}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = m.color + "12")}
-          onClick={() => setView({ level: "sub", mainId, ...(excluded ? { excluded: true } : {}) })}
+          onClick={() => setView({ level: "sub", mainId })}
         >
           <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
             <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
           </span>
           <span className="text-sm text-text flex-1 truncate">{m.name}</span>
           <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
-            {showPct ? `${pct.toFixed(0)}%` : ""}
+            {count > 0 ? `${pct.toFixed(0)}%` : ""}
           </span>
           <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
             {fmtAmount(total, undefined, 0)} kr
@@ -293,12 +305,54 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
     });
   }
 
-  const visibleExpenseRows = showAll ? expenseRows : expenseRows.filter((r) => r.total > 0);
-  const visibleSavingRows = showAll ? savingRows : savingRows.filter((r) => r.total > 0);
-  const visibleExcludedRows = showAll ? excludedMainRows : excludedMainRows.filter((r) => r.total > 0);
-  const visibleIncomeRows = showAllIncome ? inntektSubRows : inntektSubRows.filter((r) => r.total > 0);
+  function renderSubRows(rows: SubRow[], color: string, sectionTotal: number, excluded?: boolean) {
+    return rows.map(({ subId, total, count, mainId, isUncat }) => {
+      const s = subMeta(subId);
+      const pct = sectionTotal > 0 ? (total / sectionTotal) * 100 : 0;
+      const rowColor = isUncat ? "#9ca3af" : color;
+      return (
+        <button
+          key={String(subId)}
+          className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
+          style={{ backgroundColor: rowColor + "12" }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = rowColor + "25")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = rowColor + "12")}
+          onClick={() =>
+            isUncat
+              ? setView({ level: "sub", mainId })
+              : setView({ level: "txns", mainId, subId, ...(excluded ? { excluded: true } : {}) })
+          }
+        >
+          <span
+            className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
+            style={{ backgroundColor: rowColor + "22", color: rowColor }}
+          >
+            <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
+          </span>
+          <span className="text-sm text-text flex-1 truncate">{s.name}</span>
+          <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
+            {count > 0 ? `${pct.toFixed(0)}%` : ""}
+          </span>
+          <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
+            {fmtAmount(total, undefined, 0)} kr
+          </span>
+        </button>
+      );
+    });
+  }
+
+  const visibleExpenseRows = showAll ? expenseRows : expenseRows.filter((r) => r.count > 0);
+  const visibleIncomeRows = showAllIncome ? inntektSubRows : inntektSubRows.filter((r) => r.count > 0);
+  const visibleSparingSubs = showAllSaving ? sparingSubRows : sparingSubRows.filter((r) => r.count > 0);
+  const visibleExcludedSubs = showAllExcluded ? excludedSubRows : excludedSubRows.filter((r) => r.count > 0);
+
   const incomeSectionTotal = inntektSubRows.reduce((sum, r) => sum + r.total, 0);
+  const sparingSectionTotal = sparingSubRows.reduce((sum, r) => sum + r.total, 0);
+  const excludedSectionTotal = excludedSubRows.reduce((sum, r) => sum + r.total, 0);
+
   const inntektColor = MAIN_CATEGORY_MAP[11]?.color ?? "#16a34a";
+  const sparingColor = MAIN_CATEGORY_MAP[20]?.color ?? "#6d28d9";
+  const excludedColor = MAIN_CATEGORY_MAP[10]?.color ?? "#6b7280";
 
   return (
     <div className="flex flex-col gap-6">
@@ -326,62 +380,45 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
           </div>
           <div className="card overflow-hidden">
             <div className="divide-y divide-border">
-              {visibleIncomeRows.map(({ subId, total, mainId, isUncat }) => {
-                const s = subMeta(subId);
-                const pct = incomeSectionTotal > 0 ? (total / incomeSectionTotal) * 100 : 0;
-                return (
-                  <button
-                    key={String(subId)}
-                    className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
-                    style={{ backgroundColor: isUncat ? "#9ca3af12" : inntektColor + "12" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isUncat ? "#9ca3af25" : inntektColor + "25")}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = isUncat ? "#9ca3af12" : inntektColor + "12")}
-                    onClick={() =>
-                      isUncat
-                        ? setView({ level: "sub", mainId })
-                        : setView({ level: "txns", mainId, subId })
-                    }
-                  >
-                    <span
-                      className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
-                      style={isUncat ? { backgroundColor: "#9ca3af22", color: "#9ca3af" } : { backgroundColor: inntektColor + "22", color: inntektColor }}
-                    >
-                      <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
-                    </span>
-                    <span className="text-sm text-text flex-1 truncate">{s.name}</span>
-                    <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
-                      {total > 0 ? `${pct.toFixed(0)}%` : ""}
-                    </span>
-                    <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
-                      {fmtAmount(total, undefined, 0)} kr
-                    </span>
-                  </button>
-                );
-              })}
+              {renderSubRows(visibleIncomeRows, inntektColor, incomeSectionTotal)}
             </div>
           </div>
         </div>
       )}
 
-      {visibleSavingRows.length > 0 && (
+      {sparingSubRows.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Sparing</h3>
+            <button onClick={() => setShowAllSaving((v) => !v)} className={pillClass(showAllSaving)}>
+              Vis alle
+            </button>
           </div>
-          <div className="card overflow-hidden">
-            <div className="divide-y divide-border">{renderRows(visibleSavingRows)}</div>
-          </div>
+          {visibleSparingSubs.length > 0 && (
+            <div className="card overflow-hidden">
+              <div className="divide-y divide-border">
+                {renderSubRows(visibleSparingSubs, sparingColor, sparingSectionTotal)}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {visibleExcludedRows.length > 0 && (
+      {excludedSubRows.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Ekskludert</h3>
+            <button onClick={() => setShowAllExcluded((v) => !v)} className={pillClass(showAllExcluded)}>
+              Vis alle
+            </button>
           </div>
-          <div className="card overflow-hidden">
-            <div className="divide-y divide-border">{renderRows(visibleExcludedRows, true)}</div>
-          </div>
+          {visibleExcludedSubs.length > 0 && (
+            <div className="card overflow-hidden">
+              <div className="divide-y divide-border">
+                {renderSubRows(visibleExcludedSubs, excludedColor, excludedSectionTotal, true)}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -159,17 +159,15 @@ export default function MonthlyChart({
               Snitt: {fmtAmount(avgIncome, undefined, 0)}
             </div>
           </div>
-          {avgSaving > 0 && (
-            <div>
-              <div className="text-xs text-muted uppercase tracking-wider mb-1">Sparing</div>
-              <div className="text-2xl font-semibold" style={{ color: "#7c3aed" }}>
-                {fmtAmount(selected?.saving ?? 0, undefined, 0)}
-              </div>
-              <div className="text-xs text-muted mt-0.5">
-                Snitt: {fmtAmount(avgSaving, undefined, 0)}
-              </div>
+          <div>
+            <div className="text-xs text-muted uppercase tracking-wider mb-1">Sparing</div>
+            <div className="text-2xl font-semibold" style={{ color: "#7c3aed" }}>
+              {fmtAmount(selected?.saving ?? 0, undefined, 0)}
             </div>
-          )}
+            <div className="text-xs text-muted mt-0.5">
+              Snitt: {fmtAmount(avgSaving, undefined, 0)}
+            </div>
+          </div>
           <div>
             <div className="text-xs text-muted uppercase tracking-wider mb-1">Utgifter</div>
             <div className="text-2xl font-semibold text-negative">
