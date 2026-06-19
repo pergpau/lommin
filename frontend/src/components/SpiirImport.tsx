@@ -70,7 +70,8 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
           const match = existing.find(
             (acc) =>
               (a.iban && acc.iban && a.iban === acc.iban) ||
-              (a.bban && acc.bban && normBban(a.bban) === normBban(acc.bban)),
+              (a.bban && acc.bban && normBban(a.bban) === normBban(acc.bban)) ||
+              acc.sources.some((s) => s.type === "spiir" && s.sourceId === a.accountId),
           );
           initMap[a.accountId] = match ? match.uid : `spiir::${a.accountId}`;
         }
