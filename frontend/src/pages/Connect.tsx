@@ -6,8 +6,9 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import { CheckIcon } from "../components/ui/icons";
 import Spinner from "../components/ui/Spinner";
+import { useSnackbar } from "../components/ui/Snackbar";
 import { SESSION_VALID_DAYS } from "../constants";
-import { createSession, initiateAuth, listBanks, type BankEntry } from "../lib/enableBanking";
+import { createSession, initiateAuth, listBanks, ProxyNetworkError, type BankEntry } from "../lib/enableBanking";
 import { getAccounts, saveAccount, type Account, type AccountSource } from "../lib/store";
 import { syncAccounts } from "../lib/sync";
 
@@ -30,6 +31,7 @@ export default function Connect() {
   const { t } = useTranslation("connect");
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { showSnackbar } = useSnackbar();
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [country, setCountry] = useState("NO");
@@ -71,10 +73,15 @@ export default function Connect() {
       const url = await initiateAuth({ aspsp, redirectUrl, validUntil, state });
       window.location.href = url;
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("authFailed"));
+      const detail = e instanceof ProxyNetworkError
+        ? t("proxyUnreachable")
+        : (e instanceof Error ? e.message : "");
+      const msg = detail ? `${t("authFailed")}: ${detail}` : t("authFailed");
+      setError(msg);
       setPhase("error");
+      showSnackbar(msg, "error");
     }
-  }, [t]);
+  }, [t, showSnackbar]);
 
   const connect = useCallback(async () => {
     if (!selected) return;
@@ -190,10 +197,13 @@ export default function Connect() {
         setTimeout(() => navigate("/dashboard"), 800);
       })
       .catch((e: Error) => {
-        setError(e.message);
+        const detail = e instanceof ProxyNetworkError ? t("proxyUnreachable") : e.message;
+        const msg = `${t("sessionFailed")}: ${detail}`;
+        setError(msg);
         setPhase("error");
+        showSnackbar(msg, "error");
       });
-  }, [params, navigate, t]);
+  }, [params, navigate, t, showSnackbar]);
 
   useEffect(() => {
     if (params.get("code")) return;
@@ -233,10 +243,13 @@ export default function Connect() {
         setPhase("pick");
       })
       .catch((e) => {
-        setError(e.message);
+        const detail = e instanceof ProxyNetworkError ? t("proxyUnreachable") : (e instanceof Error ? e.message : "");
+        const msg = detail ? `${t("loadBanksFailed")}: ${detail}` : t("loadBanksFailed");
+        setError(msg);
         setPhase("error");
+        showSnackbar(msg, "error");
       });
-  }, [country, params]);
+  }, [country, params, showSnackbar, t]);
 
   const isReauth = (!!params.get("reauth") || !!params.get("uid")) && !params.get("code");
   const isOAuthFlow = !!(params.get("code") || params.get("reauth") || params.get("uid"));

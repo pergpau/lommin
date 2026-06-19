@@ -11,7 +11,6 @@ import { useTransactions } from "../hooks/useTransactions";
 import { useSyncState } from "../hooks/useSyncState";
 import Spinner from "../components/ui/Spinner";
 import Button from "../components/ui/Button";
-import Alert from "../components/ui/Alert";
 import { useSnackbar } from "../components/ui/Snackbar";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import TransactionTable from "../components/transactions/TransactionTable";
@@ -53,6 +52,14 @@ export default function AccountPage() {
   useEffect(() => {
     if (syncMsg) showSnackbar(syncMsg, "ok");
   }, [syncMsg, showSnackbar]);
+
+  useEffect(() => {
+    if (syncError) showSnackbar(syncError, "error");
+  }, [syncError, showSnackbar]);
+
+  useEffect(() => {
+    if (accountError) showSnackbar(accountError, "error");
+  }, [accountError, showSnackbar]);
 
   const loading = accountsLoading || txLoading;
 
@@ -202,10 +209,6 @@ export default function AccountPage() {
           {t("removeAccount")}
         </Button>
       </div>
-
-      {(syncError || accountError) && (
-        <Alert type="error" message={accountError ?? syncError ?? ""} className="mb-4" />
-      )}
 
       {chartData.length > 0 && (
         <div className="mb-4">

@@ -37,6 +37,7 @@
     "saveFailed": "Lagring feilet",
     "syncResult_one": "Synkronisert — {{count}} ny transaksjon",
     "syncResult_other": "Synkronisert — {{count}} nye transaksjoner",
-    "syncFailed": "Synkronisering feilet"
+    "syncFailed": "Synkronisering feilet",
+    "proxyUnreachable": "Kan ikke nå proxyen"
   }
 }

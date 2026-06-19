@@ -1,4 +1,4 @@
-import { fetchAllTransactions, fetchBalance } from "./enableBanking";
+import { fetchAllTransactions, fetchBalance, ProxyNetworkError } from "./enableBanking";
 import {
   getSyncCursor,
   setSyncCursor,
@@ -80,7 +80,7 @@ export async function syncAccount(
 
 export interface SyncResult {
   inserted: number;
-  errors: Array<{ uid: string; label: string; message: string }>;
+  errors: Array<{ uid: string; label: string; message: string; isNetworkError: boolean }>;
 }
 
 // Sync many accounts in parallel. Continues on per-account errors.
@@ -109,6 +109,7 @@ export async function syncAccounts(
         uid: acc.uid,
         label: acc.name ?? acc.uid.slice(0, 8),
         message: error instanceof Error ? error.message : String(error),
+        isNetworkError: error instanceof ProxyNetworkError,
       });
     }
   }

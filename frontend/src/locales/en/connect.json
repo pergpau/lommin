@@ -22,6 +22,9 @@
   },
   "csrfError": "State mismatch — possible CSRF. Refresh the page and try again.",
   "authFailed": "Could not start authentication",
+  "loadBanksFailed": "Could not load bank list",
+  "sessionFailed": "Could not create session",
+  "proxyUnreachable": "Cannot reach the proxy",
   "oauthSuccess": "Authentication successful — you can close this window.",
   "oauthError": "Authentication failed. You can close this window.",
   "countries": {

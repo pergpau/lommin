@@ -4,6 +4,13 @@ import { getSetting } from "./settings";
 import { type Transaction, makeTransactionId } from "./store";
 import { asArray, asRecord, isRecord, optString, reqString } from "./validate";
 
+export class ProxyNetworkError extends Error {
+  constructor() {
+    super("ProxyNetworkError");
+    this.name = "ProxyNetworkError";
+  }
+}
+
 async function authHeader(): Promise<string> {
   const kv = await loadKey();
   if (!kv) throw new Error("No signing key loaded. Go to Setup first.");
@@ -15,14 +22,19 @@ async function proxyFetch(path: string, init: RequestInit = {}): Promise<Respons
   const proxyUrl = await getSetting("proxyUrl");
   const base = proxyUrl.replace(/\/$/, "");
   const auth = await authHeader();
-  const res = await fetch(`${base}${path}`, {
-    ...init,
-    headers: {
-      Authorization: auth,
-      "Content-Type": "application/json",
-      ...(init.headers ?? {}),
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${base}${path}`, {
+      ...init,
+      headers: {
+        Authorization: auth,
+        "Content-Type": "application/json",
+        ...(init.headers ?? {}),
+      },
+    });
+  } catch {
+    throw new ProxyNetworkError();
+  }
   if (!res.ok) {
     let msg = res.statusText;
     try {

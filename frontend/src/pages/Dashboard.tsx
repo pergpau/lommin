@@ -5,7 +5,6 @@ import AccountCard from "../components/AccountCard";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import SpendingBreakdown from "../components/charts/SpendingBreakdown";
 import TransactionTable from "../components/transactions/TransactionTable";
-import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
 import { useSnackbar } from "../components/ui/Snackbar";
 import EmptyState from "../components/ui/EmptyState";
@@ -77,6 +76,17 @@ export default function Dashboard() {
   useEffect(() => {
     if (syncMsg) showSnackbar(syncMsg, "ok");
   }, [syncMsg, showSnackbar]);
+
+  useEffect(() => {
+    if (error) showSnackbar(error, "error");
+  }, [error, showSnackbar]);
+
+  useEffect(() => {
+    if (failedAccounts.size > 0) {
+      const firstMsg = [...failedAccounts.values()][0];
+      showSnackbar(firstMsg, "error");
+    }
+  }, [failedAccounts, showSnackbar]);
 
   const handleQuickSaveClick = useCallback(() => {
     if (usePassphrase) {
@@ -331,20 +341,6 @@ export default function Dashboard() {
             )}
           </div>
         </div>
-
-        {error && (
-          <Alert type="error" message={error} className="mb-6">
-            {error.includes("401") && (
-              <>
-                {" "}
-                ·{" "}
-                <Link to="/connect" className="underline underline-offset-2">
-                  {t("actions.sync")}
-                </Link>
-              </>
-            )}
-          </Alert>
-        )}
 
         {chartData.length > 0 && (
           <div className="mb-8">

@@ -11,7 +11,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 frontend/   React + Vite SPA (the main app)
 proxy/      Cloudflare Worker — stateless CORS relay to api.enablebanking.com
-fetch_transactions.py   Original Python reference script (ported into the browser)
 PLAN.md     Original architecture and feasibility notes (historical context)
 ```
 
@@ -43,17 +42,17 @@ The app is a React 19 SPA with React Router v7, Tailwind CSS, and no state manag
 
 ### `src/lib/` — core logic
 
-| File | Responsibility |
-|---|---|
-| `pem.ts` | Strip PEM armor, base64-decode DER |
-| `jwt.ts` | Mint RS256 JWTs via Web Crypto (`RSASSA-PKCS1-v1_5`) |
-| `keystore.ts` | Import `.pem` as a **non-extractable** `CryptoKey`, persist it in IndexedDB |
+| File               | Responsibility                                                                                  |
+| ------------------ | ----------------------------------------------------------------------------------------------- |
+| `pem.ts`           | Strip PEM armor, base64-decode DER                                                              |
+| `jwt.ts`           | Mint RS256 JWTs via Web Crypto (`RSASSA-PKCS1-v1_5`)                                            |
+| `keystore.ts`      | Import `.pem` as a **non-extractable** `CryptoKey`, persist it in IndexedDB                     |
 | `enableBanking.ts` | Enable Banking API client (port of `fetch_transactions.py`); routes all calls through the proxy |
-| `store.ts` | IndexedDB CRUD for accounts, transactions, sync cursors |
-| `settings.ts` | IndexedDB CRUD for app settings |
-| `cryptoFile.ts` | AES-GCM encrypted file export/import via File System Access API (PBKDF2 key derivation) |
-| `sync.ts` | Orchestrates a full sync: paginated transaction fetch → upsert → cursor update |
-| `format.ts` | Number/date formatting helpers |
+| `store.ts`         | IndexedDB CRUD for accounts, transactions, sync cursors                                         |
+| `settings.ts`      | IndexedDB CRUD for app settings                                                                 |
+| `cryptoFile.ts`    | AES-GCM encrypted file export/import via File System Access API (PBKDF2 key derivation)         |
+| `sync.ts`          | Orchestrates a full sync: paginated transaction fetch → upsert → cursor update                  |
+| `format.ts`        | Number/date formatting helpers                                                                  |
 
 ### `src/hooks/` — data hooks for pages
 
