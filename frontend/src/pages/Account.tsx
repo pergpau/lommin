@@ -151,8 +151,9 @@ export default function AccountPage() {
   const resetSync = useCallback(async () => {
     if (!uid || !confirm(t("confirm.deleteTransactions"))) return;
     await resetAccountSync(uid);
+    refresh();
     void triggerAutosave();
-  }, [uid, t]);
+  }, [uid, t, refresh]);
 
   if (loading) {
     return (
