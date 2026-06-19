@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { triggerAutosave } from "../lib/autosave";
-import { deleteAccount, resetAccountSync, setCategoryId, type Transaction } from "../lib/store";
+import { deleteAccount, resetAccountSync, setCategoryId, setIsExtraordinary, type Transaction } from "../lib/store";
 import { accountLabel } from "../lib/format";
 import { getLocale } from "../lib/i18n";
 import { SUB_CATEGORY_MAP } from "../lib/categories";
@@ -19,6 +19,7 @@ import { isDemoMode } from "../lib/demoData";
 import { loadKey } from "../lib/keystore";
 
 function txSection(tx: Transaction): "income" | "expense" | "saving" | null {
+  if (tx.isExtraordinary) return null;
   if (tx.categoryId != null) {
     const type = SUB_CATEGORY_MAP[tx.categoryId]?.type;
     if (type === "exclude") return null;
@@ -232,6 +233,12 @@ export default function AccountPage() {
         transactions={filtered}
         onCategoryChange={async (txId, catId) => {
           await setCategoryId(txId, catId);
+          refresh();
+          if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+          autosaveTimer.current = setTimeout(() => void triggerAutosave(), 3000);
+        }}
+        onIsExtraordinaryChange={async (txId, value) => {
+          await setIsExtraordinary(txId, value);
           refresh();
           if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
           autosaveTimer.current = setTimeout(() => void triggerAutosave(), 3000);

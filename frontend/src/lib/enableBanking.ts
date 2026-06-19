@@ -214,6 +214,7 @@ export async function fetchTransactions(
       description: parseDescription(r),
       bankTransactionCode: r.bank_transaction_code?.description || undefined,
       status: r.status ?? "",
+      isExtraordinary: false,
       raw: { ...r },
     };
   });

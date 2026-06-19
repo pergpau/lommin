@@ -49,6 +49,7 @@ export interface Transaction {
   bankTransactionCode?: string;
   status: string;
   categoryId?: number;
+  isExtraordinary: boolean;
   raw: Record<string, unknown>;
 }
 
@@ -139,7 +140,11 @@ export async function upsertTransactions(txns: Transaction[]): Promise<number> {
       inserted++;
       await tx.store.put(t);
     } else {
-      await tx.store.put({ ...t, categoryId: existing.categoryId });
+      await tx.store.put({
+        ...t,
+        categoryId: existing.categoryId,
+        isExtraordinary: existing.isExtraordinary ?? false,
+      });
     }
   }
   await tx.done;
@@ -175,6 +180,17 @@ export async function setCategoryId(
   const tx = d.transaction("transactions", "readwrite");
   const t = await tx.store.get(transactionId);
   if (t) await tx.store.put({ ...t, categoryId });
+  await tx.done;
+}
+
+export async function setIsExtraordinary(
+  transactionId: string,
+  value: boolean,
+): Promise<void> {
+  const d = await db();
+  const tx = d.transaction("transactions", "readwrite");
+  const t = await tx.store.get(transactionId);
+  if (t) await tx.store.put({ ...t, isExtraordinary: value });
   await tx.done;
 }
 
@@ -283,6 +299,7 @@ function validateTransaction(v: unknown, i: number): Transaction {
     description: optString(t.description) ?? "",
     status: optString(t.status) ?? "",
     categoryId: optNumber(t.categoryId),
+    isExtraordinary: t.isExtraordinary === true,
     raw: isRecord(t.raw) ? t.raw : {},
   };
 }

@@ -9,6 +9,7 @@ interface TransactionDetailProps {
   transaction: Transaction;
   onClose: () => void;
   onOpenCategoryPicker?: (t: Transaction) => void;
+  onIsExtraordinaryChange?: (txId: string, value: boolean) => Promise<void>;
 }
 
 const FULL_DATE: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
@@ -17,6 +18,7 @@ export default function TransactionDetail({
   transaction: tx,
   onClose,
   onOpenCategoryPicker,
+  onIsExtraordinaryChange,
 }: TransactionDetailProps) {
   const { t } = useTranslation(["transactions", "categories"]);
   const subCat = tx.categoryId != null ? SUB_CATEGORY_MAP[tx.categoryId] : undefined;
@@ -110,6 +112,20 @@ export default function TransactionDetail({
             </details>
           </div>
         </div>
+
+        {onIsExtraordinaryChange && (
+          <div className="px-4 py-3 border-t border-border shrink-0 flex justify-end">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <span className="text-xs text-muted">{t("transactions:detail.hideFromStats")}</span>
+              <input
+                type="checkbox"
+                className="w-4 h-4 rounded accent-accent cursor-pointer"
+                checked={tx.isExtraordinary}
+                onChange={(e) => void onIsExtraordinaryChange(tx.id, e.target.checked)}
+              />
+            </label>
+          </div>
+        )}
       </div>
     </div>
   );

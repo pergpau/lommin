@@ -22,7 +22,7 @@ import { loadKey } from "../lib/keystore";
 import { getLocale } from "../lib/i18n";
 import { clearDriveToken, getAllSettings, getDriveToken } from "../lib/settings";
 import { triggerAutosave } from "../lib/autosave";
-import { clearAccounts, clearTransactions, exportAll, getEnableBankingSource, setCategoryId } from "../lib/store";
+import { clearAccounts, clearTransactions, exportAll, getEnableBankingSource, setCategoryId, setIsExtraordinary } from "../lib/store";
 
 type Tab = "categories" | "accounts" | "transactions";
 
@@ -149,6 +149,7 @@ export default function Dashboard() {
   const [actionsOpen, setActionsOpen] = useState(false);
 
   function txSection(tx: (typeof transactions)[0]): "income" | "expense" | "saving" | null {
+    if (tx.isExtraordinary) return null;
     if (tx.categoryId != null) {
       const type = SUB_CATEGORY_MAP[tx.categoryId]?.type;
       if (type === "exclude") return null;
@@ -381,6 +382,12 @@ export default function Dashboard() {
               if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
               autosaveTimer.current = setTimeout(() => void doAutosave(), 3000);
             }}
+            onIsExtraordinaryChange={async (txId, value) => {
+              await setIsExtraordinary(txId, value);
+              refresh();
+              if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+              autosaveTimer.current = setTimeout(() => void doAutosave(), 3000);
+            }}
           />
         )}
 
@@ -439,6 +446,12 @@ export default function Dashboard() {
               }
               onCategoryChange={async (txId, catId) => {
                 await setCategoryId(txId, catId);
+                refresh();
+                if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+                autosaveTimer.current = setTimeout(() => void doAutosave(), 3000);
+              }}
+              onIsExtraordinaryChange={async (txId, value) => {
+                await setIsExtraordinary(txId, value);
                 refresh();
                 if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
                 autosaveTimer.current = setTimeout(() => void doAutosave(), 3000);

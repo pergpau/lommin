@@ -305,6 +305,7 @@ export function buildImportPayload(
       creditDebit: amount > 0 ? "CRDT" : "DBIT",
       description: f[idx["Description"]] || "",
       status: "BOOK",
+      isExtraordinary: f[idx["Extraordinary"]] === "Yes",
       raw: {
         accountId: spiirAccountId,
         date: dateRaw,
@@ -319,7 +320,7 @@ export function buildImportPayload(
         originalAmount: f[idx["OriginalAmount"]],
         originalCurrency: f[idx["OriginalCurrency"]],
         countryCode: f[idx["CountryCode"]],
-        isExtraordinary: f[idx["IsExtraordinary"]],
+        extraordinary: f[idx["Extraordinary"]],
         customDate: f[idx["CustomDate"]],
         created: f[idx["Created"]],
         counterEntryPostingId: f[idx["CounterEntryPostingId"]],
@@ -505,6 +506,7 @@ export async function buildImportPayloadFromZip(
       creditDebit: amount > 0 ? "CRDT" : "DBIT",
       description: f[pIdx["Description"]] || "",
       status,
+      isExtraordinary: f[pIdx["IsExtraordinary"]] === "True",
       raw: {
         accountId: spiirAccountId,
         postingId,

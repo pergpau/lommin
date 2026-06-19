@@ -11,6 +11,7 @@ type TransactionTableProps = {
   pageSize?: number;
   title?: string;
   onCategoryChange?: (transactionId: string, categoryId: number | undefined) => Promise<void>;
+  onIsExtraordinaryChange?: (transactionId: string, value: boolean) => Promise<void>;
 };
 
 export default function TransactionTable({
@@ -18,6 +19,7 @@ export default function TransactionTable({
   pageSize = PAGE_SIZE,
   title,
   onCategoryChange,
+  onIsExtraordinaryChange,
 }: TransactionTableProps) {
   const { t } = useTranslation("transactions");
   const [page, setPage] = useState(0);
@@ -105,6 +107,7 @@ export default function TransactionTable({
                 }
               : undefined
           }
+          onIsExtraordinaryChange={onIsExtraordinaryChange}
         />
       )}
 

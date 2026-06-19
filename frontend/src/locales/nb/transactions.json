@@ -13,7 +13,8 @@
     "category": "Kategori",
     "bankCode": "Bankkode",
     "reference": "Referanse",
-    "rawData": "Rådata"
+    "rawData": "Rådata",
+    "hideFromStats": "Skjul fra statistikk"
   },
   "categoryPicker": {
     "title": "Velg kategori",

@@ -23,9 +23,11 @@ type View =
 interface Props {
   transactions: Transaction[];
   onCategoryChange?: (txId: string, catId: number | undefined) => Promise<void>;
+  onIsExtraordinaryChange?: (txId: string, value: boolean) => Promise<void>;
 }
 
 function isEligible(t: Transaction): boolean {
+  if (t.isExtraordinary) return false;
   if (t.categoryId != null && SUB_CATEGORY_MAP[t.categoryId]?.type === "exclude") return false;
   return true;
 }
@@ -97,7 +99,7 @@ function buildSubRows(
 }
 
 
-export default function SpendingBreakdown({ transactions, onCategoryChange }: Props) {
+export default function SpendingBreakdown({ transactions, onCategoryChange, onIsExtraordinaryChange }: Props) {
   const { t } = useTranslation(["charts", "categories"]);
   const [view, setView] = useState<View>({ level: "main" });
   const [showAll, setShowAll] = useState(false);
@@ -106,6 +108,13 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
   const [showAllExcluded, setShowAllExcluded] = useState(false);
 
   const eligible = useMemo(() => transactions.filter(isEligible), [transactions]);
+
+  // For transaction lists inside a category drill-down we want to show extraordinary
+  // transactions too — they're excluded from totals/charts but still belong to a category.
+  const nonExcluded = useMemo(
+    () => transactions.filter((t) => !(t.categoryId != null && SUB_CATEGORY_MAP[t.categoryId]?.type === "exclude")),
+    [transactions],
+  );
 
   const excludedPool = useMemo(
     () =>
@@ -164,7 +173,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
   // ── Level 2: transaction list ──
   if (view.level === "txns") {
     const { mainId, subId, excluded } = view;
-    const pool = excluded ? excludedPool : eligible;
+    const pool = excluded ? excludedPool : nonExcluded;
     const m = mainMeta(mainId);
     const s = subMeta(subId);
     const filtered = pool.filter((tx) =>
@@ -184,7 +193,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
           </span>
           <span className="text-sm font-medium text-text">{getSubName(subId, t)}</span>
         </div>
-        <TransactionTable transactions={filtered} onCategoryChange={onCategoryChange} />
+        <TransactionTable transactions={filtered} onCategoryChange={onCategoryChange} onIsExtraordinaryChange={onIsExtraordinaryChange} />
       </div>
     );
   }
@@ -192,7 +201,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
   // ── Level 1: sub-category breakdown ──
   if (view.level === "sub") {
     const { mainId, excluded } = view;
-    const pool = excluded ? excludedPool : eligible;
+    const pool = excluded ? excludedPool : nonExcluded;
     const m = mainMeta(mainId);
 
     if (mainId === "uncategorized" || mainId === "uncategorized-income") {
@@ -209,7 +218,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
             <span className="text-muted">?</span>
             <span className="text-sm font-medium text-text">{t("charts:breakdown.uncategorized")}</span>
           </div>
-          <TransactionTable transactions={filtered} onCategoryChange={onCategoryChange} />
+          <TransactionTable transactions={filtered} onCategoryChange={onCategoryChange} onIsExtraordinaryChange={onIsExtraordinaryChange} />
         </div>
       );
     }
@@ -276,7 +285,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange }: Pr
               })}
             </div>
         </div>
-        <TransactionTable transactions={subTxns} onCategoryChange={onCategoryChange} />
+        <TransactionTable transactions={subTxns} onCategoryChange={onCategoryChange} onIsExtraordinaryChange={onIsExtraordinaryChange} />
       </div>
     );
   }

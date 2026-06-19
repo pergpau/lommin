@@ -32,9 +32,13 @@ export default function TransactionRow({ transaction: tx, onClick, onCategoryCli
         />
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`text-sm truncate ${tx.status === "PNDG" ? "italic text-muted" : "text-text"}`}>
-          {tx.description || "—"}
-          {tx.status === "PNDG" ? " " + t("row.pending") : ""}
+        <div className={`text-sm flex items-center gap-1.5 ${tx.status === "PNDG" ? "italic text-muted" : "text-text"}`}>
+          <span className="truncate">{tx.description || "—"}{tx.status === "PNDG" ? " " + t("row.pending") : ""}</span>
+          {tx.isExtraordinary && (
+            <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-yellow-400/15 text-yellow-600 border border-yellow-400/30 leading-none">
+              Ekstraordinær
+            </span>
+          )}
         </div>
         {subCat && mainCat ? (
           <div className="text-[11px] mt-0.5 truncate" style={{ color: mainCat.color }}>

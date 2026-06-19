@@ -13,7 +13,8 @@
     "category": "Category",
     "bankCode": "Bank code",
     "reference": "Reference",
-    "rawData": "Raw data"
+    "rawData": "Raw data",
+    "hideFromStats": "Hide from statistics"
   },
   "categoryPicker": {
     "title": "Select category",
