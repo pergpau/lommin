@@ -59,6 +59,11 @@
     "restorePreviewWarning": "Sikkerhetskopien inneholder flere transaksjoner enn din lokale database. Du kan overskrive viktige data som ikke er inkludert i sikkerhetskopien.",
     "restorePreviewProceed": "Last inn"
   },
+  "import": {
+    "title": "Importer data",
+    "sourceSpiir": "Spiir",
+    "sourceOwn": "Egne data"
+  },
   "spiir": {
     "title": "Importer fra Spiir"
   },

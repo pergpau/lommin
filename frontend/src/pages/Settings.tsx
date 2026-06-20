@@ -78,6 +78,7 @@ export default function Settings() {
   const [dialogPassphrase, setDialogPassphrase] = useState("");
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
   const [duplicatePairs, setDuplicatePairs] = useState<[Transaction, Transaction][] | null>(null);
+  const [importSource, setImportSource] = useState<"spiir" | "own">("spiir");
   const [wiping, setWiping] = useState(false);
   const [wipingAccounts, setWipingAccounts] = useState(false);
   const [wipingAll, setWipingAll] = useState(false);
@@ -693,8 +694,38 @@ export default function Settings() {
         id="spiir"
         className={`p-5 mb-4 transition-shadow duration-300 ${highlightedHash === "#spiir" ? "ring-2 ring-accent" : ""}`}
       >
-        <h2 className="text-sm font-semibold text-text mb-1">{t("settings:spiir.title")}</h2>
-        <SpiirImportPanel onSuccess={() => navigate("/dashboard", { state: { checkDuplicates: true } })} />
+        <h2 className="text-sm font-semibold text-text mb-3">{t("settings:import.title")}</h2>
+
+        <div className="flex gap-4 mb-4">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="radio"
+              name="importSource"
+              value="spiir"
+              checked={importSource === "spiir"}
+              onChange={() => setImportSource("spiir")}
+              className="w-4 h-4 accent-accent"
+            />
+            <span className="text-xs text-text">{t("settings:import.sourceSpiir")}</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="radio"
+              name="importSource"
+              value="own"
+              checked={importSource === "own"}
+              onChange={() => setImportSource("own")}
+              className="w-4 h-4 accent-accent"
+            />
+            <span className="text-xs text-text">{t("settings:import.sourceOwn")}</span>
+          </label>
+        </div>
+
+        {importSource === "spiir" ? (
+          <SpiirImportPanel onSuccess={() => navigate("/dashboard", { state: { checkDuplicates: true } })} />
+        ) : (
+          <p className="text-xs text-muted">{t("settings:ownImport.comingSoon")}</p>
+        )}
       </Card>
 
       <Card className="p-5 mb-4">
@@ -719,11 +750,6 @@ export default function Settings() {
             )
           )}
         </div>
-      </Card>
-
-      <Card id="import" className="p-5 mb-4">
-        <h2 className="text-sm font-semibold text-text mb-1">{t("settings:ownImport.title")}</h2>
-        <p className="text-xs text-muted">{t("settings:ownImport.comingSoon")}</p>
       </Card>
 
       {dialog && (

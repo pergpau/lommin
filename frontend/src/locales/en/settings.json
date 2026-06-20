@@ -59,6 +59,11 @@
     "restorePreviewWarning": "The backup contains more transactions than your local database. You may overwrite data that is not included in the backup.",
     "restorePreviewProceed": "Load"
   },
+  "import": {
+    "title": "Import data",
+    "sourceSpiir": "Spiir",
+    "sourceOwn": "Own data"
+  },
   "spiir": {
     "title": "Import from Spiir"
   },
