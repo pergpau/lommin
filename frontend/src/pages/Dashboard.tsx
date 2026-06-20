@@ -284,7 +284,7 @@ export default function Dashboard() {
               <Button
                 loading={syncing}
                 success={syncSuccess}
-                onClick={() => runSync(accounts, (hadErrors) => { reload(); refresh(); void doAutosave(); if (!hadErrors) syncFlash(); })}
+                onClick={() => runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); } })}
               >
                 <RefreshCwIcon size={14} />
                 {t("actions.sync")}
@@ -329,7 +329,7 @@ export default function Dashboard() {
                     disabled={syncing}
                     onClick={() => {
                       setActionsOpen(false);
-                      runSync(accounts, (hadErrors) => { reload(); refresh(); void doAutosave(); if (!hadErrors) syncFlash(); });
+                      runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); } });
                     }}
                   >
                     <RefreshCwIcon size={13} />
