@@ -10,7 +10,7 @@ import TransactionRow from "./TransactionRow";
 type TransactionTableProps = {
   transactions: Transaction[];
   pageSize?: number;
-  title?: string;
+  subtitle?: string;
   onCategoryChange?: (transactionId: string, categoryId: number | undefined) => Promise<void>;
   onIsExtraordinaryChange?: (transactionId: string, value: boolean) => Promise<void>;
   onCustomDateChange?: (transactionId: string, date: string | undefined) => Promise<void>;
@@ -21,7 +21,7 @@ type TransactionTableProps = {
 export default function TransactionTable({
   transactions,
   pageSize = PAGE_SIZE,
-  title,
+  subtitle,
   onCategoryChange,
   onIsExtraordinaryChange,
   onCustomDateChange,
@@ -70,14 +70,15 @@ export default function TransactionTable({
     <>
       <div className="card overflow-hidden">
         <div className="px-4 py-2.5 border-b border-border flex items-center gap-3 min-h-[44px]">
-          {title && <h2 className="text-sm font-medium text-text flex-1">{title}</h2>}
-          <div className={title ? "" : "ml-auto"}>
-            <SearchInput
-              value={search}
-              onChange={(v) => { setSearch(v); setPage(0); }}
-              placeholder={t("table.searchPlaceholder")}
-            />
+          <div className="flex-1">
+            <h2 className="text-sm font-medium text-text">{t("table.title")}: {transactions.length}</h2>
+            {subtitle && <p className="text-xs text-muted leading-tight">{subtitle}</p>}
           </div>
+          <SearchInput
+            value={search}
+            onChange={(v) => { setSearch(v); setPage(0); }}
+            placeholder={t("table.searchPlaceholder")}
+          />
         </div>
         <div className="divide-y divide-border">
           {pageItems.length === 0 ? (

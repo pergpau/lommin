@@ -1,5 +1,6 @@
 {
   "table": {
+    "title": "Transactions",
     "empty": "No transactions found.",
     "pagination": "{{from}}–{{to}} of {{total}}",
     "prevPage": "← Previous",

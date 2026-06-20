@@ -22,6 +22,7 @@ type View =
 
 interface Props {
   transactions: Transaction[];
+  subtitle?: string;
   onCategoryChange?: (txId: string, catId: number | undefined) => Promise<void>;
   onIsExtraordinaryChange?: (txId: string, value: boolean) => Promise<void>;
 }
@@ -99,7 +100,7 @@ function buildSubRows(
 }
 
 
-export default function SpendingBreakdown({ transactions, onCategoryChange, onIsExtraordinaryChange }: Props) {
+export default function SpendingBreakdown({ transactions, subtitle, onCategoryChange, onIsExtraordinaryChange }: Props) {
   const { t } = useTranslation(["charts", "categories"]);
   const [view, setView] = useState<View>({ level: "main" });
   const [showAll, setShowAll] = useState(false);
@@ -176,6 +177,8 @@ export default function SpendingBreakdown({ transactions, onCategoryChange, onIs
     const filtered = pool.filter((tx) =>
       subId === "uncategorized" ? !tx.categoryId : tx.categoryId === (subId as number),
     );
+    const subType = subId !== "uncategorized" ? SUB_CATEGORY_MAP[subId as number]?.type : undefined;
+    const filteredTotal = filtered.reduce((sum, tx) => sum + (subType === "income" ? tx.amount : -tx.amount), 0);
     return (
       <div>
         <button
@@ -184,13 +187,14 @@ export default function SpendingBreakdown({ transactions, onCategoryChange, onIs
         >
           ← <span style={{ color: m.color }}><FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" /></span> {getMainName(mainId, t)}
         </button>
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-4 px-4 py-3 rounded-xl" style={{ backgroundColor: m.color + "12" }}>
           <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
             <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
           </span>
-          <span className="text-sm font-medium text-text">{getSubName(subId, t)}</span>
+          <span className="text-sm font-medium text-text flex-1">{getSubName(subId, t)}</span>
+          <span className="text-sm font-medium text-text tabular-nums mono">{fmtAmount(filteredTotal, undefined, 0)} kr</span>
         </div>
-        <TransactionTable transactions={filtered} onCategoryChange={onCategoryChange} onIsExtraordinaryChange={onIsExtraordinaryChange} />
+        <TransactionTable transactions={filtered} subtitle={subtitle} onCategoryChange={onCategoryChange} onIsExtraordinaryChange={onIsExtraordinaryChange} />
       </div>
     );
   }
@@ -215,7 +219,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange, onIs
             <span className="text-muted">?</span>
             <span className="text-sm font-medium text-text">{t("charts:breakdown.uncategorized")}</span>
           </div>
-          <TransactionTable transactions={filtered} onCategoryChange={onCategoryChange} onIsExtraordinaryChange={onIsExtraordinaryChange} />
+          <TransactionTable transactions={filtered} subtitle={subtitle} onCategoryChange={onCategoryChange} onIsExtraordinaryChange={onIsExtraordinaryChange} />
         </div>
       );
     }
@@ -243,11 +247,12 @@ export default function SpendingBreakdown({ transactions, onCategoryChange, onIs
           {t("charts:breakdown.back")}
         </button>
         <div className="card overflow-hidden mb-6">
-            <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+            <div className="px-4 py-3 border-b border-border flex items-center gap-2" style={{ backgroundColor: m.color + "12" }}>
               <span className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
                 <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
               </span>
-              <span className="text-sm font-medium text-text">{getMainName(mainId, t)}</span>
+              <span className="text-sm font-medium text-text flex-1">{getMainName(mainId, t)}</span>
+              <span className="text-sm font-medium text-text tabular-nums mono">{fmtAmount(subTotal, undefined, 0)} kr</span>
             </div>
             <div className="divide-y divide-border">
               {subRows.map(({ subId, total }) => {
@@ -282,7 +287,7 @@ export default function SpendingBreakdown({ transactions, onCategoryChange, onIs
               })}
             </div>
         </div>
-        <TransactionTable transactions={subTxns} onCategoryChange={onCategoryChange} onIsExtraordinaryChange={onIsExtraordinaryChange} />
+        <TransactionTable transactions={subTxns} subtitle={subtitle} onCategoryChange={onCategoryChange} onIsExtraordinaryChange={onIsExtraordinaryChange} />
       </div>
     );
   }

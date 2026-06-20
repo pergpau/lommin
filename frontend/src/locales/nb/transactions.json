@@ -1,5 +1,6 @@
 {
   "table": {
+    "title": "Transaksjoner",
     "empty": "Ingen transaksjoner funnet.",
     "pagination": "{{from}}–{{to}} av {{total}}",
     "prevPage": "← Forrige",

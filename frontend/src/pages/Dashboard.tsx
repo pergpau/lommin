@@ -375,6 +375,13 @@ export default function Dashboard() {
         {tab === "categories" && (
           <SpendingBreakdown
             transactions={recent}
+            subtitle={
+              selectedMonthBar
+                ? chartMode === "year"
+                  ? selectedMonthBar.key
+                  : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
+                : undefined
+            }
             onCategoryChange={async (txId, catId) => {
               await setCategoryId(txId, catId);
               refresh();
@@ -438,10 +445,12 @@ export default function Dashboard() {
           (recent.length > 0 ? (
             <TransactionTable
               transactions={recent}
-              title={
+              subtitle={
                 selectedMonthBar
-                  ? t("txTitleSelected", { month: selectedMonthBar.label })
-                  : t("txTitleRecent")
+                  ? chartMode === "year"
+                    ? selectedMonthBar.key
+                    : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
+                  : undefined
               }
               onCategoryChange={async (txId, catId) => {
                 await setCategoryId(txId, catId);

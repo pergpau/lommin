@@ -290,13 +290,15 @@ export default function AccountPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-muted uppercase tracking-wider">{t("transactionsLabel")}</span>
-        <span className="text-sm font-semibold text-text mono">{filtered.length}</span>
-      </div>
-
       <TransactionTable
         transactions={filtered}
+        subtitle={
+          selectedMonth
+            ? chartMode === "year"
+              ? selectedMonth
+              : new Date(selectedMonth + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
+            : undefined
+        }
         onCategoryChange={async (txId, catId) => {
           await setCategoryId(txId, catId);
           refresh();
