@@ -71,9 +71,7 @@
     "title": "Importer fra Spiir"
   },
   "importOwn": {
-    "title": "Importer fra egne data",
-    "body": "Importer transaksjoner fra egne CSV-filer og andre kilder.",
-    "comingSoon": "Kommer snart"
+    "title": "Importer fra CSV"
   },
   "restore": {
     "title": "Gjenopprett",

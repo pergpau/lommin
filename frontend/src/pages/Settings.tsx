@@ -4,6 +4,7 @@ import { useTranslation, Trans } from "react-i18next";
 import BankSetupGuide from "../components/BankSetupGuide";
 import PemImporter from "../components/PemImporter";
 import SpiirImportPanel from "../components/SpiirImport";
+import CsvImportPanel from "../components/CsvImport";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import { DownloadIcon, TrashIcon, UploadIcon } from "../components/ui/icons";
@@ -724,7 +725,7 @@ export default function Settings() {
         {importSource === "spiir" ? (
           <SpiirImportPanel onSuccess={() => navigate("/dashboard", { state: { checkDuplicates: true } })} />
         ) : (
-          <p className="text-xs text-muted">{t("settings:ownImport.comingSoon")}</p>
+          <CsvImportPanel />
         )}
       </Card>
 

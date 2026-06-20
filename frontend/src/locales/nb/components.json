@@ -55,6 +55,29 @@
     "unreadableZip": "Kunne ikke lese ZIP-filen.",
     "importFailed": "Import feilet"
   },
+  "csvImport": {
+    "description": "Importer transaksjoner fra en egendefinert CSV-fil med følgende kolonner:",
+    "columns": {
+      "bookingDate": "(YYYY-MM-DD)",
+      "transactionDate": "(YYYY-MM-DD)",
+      "amount": "(desimalpunkt, positivt = inn, negativt = ut)",
+      "description": "",
+      "id": "(Valgfri)",
+      "currency": "(Valgfri)",
+      "status": "(Valgfri, BOOK eller PNDG)"
+    },
+    "uploadButton": "Velg CSV-fil",
+    "preview": "{{count}} transaksjoner funnet ({{range}})",
+    "accountLabel": "Konto",
+    "newAccount": "Opprett ny konto",
+    "accountNamePlaceholder": "Kontonavn",
+    "defaultAccountName": "Importert konto",
+    "import": "Importer",
+    "cancel": "Avbryt",
+    "success": "Importerte {{count}} transaksjoner{{skipNote}}.",
+    "skipNote": " ({{skipped}} hoppet over – fantes allerede)",
+    "importFailed": "Import feilet"
+  },
   "errorBoundary": {
     "title": "Noe gikk galt",
     "body": "En uventet feil oppsto. Dataene dine er trygge lokalt — prøv igjen, eller last siden på nytt.",

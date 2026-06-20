@@ -55,6 +55,29 @@
     "unreadableZip": "Could not read ZIP file.",
     "importFailed": "Import failed"
   },
+  "csvImport": {
+    "description": "Import transactions from your own CSV file with the following columns:",
+    "columns": {
+      "bookingDate": "(YYYY-MM-DD)",
+      "transactionDate": "(YYYY-MM-DD)",
+      "amount": "(decimal point, positive = in, negative = out)",
+      "description": "",
+      "id": "(Optional)",
+      "currency": "(Optional)",
+      "status": "(Optional, BOOK or PNDG)"
+    },
+    "uploadButton": "Choose CSV file",
+    "preview": "{{count}} transactions found ({{range}})",
+    "accountLabel": "Account",
+    "newAccount": "Create new account",
+    "accountNamePlaceholder": "Account name",
+    "defaultAccountName": "Imported account",
+    "import": "Import",
+    "cancel": "Cancel",
+    "success": "Imported {{count}} transactions{{skipNote}}.",
+    "skipNote": " ({{skipped}} skipped — already existed)",
+    "importFailed": "Import failed"
+  },
   "errorBoundary": {
     "title": "Something went wrong",
     "body": "An unexpected error occurred. Your data is safe locally — try again, or reload the page.",

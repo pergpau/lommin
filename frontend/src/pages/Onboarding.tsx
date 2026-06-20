@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
 import BankSetupGuide from "../components/BankSetupGuide";
+import CsvImportPanel from "../components/CsvImport";
 import PemImporter from "../components/PemImporter";
 import SpiirImportPanel from "../components/SpiirImport";
 import Alert from "../components/ui/Alert";
@@ -352,10 +353,7 @@ function StepImportOwn() {
   return (
     <div>
       <h2 className="text-xl font-semibold text-text mb-1">{t("importOwn.title")}</h2>
-      <p className="text-sm text-muted mb-6 leading-relaxed">{t("importOwn.body")}</p>
-      <div className="card p-8 text-center">
-        <p className="text-sm text-muted">{t("importOwn.comingSoon")}</p>
-      </div>
+      <CsvImportPanel />
     </div>
   );
 }
