@@ -189,7 +189,6 @@ function deriveStableRef(raw: RawTransaction): string {
     raw.transaction_amount?.amount ?? "",
     raw.transaction_amount?.currency ?? "",
     parseDescription(raw),
-    raw.status ?? "",
   ].join("|");
   return `gen:${parts}`;
 }

@@ -160,7 +160,7 @@ export default function AccountPage() {
     const d = new Date();
     d.setDate(d.getDate() - resyncDays);
     const dateFrom = d.toISOString().split("T")[0];
-    void runSync([account], () => { reload(); void triggerAutosave(); }, dateFrom);
+    void runSync([account], () => { reload(); refresh(); void triggerAutosave(); }, dateFrom);
   }, [account, resyncDays, runSync, reload]);
 
   const disconnectBank = useCallback(async () => {
@@ -218,7 +218,7 @@ export default function AccountPage() {
               size="sm"
               loading={syncing}
               disabled={!account}
-              onClick={() => account && runSync([account], () => { reload(); void triggerAutosave(); })}
+              onClick={() => account && runSync([account], () => { reload(); refresh(); void triggerAutosave(); })}
             >
               <RefreshCwIcon size={12} />
               {t("sync")}
