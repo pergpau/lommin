@@ -483,10 +483,7 @@ export default function Settings() {
       <Card className="p-5 mb-4">
         <h2 className="text-sm font-semibold text-text mb-1">{t("settings:proxy.title")}</h2>
         <p className="text-xs text-muted mb-3">
-          <Trans
-            i18nKey="settings:proxy.description"
-            components={{ wrangler: <span className="mono text-text/70" /> }}
-          />
+          {t("settings:proxy.description")}
         </p>
 
         <div className="flex gap-4 mb-3">

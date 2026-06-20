@@ -16,7 +16,7 @@
   },
   "proxy": {
     "title": "CORS Proxy",
-    "description": "All Enable Banking API calls are routed through this proxy. Deploy the worker with <wrangler>wrangler deploy</wrangler>.",
+    "description": "All Enable Banking API calls are routed through this proxy.",
     "lommin": "Lommin proxy (default)",
     "custom": "Custom",
     "warning": "Note! Lommin's shared proxy forwards your traffic to Enable Banking and could in theory read your transaction data and your short-lived access token (but never the signing key). Lommin stores none of your data, but you simply have to trust that. If you don't, you can register your own proxy here.",

@@ -16,7 +16,7 @@
   },
   "proxy": {
     "title": "CORS Proxy",
-    "description": "Alle Enable Banking API-kall rutes gjennom denne proxyen. Deploy worker med <wrangler>wrangler deploy</wrangler>.",
+    "description": "Alle Enable Banking API-kall rutes gjennom denne proxyen.",
     "lommin": "Lommin proxy (standard)",
     "custom": "Egendefinert",
     "warning": "OBS! Lommis egen proxy videresender trafikken din til Enable Banking og kan i teorien lese dine transaksjonsdata og ditt kortlivede tilgangstoken (men aldri signeringsnøkkelen). Lommi lagrer ingen av dine data, men du må rett og slett bare stole på at det er sant. Hvis du ikke gjør det kan du velge å registrere din egen proxy her.",
