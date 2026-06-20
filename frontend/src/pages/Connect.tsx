@@ -79,6 +79,7 @@ export default function Connect() {
       const msg = detail ? `${t("authFailed")}: ${detail}` : t("authFailed");
       setError(msg);
       setPhase("error");
+      quickConnectStarted.current = false;
       showSnackbar(msg, "error");
     }
   }, [t, showSnackbar]);
@@ -255,10 +256,10 @@ export default function Connect() {
   const isOAuthFlow = !!(params.get("code") || params.get("reauth") || params.get("uid"));
   const banksLoading = !isOAuthFlow && phase !== "error" && loadedCountry !== country;
 
-  if (isReauth && phase !== "error") {
+  if ((isReauth || phase === "connecting") && phase !== "error") {
     return (
       <div className="min-h-screen bg-bg grid-bg flex items-center justify-center">
-        <div className="text-center animate-fade-in">
+        <div className="flex flex-col items-center animate-fade-in">
           <Spinner size={32} />
           <div className="text-muted text-sm mt-4">{t("statuses.connecting")}</div>
         </div>
