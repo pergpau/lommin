@@ -134,3 +134,20 @@ html.theme-switching * {
   border-color: rgb(var(--c-accent)) !important;
   background: rgb(var(--c-accent) / 0.05) !important;
 }
+
+/* ── Success checkmark animation ─────────────────────────── */
+@keyframes check-pop {
+  0%   { opacity: 0; transform: scale(0.4); }
+  20%  { opacity: 1; transform: scale(1.2); }
+  34%  { transform: scale(0.92); }
+  44%  { transform: scale(1); }
+  76%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.8); }
+}
+
+.animate-check-pop {
+  animation: check-pop 2s linear forwards;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import Spinner from "./Spinner";
 
 type ButtonProps = {
@@ -5,6 +7,7 @@ type ButtonProps = {
   size?: "sm" | "md";
   fullWidth?: boolean;
   loading?: boolean;
+  success?: boolean;
   children: React.ReactNode;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
@@ -13,6 +16,7 @@ export default function Button({
   size = "md",
   fullWidth,
   loading,
+  success,
   children,
   disabled,
   className,
@@ -33,6 +37,13 @@ export default function Button({
           <span className="invisible flex items-center gap-1.5">{children}</span>
           <span className="absolute">
             <Spinner size={size === "sm" ? 10 : 12} />
+          </span>
+        </span>
+      ) : success ? (
+        <span className="relative flex items-center justify-center">
+          <span className="invisible flex items-center gap-1.5">{children}</span>
+          <span className="absolute animate-check-pop">
+            <FontAwesomeIcon icon={faCheck} size={size === "sm" ? "xs" : "sm"} />
           </span>
         </span>
       ) : (

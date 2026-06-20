@@ -16,7 +16,7 @@ export function useSyncState() {
   );
 
   const run = useCallback(
-    async (accounts: Account[], onSuccess?: () => void, forcedDateFrom?: string) => {
+    async (accounts: Account[], onSuccess?: (hadErrors: boolean) => void, forcedDateFrom?: string) => {
       setSyncing(true);
       setSyncMsg("");
       setError("");
@@ -40,7 +40,7 @@ export function useSyncState() {
             ),
           );
         }
-        onSuccess?.();
+        onSuccess?.(errors.length > 0);
       } catch (e) {
         const base = i18n.t("dashboard:snackbar.syncFailed");
         const detail = e instanceof ProxyNetworkError

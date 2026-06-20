@@ -11,6 +11,7 @@ import { SUB_CATEGORY_MAP } from "../lib/categories";
 import { useAccounts } from "../hooks/useAccounts";
 import { useTransactions } from "../hooks/useTransactions";
 import { useSyncState } from "../hooks/useSyncState";
+import { useSuccessFlash } from "../hooks/useSuccessFlash";
 import Spinner from "../components/ui/Spinner";
 import Button from "../components/ui/Button";
 import { useSnackbar } from "../components/ui/Snackbar";
@@ -48,6 +49,7 @@ export default function AccountPage() {
   const [chartMode, setChartMode] = useState<ChartMode>("month");
   const [isDemo, setIsDemo] = useState(false);
   const [hasKey, setHasKey] = useState(true);
+  const { success: syncSuccess, flash: syncFlash } = useSuccessFlash();
 
   useEffect(() => {
     void isDemoMode().then(setIsDemo);
@@ -214,8 +216,9 @@ export default function AccountPage() {
             <Button
               size="sm"
               loading={syncing}
+              success={syncSuccess}
               disabled={!account}
-              onClick={() => account && runSync([account], () => { reload(); refresh(); void triggerAutosave(); })}
+              onClick={() => account && runSync([account], (hadErrors) => { reload(); refresh(); void triggerAutosave(); if (!hadErrors) syncFlash(); })}
             >
               <RefreshCwIcon size={12} />
               {t("sync")}

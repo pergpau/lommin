@@ -23,6 +23,7 @@ import { effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
 import { clearDriveToken, getAllSettings, getDriveToken } from "../lib/settings";
 import { addSaveListener, triggerAutosave } from "../lib/autosave";
+import { useSuccessFlash } from "../hooks/useSuccessFlash";
 import { clearAccounts, clearTransactions, exportAll, getEnableBankingSource } from "../lib/store";
 import { deleteTransaction, setCategoryId, setComment, setCustomDate, setIsExtraordinary } from "../lib/mutations";
 
@@ -54,6 +55,8 @@ export default function Dashboard() {
   const [autoSaving, setAutoSaving] = useState(false);
   useEffect(() => addSaveListener(setAutoSaving), []);
   const doAutosave = useCallback(() => void triggerAutosave(), []);
+  const { success: saveSuccess, flash: saveFlash } = useSuccessFlash();
+  const { success: syncSuccess, flash: syncFlash } = useSuccessFlash();
 
   useEffect(() => {
     loadKey().then((kv) => setHasKey(!!kv));
@@ -104,9 +107,11 @@ export default function Dashboard() {
         }
         await saveBackupToDrive(dashDriveToken, data, passphrase);
         showSnackbar(t("snackbar.savedToDrive"), "ok");
+        saveFlash();
       } else {
         await saveEncryptedFile(data, passphrase);
         showSnackbar(t("snackbar.savedToFile"), "ok");
+        saveFlash();
       }
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
@@ -117,7 +122,7 @@ export default function Dashboard() {
       setDashBackupSaving(false);
       setDashPassphrase("");
     }
-  }, [backupMethod, dashDriveToken, showSnackbar, t]);
+  }, [backupMethod, dashDriveToken, showSnackbar, t, saveFlash]);
 
   const exitDemo = useCallback(async () => {
     setExitingDemo(true);
@@ -271,14 +276,15 @@ export default function Dashboard() {
                 {t("actions.addAccount")}
               </Link>
             )}
-            <Button loading={dashBackupSaving || autoSaving} disabled={isDemo} onClick={handleQuickSaveClick}>
+            <Button loading={dashBackupSaving || autoSaving} success={saveSuccess} disabled={isDemo} onClick={handleQuickSaveClick}>
               <BackupIcon size={14} />
               {t("actions.save")}
             </Button>
             {hasLiveAccounts && (
               <Button
                 loading={syncing}
-                onClick={() => runSync(accounts, () => { reload(); refresh(); void doAutosave(); })}
+                success={syncSuccess}
+                onClick={() => runSync(accounts, (hadErrors) => { reload(); refresh(); void doAutosave(); if (!hadErrors) syncFlash(); })}
               >
                 <RefreshCwIcon size={14} />
                 {t("actions.sync")}
@@ -323,7 +329,7 @@ export default function Dashboard() {
                     disabled={syncing}
                     onClick={() => {
                       setActionsOpen(false);
-                      runSync(accounts, () => { reload(); refresh(); void doAutosave(); });
+                      runSync(accounts, (hadErrors) => { reload(); refresh(); void doAutosave(); if (!hadErrors) syncFlash(); });
                     }}
                   >
                     <RefreshCwIcon size={13} />
