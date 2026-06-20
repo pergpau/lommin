@@ -21,6 +21,7 @@
     "mobile": "Actions"
   },
   "emptyAccounts": "No accounts connected yet.",
+  "unknownBank": "Unknown",
   "connectBankLink": "Connect a bank",
   "or": "or",
   "importSpiirLink": "Import data from Spiir",

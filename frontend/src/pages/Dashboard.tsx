@@ -144,9 +144,11 @@ export default function Dashboard() {
   useEffect(() => {
     if (!loading && !tabInitialized.current) {
       tabInitialized.current = true;
-      if (accounts.length === 0) setTab("accounts");
+      const stateTab = (location.state as { tab?: Tab } | null)?.tab;
+      if (stateTab) setTab(stateTab);
+      else if (accounts.length === 0) setTab("accounts");
     }
-  }, [loading, accounts.length]);
+  }, [loading, accounts.length, location.state]);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [showDuplicatesBanner, setShowDuplicatesBanner] = useState(false);
 

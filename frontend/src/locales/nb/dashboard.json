@@ -21,6 +21,7 @@
     "mobile": "Handlinger"
   },
   "emptyAccounts": "Ingen kontoer tilkoblet ennå.",
+  "unknownBank": "Ukjent",
   "connectBankLink": "Koble til en bank",
   "or": "eller",
   "importSpiirLink": "Importer data fra Spiir",

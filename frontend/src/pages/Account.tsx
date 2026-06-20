@@ -194,7 +194,7 @@ export default function AccountPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       <div className="flex items-center gap-3 mb-6">
-        <Link to="/dashboard" className="text-muted hover:text-text transition-colors">
+        <Link to="/dashboard" state={{ tab: "accounts" }} className="text-muted hover:text-text transition-colors">
           <ArrowLeftIcon size={18} />
         </Link>
         <div className="flex-1">

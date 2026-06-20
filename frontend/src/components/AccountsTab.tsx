@@ -5,6 +5,33 @@ import EmptyState from "./ui/EmptyState";
 import { PlusIcon } from "./ui/icons";
 import type { Account, Transaction } from "../lib/store";
 
+function isConnected(acc: Account) {
+  return acc.sources.some((s) => s.type === "enableBanking");
+}
+
+function groupAndSort(accounts: Account[]): { bankKey: string; accs: Account[] }[] {
+  const groups = new Map<string, Account[]>();
+  for (const acc of accounts) {
+    const key = acc.bankName?.trim() ?? "";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(acc);
+  }
+
+  for (const accs of groups.values()) {
+    accs.sort((a, b) => {
+      const diff = (isConnected(b) ? 1 : 0) - (isConnected(a) ? 1 : 0);
+      return diff !== 0 ? diff : (a.name ?? "").localeCompare(b.name ?? "");
+    });
+  }
+
+  return [...groups.entries()]
+    .map(([bankKey, accs]) => ({ bankKey, accs }))
+    .sort((a, b) => {
+      const connDiff = b.accs.filter(isConnected).length - a.accs.filter(isConnected).length;
+      return connDiff !== 0 ? connDiff : a.bankKey.localeCompare(b.bankKey);
+    });
+}
+
 interface Props {
   accounts: Account[];
   txByAccount: Map<string, Transaction[]>;
@@ -35,22 +62,33 @@ export default function AccountsTab({ accounts, txByAccount, syncingAccountUids,
     );
   }
 
+  const groups = groupAndSort(accounts);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {accounts.map((acc) => {
-        const txns = txByAccount.get(acc.uid) ?? [];
-        const balance = acc.balance ?? txns.reduce((s, tx) => s + tx.amount, 0);
-        return (
-          <AccountCard
-            key={acc.uid}
-            acc={acc}
-            txns={txns}
-            balance={balance}
-            isSyncing={syncingAccountUids.has(acc.uid)}
-            errorMsg={failedAccounts.get(acc.uid)}
-          />
-        );
-      })}
+    <div className="flex flex-col gap-6">
+      {groups.map(({ bankKey, accs }) => (
+        <div key={bankKey}>
+          <h3 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
+            {bankKey || t("unknownBank")}
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {accs.map((acc) => {
+              const txns = txByAccount.get(acc.uid) ?? [];
+              const balance = acc.balance ?? txns.reduce((s, tx) => s + tx.amount, 0);
+              return (
+                <AccountCard
+                  key={acc.uid}
+                  acc={acc}
+                  txns={txns}
+                  balance={balance}
+                  isSyncing={syncingAccountUids.has(acc.uid) && isConnected(acc)}
+                  errorMsg={failedAccounts.get(acc.uid)}
+                />
+              );
+            })}
+          </div>
+        </div>
+      ))}
       {!isDemo && (
         <Link
           to={connectTarget}

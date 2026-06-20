@@ -6,6 +6,7 @@
     "syncing": "Synkroniserer…",
     "reconnect": "Koble til på nytt",
     "rateLimit": "Oops, du har prøvd for mange ganger. Prøv igjen senere.",
+    "connected": "Tilkoblet",
     "importedFromSpiir": "Importert fra Spiir",
     "transactions_one": "{{count}} transaksjon",
     "transactions_other": "{{count}} transaksjoner"

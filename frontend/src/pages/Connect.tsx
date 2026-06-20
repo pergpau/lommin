@@ -347,7 +347,7 @@ export default function Connect() {
         <label className="label">{t("bankLabel")}</label>
         <div className="min-h-72">
           {banksLoading ? (
-            <div className="flex items-center gap-2 text-muted text-sm py-2">
+            <div className="flex items-center justify-center gap-2 text-muted text-sm py-2">
               <Spinner size={14} />
               <span>{t("loadingBanks")}</span>
             </div>

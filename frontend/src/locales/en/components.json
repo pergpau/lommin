@@ -6,6 +6,7 @@
     "syncing": "Syncing…",
     "reconnect": "Reconnect",
     "rateLimit": "Too many requests. Please try again later.",
+    "connected": "Connected",
     "importedFromSpiir": "Imported from Spiir",
     "transactions_one": "{{count}} transaction",
     "transactions_other": "{{count}} transactions"
