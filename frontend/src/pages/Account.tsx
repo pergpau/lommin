@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { triggerAutosave } from "../lib/autosave";
-import { deleteAccount, deleteTransaction, disconnectAccount, resetAccountSync, setCategoryId, setCustomDate, setIsExtraordinary, type Transaction } from "../lib/store";
+import { deleteAccount, deleteTransaction, disconnectAccount, resetAccountSync, setCategoryId, setComment, setCustomDate, setIsExtraordinary, type Transaction } from "../lib/store";
 import { getSetting } from "../lib/settings";
 import { accountLabel, effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
@@ -311,6 +311,10 @@ export default function AccountPage() {
         }}
         onCustomDateChange={async (txId, date) => {
           await setCustomDate(txId, date);
+          refresh();
+        }}
+        onCommentChange={async (txId, comment) => {
+          await setComment(txId, comment);
           refresh();
         }}
         onDelete={async (txId) => {

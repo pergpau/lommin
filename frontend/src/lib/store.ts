@@ -51,6 +51,7 @@ export interface Transaction {
   status: string;
   categoryId?: number;
   isExtraordinary: boolean;
+  comment?: string;
   to_bban?: string;
   from_bban?: string;
   raw: Record<string, unknown>;
@@ -163,6 +164,7 @@ export async function upsertTransactions(txns: Transaction[]): Promise<number> {
         categoryId: existing.categoryId,
         isExtraordinary: existing.isExtraordinary ?? false,
         customDate: existing.customDate,
+        comment: existing.comment,
       });
     } else {
       const softMatchId = softKeyIndex.get(txSoftKey(t));
@@ -176,6 +178,7 @@ export async function upsertTransactions(txns: Transaction[]): Promise<number> {
           categoryId: softMatch.categoryId,
           isExtraordinary: softMatch.isExtraordinary ?? false,
           customDate: softMatch.customDate,
+          comment: softMatch.comment,
         });
       } else {
         inserted++;
@@ -238,6 +241,17 @@ export async function setIsExtraordinary(
   const tx = d.transaction("transactions", "readwrite");
   const t = await tx.store.get(transactionId);
   if (t) await tx.store.put({ ...t, isExtraordinary: value });
+  await tx.done;
+}
+
+export async function setComment(
+  transactionId: string,
+  comment: string | undefined,
+): Promise<void> {
+  const d = await db();
+  const tx = d.transaction("transactions", "readwrite");
+  const t = await tx.store.get(transactionId);
+  if (t) await tx.store.put({ ...t, comment: comment || undefined });
   await tx.done;
 }
 
@@ -364,6 +378,7 @@ function validateTransaction(v: unknown, i: number): Transaction {
     status: optString(t.status) ?? "",
     categoryId: optNumber(t.categoryId),
     isExtraordinary: t.isExtraordinary === true,
+    comment: optString(t.comment),
     to_bban: optString(t.to_bban),
     from_bban: optString(t.from_bban),
     raw: isRecord(t.raw) ? t.raw : {},

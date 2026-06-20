@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { amountClass, effectiveDate, fmtAmount, fmtDate, statusLabel } from "../../lib/format";
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP, type MainCategory, type SubCategory } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
@@ -13,6 +13,7 @@ interface TransactionDetailProps {
   onOpenCategoryPicker?: (t: Transaction) => void;
   onIsExtraordinaryChange?: (txId: string, value: boolean) => Promise<void>;
   onCustomDateChange?: (txId: string, date: string | undefined) => Promise<void>;
+  onCommentChange?: (txId: string, comment: string | undefined) => Promise<void>;
   onDelete?: (txId: string) => Promise<void>;
 }
 
@@ -24,12 +25,16 @@ export default function TransactionDetail({
   onOpenCategoryPicker,
   onIsExtraordinaryChange,
   onCustomDateChange,
+  onCommentChange,
   onDelete,
 }: TransactionDetailProps) {
   const { t } = useTranslation(["transactions", "categories"]);
   const [account, setAccount] = useState<Account | undefined>();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [editingComment, setEditingComment] = useState(false);
+  const [commentDraft, setCommentDraft] = useState(tx.comment ?? "");
   const dateInputRef = useRef<HTMLInputElement>(null);
+  const commentRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     void getAccounts().then((all) => setAccount(all.find((a) => a.uid === tx.accountUid)));
   }, [tx.accountUid]);
@@ -162,6 +167,77 @@ export default function TransactionDetail({
             <DetailRow label={t("transactions:detail.reference")}>
               <span className="mono text-xs">{tx.entryReference}</span>
             </DetailRow>
+
+            {(onCommentChange || tx.comment) && (
+              <div className="px-6 py-3">
+                {editingComment ? (
+                  <>
+                    <span className="text-muted text-xs block mb-1.5">{t("transactions:detail.comment")}</span>
+                    <div className="flex flex-col gap-2">
+                      <textarea
+                        ref={commentRef}
+                        className="w-full text-sm text-text bg-surface-2 border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-accent"
+                        rows={3}
+                        value={commentDraft}
+                        onChange={(e) => setCommentDraft(e.target.value)}
+                        placeholder={t("transactions:detail.commentPlaceholder")}
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          className="text-xs text-muted hover:text-text flex items-center gap-1"
+                          onClick={() => setEditingComment(false)}
+                        >
+                          <FontAwesomeIcon icon={faXmark} className="w-3 h-3" />
+                          {t("transactions:detail.commentCancel")}
+                        </button>
+                        <button
+                          className="text-xs text-accent hover:opacity-80 flex items-center gap-1 font-medium"
+                          onClick={async () => {
+                            await onCommentChange!(tx.id, commentDraft || undefined);
+                            setEditingComment(false);
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faCheck} className="w-3 h-3" />
+                          {t("transactions:detail.commentSave")}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                ) : tx.comment ? (
+                  <>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-muted text-xs">{t("transactions:detail.comment")}</span>
+                      {onCommentChange && (
+                        <button
+                          className="text-muted hover:text-text text-xs leading-none"
+                          title={t("transactions:detail.editComment")}
+                          onClick={() => {
+                            setCommentDraft(tx.comment ?? "");
+                            setEditingComment(true);
+                            setTimeout(() => commentRef.current?.focus(), 0);
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-sm text-text whitespace-pre-wrap">{tx.comment}</p>
+                  </>
+                ) : onCommentChange ? (
+                  <button
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border border-border text-muted hover:text-text hover:border-text/30 transition-colors"
+                    onClick={() => {
+                      setCommentDraft("");
+                      setEditingComment(true);
+                      setTimeout(() => commentRef.current?.focus(), 0);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
+                    {t("transactions:detail.addComment")}
+                  </button>
+                ) : null}
+              </div>
+            )}
           </div>
 
           {/* Raw data */}
