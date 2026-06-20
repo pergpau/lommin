@@ -29,10 +29,7 @@ export function detectTransfers(transactions: Transaction[]): Set<string> {
         if (Math.abs(Math.abs(a.amount) - Math.abs(b.amount)) > 0.001) continue;
         if (Math.sign(a.amount) === Math.sign(b.amount)) continue;
 
-        const dateA = a.bookingDate ?? a.transactionDate;
-        const dateB = b.bookingDate ?? b.transactionDate;
-        if (!dateA || !dateB) continue;
-        if (Math.abs(new Date(dateA).getTime() - new Date(dateB).getTime()) > THREE_DAYS_MS)
+        if (Math.abs(new Date(a.bookingDate).getTime() - new Date(b.bookingDate).getTime()) > THREE_DAYS_MS)
           continue;
 
         transferIds.add(a.id);

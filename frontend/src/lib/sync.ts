@@ -78,7 +78,7 @@ export async function syncAccount(
 
   if (txns.length > 0) {
     const latest = txns
-      .map((t) => t.bookingDate ?? t.transactionDate ?? "")
+      .map((t) => t.bookingDate)
       .filter(Boolean)
       .sort()
       .pop();

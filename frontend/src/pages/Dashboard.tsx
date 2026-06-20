@@ -19,10 +19,11 @@ import { saveEncryptedFile } from "../lib/cryptoFile";
 import { isDemoMode } from "../lib/demoData";
 import { DriveAuthError, saveBackupToDrive } from "../lib/googleDrive";
 import { loadKey } from "../lib/keystore";
+import { effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
 import { clearDriveToken, getAllSettings, getDriveToken } from "../lib/settings";
 import { triggerAutosave } from "../lib/autosave";
-import { clearAccounts, clearTransactions, exportAll, getEnableBankingSource, setCategoryId, setIsExtraordinary } from "../lib/store";
+import { clearAccounts, clearTransactions, exportAll, getEnableBankingSource, setCategoryId, setCustomDate, setIsExtraordinary } from "../lib/store";
 
 type Tab = "categories" | "accounts" | "transactions";
 
@@ -165,7 +166,7 @@ export default function Dashboard() {
     for (const tx of transactions) {
       const section = txSection(tx);
       if (!section) continue;
-      const date = tx.bookingDate ?? tx.transactionDate;
+      const date = effectiveDate(tx);
       if (!date) continue;
       const key = date.slice(0, 7);
       const entry = map.get(key) ?? { income: 0, expenses: 0, saving: 0 };
@@ -189,7 +190,7 @@ export default function Dashboard() {
     for (const tx of transactions) {
       const section = txSection(tx);
       if (!section) continue;
-      const date = tx.bookingDate ?? tx.transactionDate;
+      const date = effectiveDate(tx);
       if (!date) continue;
       const key = date.slice(0, 4);
       const entry = map.get(key) ?? { income: 0, expenses: 0, saving: 0 };
@@ -231,13 +232,11 @@ export default function Dashboard() {
       [...transactions]
         .filter((tx) => {
           if (!activeMonth) return true;
-          const date = tx.bookingDate ?? tx.transactionDate;
+          const date = effectiveDate(tx);
           return date ? date.startsWith(activeMonth) : false;
         })
         .sort((a, b) =>
-          (b.bookingDate ?? b.transactionDate ?? "").localeCompare(
-            a.bookingDate ?? a.transactionDate ?? "",
-          ),
+          (effectiveDate(b) ?? "").localeCompare(effectiveDate(a) ?? ""),
         ),
     [transactions, activeMonth],
   );
@@ -455,6 +454,10 @@ export default function Dashboard() {
                 refresh();
                 if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
                 autosaveTimer.current = setTimeout(() => void doAutosave(), 3000);
+              }}
+              onCustomDateChange={async (txId, date) => {
+                await setCustomDate(txId, date);
+                refresh();
               }}
             />
           ) : (

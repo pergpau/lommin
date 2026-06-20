@@ -10,12 +10,15 @@
     "description": "Beskrivelse",
     "bookingDate": "Bokføringsdato",
     "transactionDate": "Transaksjonsdato",
+    "transactionBookingDate": "Transaksjons- / bokføringsdato",
     "category": "Kategori",
     "account": "Konto",
     "bankCode": "Bankkode",
     "reference": "Referanse",
     "rawData": "Rådata",
-    "hideFromStats": "Skjul fra statistikk"
+    "hideFromStats": "Skjul fra statistikk",
+    "customDate": "Egendefinert dato",
+    "resetDate": "Tilbakestill"
   },
   "categoryPicker": {
     "title": "Velg kategori",

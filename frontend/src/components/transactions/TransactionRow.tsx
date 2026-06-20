@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { amountClass, fmtAmount, fmtDate } from "../../lib/format";
+import { amountClass, effectiveDate, fmtAmount, fmtDate } from "../../lib/format";
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
 import type { Transaction } from "../../lib/store";
 import CategoryBadge from "./CategoryBadge";
@@ -54,7 +54,7 @@ export default function TransactionRow({ transaction: tx, onClick, onCategoryCli
           {fmtAmount(tx.amount, tx.currency)}
         </div>
         <div className="text-xs text-muted mt-0.5">
-          {fmtDate(tx.bookingDate ?? tx.transactionDate)}
+          {fmtDate(effectiveDate(tx))}
         </div>
       </div>
     </div>

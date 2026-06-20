@@ -12,6 +12,7 @@ type TransactionTableProps = {
   title?: string;
   onCategoryChange?: (transactionId: string, categoryId: number | undefined) => Promise<void>;
   onIsExtraordinaryChange?: (transactionId: string, value: boolean) => Promise<void>;
+  onCustomDateChange?: (transactionId: string, date: string | undefined) => Promise<void>;
 };
 
 export default function TransactionTable({
@@ -20,6 +21,7 @@ export default function TransactionTable({
   title,
   onCategoryChange,
   onIsExtraordinaryChange,
+  onCustomDateChange,
 }: TransactionTableProps) {
   const { t } = useTranslation("transactions");
   const [page, setPage] = useState(0);
@@ -108,6 +110,7 @@ export default function TransactionTable({
               : undefined
           }
           onIsExtraordinaryChange={onIsExtraordinaryChange}
+          onCustomDateChange={onCustomDateChange}
         />
       )}
 

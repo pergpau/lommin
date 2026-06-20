@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { triggerAutosave } from "../lib/autosave";
-import { deleteAccount, disconnectAccount, resetAccountSync, setCategoryId, setIsExtraordinary, type Transaction } from "../lib/store";
+import { deleteAccount, disconnectAccount, resetAccountSync, setCategoryId, setCustomDate, setIsExtraordinary, type Transaction } from "../lib/store";
 import { getSetting } from "../lib/settings";
-import { accountLabel } from "../lib/format";
+import { accountLabel, effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
 import { SUB_CATEGORY_MAP } from "../lib/categories";
 import { useAccounts } from "../hooks/useAccounts";
@@ -73,9 +73,7 @@ export default function AccountPage() {
   const sorted = useMemo(
     () =>
       [...all].sort((a, b) =>
-        (b.bookingDate ?? b.transactionDate ?? "").localeCompare(
-          a.bookingDate ?? a.transactionDate ?? "",
-        ),
+        (effectiveDate(b) ?? "").localeCompare(effectiveDate(a) ?? ""),
       ),
     [all],
   );
@@ -85,7 +83,7 @@ export default function AccountPage() {
     for (const tx of sorted) {
       const section = txSection(tx);
       if (!section) continue;
-      const date = tx.bookingDate ?? tx.transactionDate;
+      const date = effectiveDate(tx);
       if (!date) continue;
       const key = date.slice(0, 7);
       const entry = map.get(key) ?? { income: 0, expenses: 0, saving: 0 };
@@ -108,7 +106,7 @@ export default function AccountPage() {
     for (const tx of sorted) {
       const section = txSection(tx);
       if (!section) continue;
-      const date = tx.bookingDate ?? tx.transactionDate;
+      const date = effectiveDate(tx);
       if (!date) continue;
       const key = date.slice(0, 4);
       const entry = map.get(key) ?? { income: 0, expenses: 0, saving: 0 };
@@ -128,7 +126,7 @@ export default function AccountPage() {
     () =>
       selectedMonth
         ? sorted.filter((tx) => {
-            const date = tx.bookingDate ?? tx.transactionDate ?? "";
+            const date = effectiveDate(tx) ?? "";
             return chartMode === "year"
               ? date.slice(0, 4) === selectedMonth
               : date.slice(0, 7) === selectedMonth;
@@ -310,6 +308,10 @@ export default function AccountPage() {
           refresh();
           if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
           autosaveTimer.current = setTimeout(() => void triggerAutosave(), 3000);
+        }}
+        onCustomDateChange={async (txId, date) => {
+          await setCustomDate(txId, date);
+          refresh();
         }}
       />
 

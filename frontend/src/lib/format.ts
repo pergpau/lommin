@@ -45,6 +45,10 @@ export function accountLabel(acc: Pick<Account, "bankName" | "name">): string {
   return bank || name || "Konto";
 }
 
+export function effectiveDate(tx: Pick<Transaction, "customDate" | "transactionDate">): string {
+  return tx.customDate ?? tx.transactionDate;
+}
+
 // Credit = green, debit = red. Falls back to sign when the
 // indicator is missing (debit stored as a negative amount).
 export function amountClass(t: Pick<Transaction, "creditDebit" | "amount">): string {

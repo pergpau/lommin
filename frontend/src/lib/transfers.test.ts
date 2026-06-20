@@ -13,6 +13,7 @@ function tx(overrides: Partial<Transaction>): Transaction {
     status: "BOOK",
     raw: {},
     bookingDate: "2024-01-01",
+    transactionDate: "2024-01-01",
     ...overrides,
   };
 }

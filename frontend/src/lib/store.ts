@@ -40,8 +40,9 @@ export interface Transaction {
   id: string; // composite: `${account_uid}::${entry_reference}`
   accountUid: string;
   entryReference: string;
-  bookingDate?: string;
-  transactionDate?: string;
+  bookingDate: string;
+  transactionDate: string;
+  customDate?: string;
   amount: number;
   currency: string;
   creditDebit?: "CRDT" | "DBIT";
@@ -146,6 +147,7 @@ export async function upsertTransactions(txns: Transaction[]): Promise<number> {
         ...t,
         categoryId: existing.categoryId,
         isExtraordinary: existing.isExtraordinary ?? false,
+        customDate: existing.customDate,
       });
     }
   }
@@ -182,6 +184,17 @@ export async function setCategoryId(
   const tx = d.transaction("transactions", "readwrite");
   const t = await tx.store.get(transactionId);
   if (t) await tx.store.put({ ...t, categoryId });
+  await tx.done;
+}
+
+export async function setCustomDate(
+  transactionId: string,
+  date: string | undefined,
+): Promise<void> {
+  const d = await db();
+  const tx = d.transaction("transactions", "readwrite");
+  const t = await tx.store.get(transactionId);
+  if (t) await tx.store.put({ ...t, customDate: date });
   await tx.done;
 }
 
@@ -304,8 +317,9 @@ function validateTransaction(v: unknown, i: number): Transaction {
     id: reqString(t.id, `transaction[${i}].id`),
     accountUid: reqString(t.accountUid, `transaction[${i}].accountUid`),
     entryReference: optString(t.entryReference) ?? "",
-    bookingDate: optString(t.bookingDate),
-    transactionDate: optString(t.transactionDate),
+    bookingDate: optString(t.bookingDate) ?? "",
+    transactionDate: optString(t.transactionDate) ?? optString(t.bookingDate) ?? "",
+    customDate: optString(t.customDate),
     amount,
     currency: optString(t.currency) ?? "",
     creditDebit: t.creditDebit === "CRDT" || t.creditDebit === "DBIT" ? t.creditDebit : undefined,

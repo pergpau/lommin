@@ -10,12 +10,15 @@
     "description": "Description",
     "bookingDate": "Booking date",
     "transactionDate": "Transaction date",
+    "transactionBookingDate": "Transaction / booking date",
     "category": "Category",
     "account": "Account",
     "bankCode": "Bank code",
     "reference": "Reference",
     "rawData": "Raw data",
-    "hideFromStats": "Hide from statistics"
+    "hideFromStats": "Hide from statistics",
+    "customDate": "Custom date",
+    "resetDate": "Reset"
   },
   "categoryPicker": {
     "title": "Select category",

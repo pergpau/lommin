@@ -24,6 +24,7 @@ function tx(
     accountUid,
     entryReference: ref,
     bookingDate: date,
+    transactionDate: date,
     amount,
     currency: "NOK",
     creditDebit: amount > 0 ? "CRDT" : "DBIT",

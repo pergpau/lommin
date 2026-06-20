@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { amountClass, fmtAmount, fmtDate, statusLabel } from "../../lib/format";
+import { faPencil } from "@fortawesome/free-solid-svg-icons";
+import { amountClass, effectiveDate, fmtAmount, fmtDate, statusLabel } from "../../lib/format";
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP, type MainCategory, type SubCategory } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
 import { getAccounts, type Account, type Transaction } from "../../lib/store";
@@ -11,6 +12,7 @@ interface TransactionDetailProps {
   onClose: () => void;
   onOpenCategoryPicker?: (t: Transaction) => void;
   onIsExtraordinaryChange?: (txId: string, value: boolean) => Promise<void>;
+  onCustomDateChange?: (txId: string, date: string | undefined) => Promise<void>;
 }
 
 const FULL_DATE: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
@@ -20,16 +22,16 @@ export default function TransactionDetail({
   onClose,
   onOpenCategoryPicker,
   onIsExtraordinaryChange,
+  onCustomDateChange,
 }: TransactionDetailProps) {
   const { t } = useTranslation(["transactions", "categories"]);
   const [account, setAccount] = useState<Account | undefined>();
+  const dateInputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     void getAccounts().then((all) => setAccount(all.find((a) => a.uid === tx.accountUid)));
   }, [tx.accountUid]);
   const subCat = tx.categoryId != null ? SUB_CATEGORY_MAP[tx.categoryId] : undefined;
   const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
-  const showTransactionDate =
-    tx.transactionDate && tx.transactionDate !== tx.bookingDate;
 
   return (
     <div
@@ -83,13 +85,61 @@ export default function TransactionDetail({
               </DetailRow>
             )}
 
-            <DetailRow label={t("transactions:detail.bookingDate")}>
-              {fmtDate(tx.bookingDate, FULL_DATE)}
-            </DetailRow>
+            <div className="flex items-center justify-between px-6 py-3 text-sm">
+              <span className="text-muted text-xs shrink-0 mr-4">
+                {effectiveDate(tx) === tx.bookingDate
+                  ? t("transactions:detail.transactionBookingDate")
+                  : t("transactions:detail.transactionDate")}
+              </span>
+              <div className="flex items-center gap-2 justify-end flex-wrap">
+                {tx.customDate ? (
+                  <>
+                    <span className="text-muted text-xs line-through">
+                      {fmtDate(tx.transactionDate, FULL_DATE)}
+                    </span>
+                    <span className="text-text text-right">{fmtDate(tx.customDate, FULL_DATE)}</span>
+                    {onCustomDateChange && (
+                      <button
+                        className="text-muted hover:text-text text-xs leading-none"
+                        title={t("transactions:detail.resetDate")}
+                        onClick={() => void onCustomDateChange(tx.id, undefined)}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-text text-right">
+                    {fmtDate(tx.transactionDate, FULL_DATE)}
+                  </span>
+                )}
+                {onCustomDateChange && (
+                  <>
+                    <input
+                      ref={dateInputRef}
+                      type="date"
+                      className="w-0 h-0 opacity-0 overflow-hidden flex-none border-0 p-0"
+                      value={effectiveDate(tx) ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const naturalDate = tx.transactionDate;
+                        void onCustomDateChange(tx.id, val === naturalDate ? undefined : val || undefined);
+                      }}
+                    />
+                    <button
+                      className="text-muted hover:text-text text-xs leading-none"
+                      onClick={() => dateInputRef.current?.showPicker()}
+                    >
+                      <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
 
-            {showTransactionDate && (
-              <DetailRow label={t("transactions:detail.transactionDate")}>
-                {fmtDate(tx.transactionDate, FULL_DATE)}
+            {effectiveDate(tx) !== tx.bookingDate && (
+              <DetailRow label={t("transactions:detail.bookingDate")}>
+                {fmtDate(tx.bookingDate, FULL_DATE)}
               </DetailRow>
             )}
 

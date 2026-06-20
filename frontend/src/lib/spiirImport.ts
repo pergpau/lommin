@@ -287,7 +287,9 @@ export function buildImportPayload(
     }
 
     const dateRaw = f[idx["Date"]];
-    const bookingDate = dateRaw ? convertDate(dateRaw) : undefined;
+    const bookingDate = dateRaw ? convertDate(dateRaw) : "";
+    const customDateRaw = f[idx["CustomDate"]];
+    const customDate = customDateRaw ? convertDate(customDateRaw) : undefined;
     const categoryIdRaw = f[idx["CategoryId"]];
     const csvCategoryId = categoryIdRaw ? parseInt(categoryIdRaw, 10) : undefined;
     const parsedCsvCategoryId = csvCategoryId && !isNaN(csvCategoryId) ? csvCategoryId : undefined;
@@ -300,6 +302,8 @@ export function buildImportPayload(
       accountUid: targetUid,
       entryReference,
       bookingDate,
+      transactionDate: bookingDate,
+      customDate,
       amount,
       currency,
       creditDebit: amount > 0 ? "CRDT" : "DBIT",
@@ -485,7 +489,9 @@ export async function buildImportPayloadFromZip(
 
     // Date is ISO 8601: "2019-09-23T00:00:00.0000000Z" → "2019-09-23"
     const dateRaw = f[pIdx["Date"]];
-    const bookingDate = dateRaw ? dateRaw.slice(0, 10) : undefined;
+    const bookingDate = dateRaw ? dateRaw.slice(0, 10) : "";
+    const customDateZipRaw = f[pIdx["CustomDate"]];
+    const customDateZip = customDateZipRaw ? customDateZipRaw.slice(0, 10) : undefined;
 
     const categoryIdRaw = f[pIdx["SubcategoryId"]];
     const parsedCategoryId = categoryIdRaw ? parseInt(categoryIdRaw, 10) : NaN;
@@ -501,6 +507,8 @@ export async function buildImportPayloadFromZip(
       accountUid: targetUid,
       entryReference,
       bookingDate,
+      transactionDate: bookingDate,
+      customDate: customDateZip,
       amount,
       currency,
       creditDebit: amount > 0 ? "CRDT" : "DBIT",
