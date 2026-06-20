@@ -103,9 +103,6 @@ export default function SpendingBreakdown({ transactions, onCategoryChange, onIs
   const { t } = useTranslation(["charts", "categories"]);
   const [view, setView] = useState<View>({ level: "main" });
   const [showAll, setShowAll] = useState(false);
-  const [showAllIncome, setShowAllIncome] = useState(false);
-  const [showAllSaving, setShowAllSaving] = useState(false);
-  const [showAllExcluded, setShowAllExcluded] = useState(false);
 
   const eligible = useMemo(() => transactions.filter(isEligible), [transactions]);
 
@@ -367,9 +364,9 @@ export default function SpendingBreakdown({ transactions, onCategoryChange, onIs
   }
 
   const visibleExpenseRows = showAll ? expenseRows : expenseRows.filter((r) => r.count > 0);
-  const visibleIncomeRows = showAllIncome ? inntektSubRows : inntektSubRows.filter((r) => r.count > 0);
-  const visibleSparingSubs = showAllSaving ? sparingSubRows : sparingSubRows.filter((r) => r.count > 0);
-  const visibleExcludedSubs = showAllExcluded ? excludedSubRows : excludedSubRows.filter((r) => r.count > 0);
+  const visibleIncomeRows = showAll ? inntektSubRows : inntektSubRows.filter((r) => r.count > 0);
+  const visibleSparingSubs = showAll ? sparingSubRows : sparingSubRows.filter((r) => r.count > 0);
+  const visibleExcludedSubs = showAll ? excludedSubRows : excludedSubRows.filter((r) => r.count > 0);
 
   const incomeSectionTotal = inntektSubRows.reduce((sum, r) => sum + r.total, 0);
   const sparingSectionTotal = sparingSubRows.reduce((sum, r) => sum + r.total, 0);
@@ -399,9 +396,6 @@ export default function SpendingBreakdown({ transactions, onCategoryChange, onIs
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{t("charts:breakdown.income")}</h3>
-            <button onClick={() => setShowAllIncome((v) => !v)} className={pillClass(showAllIncome)}>
-              {t("charts:breakdown.showAll")}
-            </button>
           </div>
           <div className="card overflow-hidden">
             <div className="divide-y divide-border">
@@ -415,9 +409,6 @@ export default function SpendingBreakdown({ transactions, onCategoryChange, onIs
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{t("charts:breakdown.saving")}</h3>
-            <button onClick={() => setShowAllSaving((v) => !v)} className={pillClass(showAllSaving)}>
-              {t("charts:breakdown.showAll")}
-            </button>
           </div>
           {visibleSparingSubs.length > 0 && (
             <div className="card overflow-hidden">
@@ -433,9 +424,6 @@ export default function SpendingBreakdown({ transactions, onCategoryChange, onIs
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{t("charts:breakdown.excluded")}</h3>
-            <button onClick={() => setShowAllExcluded((v) => !v)} className={pillClass(showAllExcluded)}>
-              {t("charts:breakdown.showAll")}
-            </button>
           </div>
           {visibleExcludedSubs.length > 0 && (
             <div className="card overflow-hidden">
