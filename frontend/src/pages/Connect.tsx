@@ -303,7 +303,7 @@ export default function Connect() {
 
       {phase === "error" && <Alert type="error" message={error} className="mb-4" />}
 
-      {previousBanks.length > 0 && phase !== "connecting" && (
+      {previousBanks.length > 0 && (
         <Card className="p-4 mb-4">
           <label className="label">{t("previousBanks.label")}</label>
           <div className="flex flex-col gap-1.5 mt-1">
@@ -333,7 +333,7 @@ export default function Connect() {
             setSelected(null);
             setQuery("");
           }}
-          disabled={banksLoading || phase === "connecting"}
+          disabled={banksLoading}
         >
           {COUNTRY_CODES.map((code) => (
             <option key={code} value={code}>
@@ -387,14 +387,10 @@ export default function Connect() {
 
       <Button
         className="w-full py-2.5 justify-center"
-        disabled={!selected || phase === "connecting"}
-        loading={phase === "connecting"}
+        disabled={!selected}
         onClick={connect}
       >
-        {phase !== "connecting" && (
-          selected ? t("connectButton", { name: `"${selected.name}"` }) : t("connectButtonGeneric")
-        )}
-        {phase === "connecting" && t("redirecting")}
+        {selected ? t("connectButton", { name: `"${selected.name}"` }) : t("connectButtonGeneric")}
       </Button>
     </div>
   );
