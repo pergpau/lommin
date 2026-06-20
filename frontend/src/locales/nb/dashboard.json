@@ -31,6 +31,16 @@
     "dialogTitle": "Lagre sikkerhetskopi",
     "dialogHint": "Valgfritt: beskytt filen med et passord. La feltet stå tomt for å lagre uten kryptering."
   },
+  "duplicates": {
+    "bannerText": "Mulige duplikater funnet etter synkronisering",
+    "bannerAction": "Se gjennom",
+    "modalTitle": "Potensielle duplikater",
+    "pairCount_one": "{{count}} duplikatpar",
+    "pairCount_other": "{{count}} duplikatpar",
+    "deleteTitle": "Slett transaksjon",
+    "notDuplicate": "Ikke duplikat",
+    "dismissAll": "Avvis alle"
+  },
   "snackbar": {
     "savedToDrive": "Sikkerhetskopi lagret til Google Drive.",
     "savedToFile": "Sikkerhetskopi lagret som lokal fil.",

@@ -6,6 +6,7 @@ import { amountClass, effectiveDate, fmtAmount, fmtDate, statusLabel } from "../
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP, type MainCategory, type SubCategory } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
 import { getAccounts, type Account, type Transaction } from "../../lib/store";
+import DeleteConfirmModal from "../ui/DeleteConfirmModal";
 
 interface TransactionDetailProps {
   transaction: Transaction;
@@ -45,6 +46,7 @@ export default function TransactionDetail({
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={(e) => {
+        e.stopPropagation();
         if (e.target === e.currentTarget) onClose();
       }}
       onKeyDown={(e) => {
@@ -281,36 +283,14 @@ export default function TransactionDetail({
         )}
       </div>
 
-      {confirmingDelete && (
-        <div
-          className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setConfirmingDelete(false);
-          }}
-        >
-          <div className="bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 shadow-xl p-6 flex flex-col gap-4">
-            <h2 className="text-sm font-semibold text-text">{t("transactions:detail.deleteConfirmTitle")}</h2>
-            <p className="text-xs text-muted leading-relaxed">{t("transactions:detail.deleteConfirmBody")}</p>
-            <div className="flex gap-2 justify-end">
-              <button
-                className="btn-ghost text-sm px-4 py-1.5"
-                onClick={() => setConfirmingDelete(false)}
-              >
-                {t("transactions:detail.deleteConfirmCancel")}
-              </button>
-              <button
-                className="text-sm px-4 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-colors"
-                onClick={() => {
-                  setConfirmingDelete(false);
-                  void onDelete!(tx.id).then(() => onClose());
-                }}
-              >
-                {t("transactions:detail.deleteConfirmOk")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmModal
+        open={confirmingDelete}
+        onCancel={() => setConfirmingDelete(false)}
+        onConfirm={() => {
+          setConfirmingDelete(false);
+          void onDelete!(tx.id).then(() => onClose());
+        }}
+      />
     </div>
   );
 }

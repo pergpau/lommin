@@ -7,6 +7,7 @@ import Connect from "./pages/Connect";
 import Dashboard from "./pages/Dashboard";
 import Account from "./pages/Account";
 import Settings from "./pages/Settings";
+import Duplicates from "./pages/Duplicates";
 import { loadKey } from "./lib/keystore";
 import { getAccounts } from "./lib/store";
 import Spinner from "./components/ui/Spinner";
@@ -78,6 +79,14 @@ export default function App() {
               element={
                 <RequireKey>
                   <Settings />
+                </RequireKey>
+              }
+            />
+            <Route
+              path="/duplicates"
+              element={
+                <RequireKey>
+                  <Duplicates />
                 </RequireKey>
               }
             />

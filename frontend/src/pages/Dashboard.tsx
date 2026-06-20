@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import AccountCard from "../components/AccountCard";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
@@ -21,10 +21,11 @@ import { DriveAuthError, saveBackupToDrive } from "../lib/googleDrive";
 import { loadKey } from "../lib/keystore";
 import { effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
-import { clearDriveToken, getAllSettings, getDriveToken } from "../lib/settings";
+import { clearDriveToken, getAllSettings, getDismissedPairs, getDriveToken } from "../lib/settings";
+import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
 import { addSaveListener, triggerAutosave } from "../lib/autosave";
 import { useSuccessFlash } from "../hooks/useSuccessFlash";
-import { clearAccounts, clearTransactions, exportAll, getEnableBankingSource } from "../lib/store";
+import { clearAccounts, clearTransactions, exportAll, getAllTransactions, getEnableBankingSource } from "../lib/store";
 import { deleteTransaction, setCategoryId, setComment, setCustomDate, setIsExtraordinary } from "../lib/mutations";
 
 type Tab = "categories" | "accounts" | "transactions";
@@ -32,6 +33,7 @@ type Tab = "categories" | "accounts" | "transactions";
 export default function Dashboard() {
   const { t } = useTranslation(["dashboard", "common"]);
   const navigate = useNavigate();
+  const location = useLocation();
   const { accounts, loading: accountsLoading, reload } = useAccounts();
   const { transactions, loading: txLoading, refresh } = useTransactions();
   const {
@@ -68,6 +70,7 @@ export default function Dashboard() {
       if (stored) setDashDriveToken(stored.token);
     });
     isDemoMode().then(setIsDemo);
+
   }, []);
 
   useEffect(() => {
@@ -146,6 +149,17 @@ export default function Dashboard() {
     }
   }, [loading, accounts.length]);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [showDuplicatesBanner, setShowDuplicatesBanner] = useState(false);
+
+  useEffect(() => {
+    if (!location.state?.checkDuplicates) return;
+    void (async () => {
+      const [all, dismissed] = await Promise.all([getAllTransactions(), getDismissedPairs()]);
+      const visible = filterVisiblePairs(detectDuplicatePairs(all), new Set(dismissed));
+      if (visible.length > 0) setShowDuplicatesBanner(true);
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function txSection(tx: (typeof transactions)[0]): "income" | "expense" | "saving" | null {
     if (tx.isExtraordinary) return null;
@@ -252,16 +266,32 @@ export default function Dashboard() {
   const TABS: Tab[] = ["categories", "transactions", "accounts"];
 
   return (
-    <>
+    <div className="max-w-3xl mx-auto px-4 py-8">
       {isDemo && (
-        <div className="bg-warning/10 border-b border-warning/20 px-4 py-3 flex items-center justify-between">
+        <div className="bg-warning/10 border border-warning/20 rounded-xl px-4 py-3 flex items-center justify-between mb-6">
           <span className="text-sm text-warning font-medium">{t("demo.banner")}</span>
           <Button variant="ghost" size="sm" loading={exitingDemo} onClick={exitDemo}>
             {t("demo.exit")}
           </Button>
         </div>
       )}
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      {showDuplicatesBanner && (
+        <div className="bg-warning/10 border border-warning/20 rounded-xl px-4 py-3 flex items-center justify-between gap-3 mb-6">
+          <span className="text-sm text-warning font-medium">{t("duplicates.bannerText")}</span>
+          <div className="flex items-center gap-1 shrink-0">
+            <Button variant="ghost" size="sm" className="border border-warning/40 text-warning hover:text-warning hover:bg-warning/10" onClick={() => navigate("/duplicates")}>
+              {t("duplicates.bannerAction")}
+            </Button>
+            <button
+              onClick={() => setShowDuplicatesBanner(false)}
+              className="p-1.5 text-warning/60 hover:text-warning transition-colors"
+              aria-label={t("common:actions.close")}
+            >
+              <XIcon size={14} />
+            </button>
+          </div>
+        </div>
+      )}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-xl font-semibold text-text">{t("title")}</h1>
@@ -284,7 +314,7 @@ export default function Dashboard() {
               <Button
                 loading={syncing}
                 success={syncSuccess}
-                onClick={() => runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); } })}
+                onClick={() => runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); setShowDuplicatesBanner(true); } })}
               >
                 <RefreshCwIcon size={14} />
                 {t("actions.sync")}
@@ -329,7 +359,7 @@ export default function Dashboard() {
                     disabled={syncing}
                     onClick={() => {
                       setActionsOpen(false);
-                      runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); } });
+                      runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); setShowDuplicatesBanner(true); } });
                     }}
                   >
                     <RefreshCwIcon size={13} />
@@ -489,7 +519,6 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-      </div>
-    </>
+    </div>
   );
 }

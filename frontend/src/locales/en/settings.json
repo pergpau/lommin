@@ -54,6 +54,16 @@
   "spiir": {
     "title": "Import from Spiir"
   },
+  "duplicates": {
+    "title": "Duplicate check",
+    "description": "Scan transactions for potential duplicates — same account, same amount within 1 day.",
+    "check": "Check for duplicates",
+    "checking": "Checking…",
+    "noneFound": "No duplicates found.",
+    "found_one": "{{count}} potential duplicate pair found.",
+    "found_other": "{{count}} potential duplicate pairs found.",
+    "review": "Review"
+  },
   "ownImport": {
     "title": "Import from your own data",
     "comingSoon": "Coming soon. Here you'll be able to import transactions from your own CSV files and other sources."

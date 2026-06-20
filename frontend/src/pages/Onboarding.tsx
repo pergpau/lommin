@@ -374,7 +374,7 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
       await setSetting("backupMethod", "file");
       setFileState("done");
       setFileMsg(t("restore.restored", { count: inserted }));
-      setTimeout(() => navigate("/dashboard"), 1000);
+      setTimeout(() => navigate("/dashboard", { state: { checkDuplicates: true } }), 1000);
     } catch (e) {
       if ((e as Error).name === "AbortError") {
         setFileState("idle");
@@ -427,7 +427,7 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
       await setSetting("backupMethod", "drive");
       setDriveState("done");
       setDriveMsg(t("restore.restored", { count: inserted }));
-      setTimeout(() => navigate("/dashboard"), 1000);
+      setTimeout(() => navigate("/dashboard", { state: { checkDuplicates: true } }), 1000);
     } catch (e) {
       if (e instanceof DriveAuthError) setDriveToken(null);
       const isDecryptErr = e instanceof DOMException && e.name === "OperationError";
@@ -625,7 +625,7 @@ export default function Onboarding() {
         {current.kind === "import-spiir" && (
           <div>
             <h2 className="text-xl font-semibold text-text mb-1">{t("importSpiir.title")}</h2>
-            <SpiirImportPanel onSuccess={() => navigate("/dashboard")} />
+            <SpiirImportPanel onSuccess={() => navigate("/dashboard", { state: { checkDuplicates: true } })} />
           </div>
         )}
         {current.kind === "import-own" && <StepImportOwn />}

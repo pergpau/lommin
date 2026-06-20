@@ -128,6 +128,50 @@ export async function persistDriveToken(token: string, expiresIn: number): Promi
   });
 }
 
+export async function getDismissedPairs(): Promise<string[]> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const req = tx.objectStore(STORE).get("dismissedDuplicatePairs");
+    req.onsuccess = () => resolve((req.result?.v as string[] | undefined) ?? []);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function addDismissedPair(key: string): Promise<void> {
+  const existing = await getDismissedPairs();
+  if (existing.includes(key)) return;
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).put({ k: "dismissedDuplicatePairs", v: [...existing, key] });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function dismissAllPairs(keys: string[]): Promise<void> {
+  const existing = await getDismissedPairs();
+  const merged = Array.from(new Set([...existing, ...keys]));
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).put({ k: "dismissedDuplicatePairs", v: merged });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function clearDismissedPairs(): Promise<void> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).delete("dismissedDuplicatePairs");
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 export async function clearDriveToken(): Promise<void> {
   const db = await openDb();
   return new Promise((resolve, reject) => {

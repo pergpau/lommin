@@ -31,6 +31,16 @@
     "dialogTitle": "Save backup",
     "dialogHint": "Optional: protect the file with a password. Leave blank to save without encryption."
   },
+  "duplicates": {
+    "bannerText": "Potential duplicates found after sync",
+    "bannerAction": "Review",
+    "modalTitle": "Potential duplicates",
+    "pairCount_one": "{{count}} duplicate pair",
+    "pairCount_other": "{{count}} duplicate pairs",
+    "deleteTitle": "Delete transaction",
+    "notDuplicate": "Not a duplicate",
+    "dismissAll": "Dismiss all"
+  },
   "snackbar": {
     "savedToDrive": "Backup saved to Google Drive.",
     "savedToFile": "Backup saved as local file.",

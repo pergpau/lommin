@@ -62,6 +62,16 @@
   "spiir": {
     "title": "Importer fra Spiir"
   },
+  "duplicates": {
+    "title": "Duplikatkontroll",
+    "description": "Søk etter potensielle duplikater — samme konto, samme beløp innen 1 dag.",
+    "check": "Se etter duplikater",
+    "checking": "Søker…",
+    "noneFound": "Ingen duplikater funnet.",
+    "found_one": "{{count}} potensielt duplikatpar funnet.",
+    "found_other": "{{count}} potensielle duplikatpar funnet.",
+    "review": "Se gjennom"
+  },
   "ownImport": {
     "title": "Import fra egne data",
     "comingSoon": "Kommer snart. Her vil du kunne importere transaksjoner fra egne CSV-filer og andre kilder."

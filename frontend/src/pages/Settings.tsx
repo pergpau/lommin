@@ -11,6 +11,7 @@ import Input from "../components/ui/Input";
 import { useSnackbar } from "../components/ui/Snackbar";
 import { loadEncryptedFile, saveEncryptedFile } from "../lib/cryptoFile";
 import { isDemoMode } from "../lib/demoData";
+import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
 import {
   DriveAuthError,
   loadBackupFromDrive,
@@ -18,13 +19,14 @@ import {
   signInWithGoogle,
 } from "../lib/googleDrive";
 import { clearKey, loadKey, saveKey } from "../lib/keystore";
-import { clearDriveToken, getAllSettings, getDriveToken, getSetting, HOSTED_PROXY_URL, persistDriveToken, setSetting } from "../lib/settings";
+import { clearDismissedPairs, clearDriveToken, getAllSettings, getDismissedPairs, getDriveToken, getSetting, HOSTED_PROXY_URL, persistDriveToken, setSetting } from "../lib/settings";
 import {
   clearAccounts,
   clearTransactions,
   exportAll,
   getAllTransactions,
   importAll,
+  type Transaction,
 } from "../lib/store";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
@@ -74,6 +76,8 @@ export default function Settings() {
   const [driveToken, setDriveToken] = useState<string | null>(null);
   const [driveSyncing, setDriveSyncing] = useState<"connect" | "save" | "load" | null>(null);
   const [dialogPassphrase, setDialogPassphrase] = useState("");
+  const [checkingDuplicates, setCheckingDuplicates] = useState(false);
+  const [duplicatePairs, setDuplicatePairs] = useState<[Transaction, Transaction][] | null>(null);
   const [wiping, setWiping] = useState(false);
   const [wipingAccounts, setWipingAccounts] = useState(false);
   const [wipingAll, setWipingAll] = useState(false);
@@ -187,6 +191,17 @@ export default function Settings() {
     void setSetting("backupMethod", method);
   }, []);
 
+  const runDuplicateCheck = useCallback(async () => {
+    setCheckingDuplicates(true);
+    try {
+      const [all, dismissed] = await Promise.all([getAllTransactions(), getDismissedPairs()]);
+      const pairs = detectDuplicatePairs(all);
+      setDuplicatePairs(filterVisiblePairs(pairs, new Set(dismissed)));
+    } finally {
+      setCheckingDuplicates(false);
+    }
+  }, []);
+
   const saveFile = useCallback(async (passphrase: string) => {
     setDialog(null);
     setSyncing("save");
@@ -211,6 +226,7 @@ export default function Settings() {
       const data = await loadEncryptedFile(passphrase);
       await importAll(data);
       showSnackbar(t("settings:snackbar.restoreSuccess"), "ok");
+      navigate("/dashboard", { state: { checkDuplicates: true } });
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
         const isDecryptErr = e instanceof DOMException && e.name === "OperationError";
@@ -225,7 +241,7 @@ export default function Settings() {
       setSyncing(null);
       setDialogPassphrase("");
     }
-  }, [showSnackbar, t]);
+  }, [showSnackbar, t, navigate]);
 
   const connectDrive = useCallback(async () => {
     if (!GOOGLE_CLIENT_ID) return;
@@ -295,12 +311,13 @@ export default function Settings() {
     try {
       await importAll(data);
       showSnackbar(t("settings:snackbar.driveRestoreSuccess"), "ok");
+      navigate("/dashboard", { state: { checkDuplicates: true } });
     } catch (e) {
       showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.loadFailed"), "error");
     } finally {
       setDriveSyncing(null);
     }
-  }, [restorePreview, showSnackbar, t]);
+  }, [restorePreview, showSnackbar, t, navigate]);
 
   const forgetKey = useCallback(async () => {
     await clearKey();
@@ -314,6 +331,7 @@ export default function Settings() {
     try {
       await clearTransactions();
       await clearAccounts();
+      await clearDismissedPairs();
       showSnackbar(t("settings:snackbar.accountsDeleted"), "ok");
     } catch (e) {
       showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.deleteFailed"), "error");
@@ -327,6 +345,7 @@ export default function Settings() {
     setWiping(true);
     try {
       await clearTransactions();
+      await clearDismissedPairs();
       showSnackbar(t("settings:snackbar.txDeleted"), "ok");
     } catch (e) {
       showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.deleteFailed"), "error");
@@ -343,6 +362,7 @@ export default function Settings() {
       await clearAccounts();
       await clearKey();
       await clearDriveToken();
+      await clearDismissedPairs();
       navigate("/onboarding");
     } catch (e) {
       showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.deleteFailed"), "error");
@@ -677,7 +697,31 @@ export default function Settings() {
         className={`p-5 mb-4 transition-shadow duration-300 ${highlightedHash === "#spiir" ? "ring-2 ring-accent" : ""}`}
       >
         <h2 className="text-sm font-semibold text-text mb-1">{t("settings:spiir.title")}</h2>
-        <SpiirImportPanel />
+        <SpiirImportPanel onSuccess={() => navigate("/dashboard", { state: { checkDuplicates: true } })} />
+      </Card>
+
+      <Card className="p-5 mb-4">
+        <h2 className="text-sm font-semibold text-text mb-1">{t("settings:duplicates.title")}</h2>
+        <p className="text-xs text-muted mb-3">{t("settings:duplicates.description")}</p>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Button loading={checkingDuplicates} onClick={() => void runDuplicateCheck()}>
+            {checkingDuplicates ? t("settings:duplicates.checking") : t("settings:duplicates.check")}
+          </Button>
+          {duplicatePairs !== null && (
+            duplicatePairs.length === 0 ? (
+              <span className="text-xs text-positive">{t("settings:duplicates.noneFound")}</span>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-warning">
+                  {t("settings:duplicates.found", { count: duplicatePairs.length })}
+                </span>
+                <Button variant="ghost" onClick={() => navigate("/duplicates")}>
+                  {t("settings:duplicates.review")}
+                </Button>
+              </div>
+            )
+          )}
+        </div>
       </Card>
 
       <Card id="import" className="p-5 mb-4">
