@@ -52,7 +52,7 @@
     "appIdLabel": "App ID",
     "saveAndNext": "Lagre og fortsett",
     "keyImported": "Nøkkel importert",
-    "sendingToDash": "Sender deg til dashbordet…",
+    "sendingToDash": "Sender deg til oversikten…",
     "saveFailed": "Klarte ikke å lagre nøkkelen"
   },
   "importPick": {
@@ -71,13 +71,13 @@
     "title": "Importer fra Spiir"
   },
   "importOwn": {
-    "title": "Import fra egne data",
+    "title": "Importer fra egne data",
     "body": "Importer transaksjoner fra egne CSV-filer og andre kilder.",
     "comingSoon": "Kommer snart"
   },
   "restore": {
     "title": "Gjenopprett",
-    "body": "Dekrypter og flett inn kontoer og transaksjoner fra en tidligere sikkerhetskopi.",
+    "body": "Dekrypter og gjenopprett kontoer og transaksjoner fra en tidligere sikkerhetskopi.",
     "fromFile": {
       "title": "Fra lokal fil",
       "body": "Dekrypter en <enc>.enc</enc>-sikkerhetskopi fra din enhet.",
@@ -110,7 +110,7 @@
     "bullet2": "· ~35 transaksjoner over 3 måneder med kategorier",
     "bullet3": "· Eksempel på budsjett og forbruksoversikt",
     "startButton": "Start demo",
-    "hasDataError": "Du har allerede data. Slett eksisterende data i innstillingene før du starter demo.",
+    "hasDataError": "Du har allerede data. Slett eksisterende data i innstillingene før du starter demoen.",
     "startFailed": "Klarte ikke å starte demo"
   }
 }

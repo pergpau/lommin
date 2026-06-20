@@ -22,7 +22,7 @@
   },
   "csrfError": "State-mismatch — mulig CSRF. Oppdater siden og prøv igjen.",
   "authFailed": "Kunne ikke starte autentisering",
-  "loadBanksFailed": "Kunne ikke laste bankerliste",
+  "loadBanksFailed": "Kunne ikke laste inn banklisten",
   "sessionFailed": "Kunne ikke opprette økt",
   "proxyUnreachable": "Kan ikke nå proxyen",
   "oauthSuccess": "Autentisering vellykket – du kan lukke dette vinduet.",

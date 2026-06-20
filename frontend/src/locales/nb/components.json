@@ -1,11 +1,11 @@
 {
   "accountCard": {
-    "notSynced": "Ikke syncet",
-    "lastSynced": "Sist syncet: {{time}}",
+    "notSynced": "Ikke synkronisert",
+    "lastSynced": "Sist synkronisert: {{time}}",
     "fetching": "Henter transaksjoner…",
     "syncing": "Synkroniserer…",
     "reconnect": "Koble til på nytt",
-    "rateLimit": "Oops, du har prøvd for mange ganger. Prøv igjen senere.",
+    "rateLimit": "For mange forespørsler. Prøv igjen senere.",
     "connected": "Tilkoblet",
     "importedFromSpiir": "Importert fra Spiir",
     "transactions_one": "{{count}} transaksjon",
@@ -32,7 +32,7 @@
     },
     "step3": {
       "title": "Koble til kontoene dine",
-      "body": "Link kontoene du vil synkronisere med Lommin."
+      "body": "Koble til kontoene du vil synkronisere med Lommin."
     },
     "step4": {
       "title": "Last ned nøkkelfila",

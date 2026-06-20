@@ -19,14 +19,14 @@
     "description": "Alle Enable Banking API-kall rutes gjennom denne proxyen.",
     "lommin": "Lommin proxy (standard)",
     "custom": "Egendefinert",
-    "warning": "OBS! Lommis egen proxy videresender trafikken din til Enable Banking og kan i teorien lese dine transaksjonsdata og ditt kortlivede tilgangstoken (men aldri signeringsnøkkelen). Lommi lagrer ingen av dine data, men du må rett og slett bare stole på at det er sant. Hvis du ikke gjør det kan du velge å registrere din egen proxy her.",
+    "warning": "OBS! Lommins delte proxy videresender trafikken din til Enable Banking og kan i teorien lese transaksjonsdata og kortlivede tilgangstokens (men aldri signeringsnøkkelen). Lommin lagrer ingen av dataene dine, men du må stole på det. Hvis du ikke ønsker det, kan du registrere din egen proxy her.",
     "urlLabel": "Proxy-URL",
     "urlPlaceholder": "https://din-proxy.workers.dev"
   },
   "sync": {
     "title": "Synkronisering",
     "description": "Hvor langt tilbake første synkronisering av en konto henter transaksjoner. Senere synkroniseringer fortsetter der forrige slapp.",
-    "lookbackLabel": "Historikk ved første synk (dager)"
+    "lookbackLabel": "Historikk ved første synkronisering (dager)"
   },
   "backup": {
     "title": "Lagre og gjenopprett",
@@ -73,7 +73,7 @@
     "review": "Se gjennom"
   },
   "ownImport": {
-    "title": "Import fra egne data",
+    "title": "Importer fra egne data",
     "comingSoon": "Kommer snart. Her vil du kunne importere transaksjoner fra egne CSV-filer og andre kilder."
   },
   "danger": {
@@ -92,7 +92,7 @@
     "syncPeriodSaved": "Synkroniseringsperiode lagret.",
     "appIdUpdated": "App ID oppdatert.",
     "accountsDeleted": "Alle kontoer og transaksjoner er slettet.",
-    "txDeleted": "Transaksjoner slettet. Kjør Synkroniser på oversikten for å hente på nytt.",
+    "txDeleted": "Transaksjoner slettet. Gå til oversikten og synkroniser for å hente på nytt.",
     "saveFailed": "Lagring feilet",
     "deleteFailed": "Sletting feilet",
     "savedToDrive": "Sikkerhetskopi lagret til Google Drive.",

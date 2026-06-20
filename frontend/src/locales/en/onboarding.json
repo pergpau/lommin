@@ -77,7 +77,7 @@
   },
   "restore": {
     "title": "Restore",
-    "body": "Decrypt and merge accounts and transactions from a previous backup.",
+    "body": "Decrypt and restore accounts and transactions from a previous backup.",
     "fromFile": {
       "title": "From local file",
       "body": "Decrypt an <enc>.enc</enc> backup from your device.",

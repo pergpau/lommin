@@ -19,7 +19,7 @@
     "description": "All Enable Banking API calls are routed through this proxy.",
     "lommin": "Lommin proxy (default)",
     "custom": "Custom",
-    "warning": "Note! Lommin's shared proxy forwards your traffic to Enable Banking and could in theory read your transaction data and your short-lived access token (but never the signing key). Lommin stores none of your data, but you simply have to trust that. If you don't, you can register your own proxy here.",
+    "warning": "Note: Lommin's shared proxy forwards your traffic to Enable Banking and could in theory read your transaction data and short-lived access tokens (but never the signing key). Lommin stores none of your data. If that's a concern, you can run your own proxy here.",
     "urlLabel": "Proxy URL",
     "urlPlaceholder": "https://your-proxy.workers.dev"
   },
@@ -49,7 +49,15 @@
     "dialogSaveHint": "Optional: protect the file with a password. Leave blank to save without encryption.",
     "dialogLoadHint": "Enter the password you used when saving, or leave blank.",
     "dialogActionSave": "Save",
-    "dialogActionLoad": "Load"
+    "dialogActionLoad": "Load",
+    "restorePreviewTitle": "Restore from Google Drive",
+    "restorePreviewLocalLabel": "Last saved locally",
+    "restorePreviewRemoteLabel": "Drive copy saved",
+    "restorePreviewNever": "Never",
+    "restorePreviewFileCount": "Transactions in backup",
+    "restorePreviewLocalCount": "Transactions locally",
+    "restorePreviewWarning": "The backup contains more transactions than your local database. You may overwrite data that is not included in the backup.",
+    "restorePreviewProceed": "Load"
   },
   "spiir": {
     "title": "Import from Spiir"
@@ -84,7 +92,7 @@
     "syncPeriodSaved": "Sync period saved.",
     "appIdUpdated": "App ID updated.",
     "accountsDeleted": "All accounts and transactions deleted.",
-    "txDeleted": "Transactions deleted. Run Sync on the overview to re-fetch.",
+    "txDeleted": "Transactions deleted. Go to Overview and sync to re-fetch.",
     "saveFailed": "Save failed",
     "deleteFailed": "Delete failed",
     "savedToDrive": "Backup saved to Google Drive.",
@@ -92,7 +100,7 @@
     "restoreSuccess": "Data restored from backup.",
     "driveRestoreSuccess": "Data restored from Google Drive.",
     "wrongPassword": "Wrong password.",
-    "encryptedFile": "File is encrypted with a password. Check \"Use password\" and try again.",
+    "encryptedFile": "File is encrypted with a password. Enable \"Use password\" and try again.",
     "loadFailed": "Load failed",
     "connectFailed": "Connection failed",
     "saveKeyFailed": "Failed to save key",
