@@ -18,11 +18,12 @@ import {
   signInWithGoogle,
 } from "../lib/googleDrive";
 import { clearKey, loadKey, saveKey } from "../lib/keystore";
-import { clearDriveToken, getAllSettings, getDriveToken, HOSTED_PROXY_URL, persistDriveToken, setSetting } from "../lib/settings";
+import { clearDriveToken, getAllSettings, getDriveToken, getSetting, HOSTED_PROXY_URL, persistDriveToken, setSetting } from "../lib/settings";
 import {
   clearAccounts,
   clearTransactions,
   exportAll,
+  getAllTransactions,
   importAll,
 } from "../lib/store";
 
@@ -63,6 +64,13 @@ export default function Settings() {
   const [backupMethod, setBackupMethod] = useState<"drive" | "file">("file");
   const [driveAutosave, setDriveAutosave] = useState(true);
   const [dialog, setDialog] = useState<"save" | "load" | "drive-save" | "drive-load" | null>(null);
+  const [restorePreview, setRestorePreview] = useState<{
+    data: object;
+    fileCount: number;
+    localCount: number;
+    remoteSavedAt: number | null;
+    localSavedAt: number | null;
+  } | null>(null);
   const [driveToken, setDriveToken] = useState<string | null>(null);
   const [driveSyncing, setDriveSyncing] = useState<"connect" | "save" | "load" | null>(null);
   const [dialogPassphrase, setDialogPassphrase] = useState("");
@@ -185,6 +193,7 @@ export default function Settings() {
     try {
       const data = await exportAll();
       await saveEncryptedFile(data, passphrase);
+      void setSetting("lastLocalSavedAt", Date.now());
       showSnackbar(t("settings:snackbar.savedToFile"), "ok");
     } catch (e) {
       if ((e as Error).name !== "AbortError")
@@ -239,6 +248,7 @@ export default function Settings() {
     try {
       const data = await exportAll();
       await saveBackupToDrive(driveToken, data, passphrase);
+      void setSetting("lastLocalSavedAt", Date.now());
       showSnackbar(t("settings:snackbar.savedToDrive"), "ok");
     } catch (e) {
       if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
@@ -255,8 +265,13 @@ export default function Settings() {
     setDriveSyncing("load");
     try {
       const data = await loadBackupFromDrive(driveToken, passphrase);
-      await importAll(data);
-      showSnackbar(t("settings:snackbar.driveRestoreSuccess"), "ok");
+      const [localTxs, localSavedAt] = await Promise.all([
+        getAllTransactions(),
+        getSetting("lastLocalSavedAt"),
+      ]);
+      const raw = data as { transactions?: unknown[]; exportedAt?: number };
+      const fileCount = Array.isArray(raw.transactions) ? raw.transactions.length : 0;
+      setRestorePreview({ data, fileCount, localCount: localTxs.length, remoteSavedAt: raw.exportedAt ?? null, localSavedAt });
     } catch (e) {
       if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
       const isDecryptErr = e instanceof DOMException && e.name === "OperationError";
@@ -271,6 +286,21 @@ export default function Settings() {
       setDialogPassphrase("");
     }
   }, [driveToken, showSnackbar, t]);
+
+  const confirmDriveRestore = useCallback(async () => {
+    if (!restorePreview) return;
+    const { data } = restorePreview;
+    setRestorePreview(null);
+    setDriveSyncing("load");
+    try {
+      await importAll(data);
+      showSnackbar(t("settings:snackbar.driveRestoreSuccess"), "ok");
+    } catch (e) {
+      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.loadFailed"), "error");
+    } finally {
+      setDriveSyncing(null);
+    }
+  }, [restorePreview, showSnackbar, t]);
 
   const forgetKey = useCallback(async () => {
     await clearKey();
@@ -724,6 +754,63 @@ export default function Settings() {
           </Button>
         </div>
       </Card>
+
+      {restorePreview && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={() => setRestorePreview(null)}
+        >
+          <div
+            className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-semibold text-text mb-3">{t("settings:backup.restorePreviewTitle")}</h3>
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted">{t("settings:backup.restorePreviewLocalLabel")}</span>
+                <span className="font-medium text-text">
+                  {restorePreview.localSavedAt
+                    ? new Date(restorePreview.localSavedAt).toLocaleString("nb-NO", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                    : t("settings:backup.restorePreviewNever")}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted">{t("settings:backup.restorePreviewRemoteLabel")}</span>
+                <span className="font-medium text-text">
+                  {restorePreview.remoteSavedAt
+                    ? new Date(restorePreview.remoteSavedAt).toLocaleString("nb-NO", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                    : "—"}
+                </span>
+              </div>
+              <div className="border-t border-border pt-2 mt-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted">{t("settings:backup.restorePreviewFileCount")}</span>
+                  <span className="font-medium text-text">{restorePreview.fileCount}</span>
+                </div>
+                <div className="flex justify-between text-xs mt-1">
+                  <span className="text-muted">{t("settings:backup.restorePreviewLocalCount")}</span>
+                  <span className="font-medium text-text">{restorePreview.localCount}</span>
+                </div>
+              </div>
+            </div>
+            {restorePreview.fileCount > restorePreview.localCount && (
+              <div className="border border-warning/20 bg-warning/5 rounded-lg p-3 mb-4">
+                <p className="text-xs text-warning leading-relaxed">
+                  {t("settings:backup.restorePreviewWarning")}
+                </p>
+              </div>
+            )}
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost" onClick={() => setRestorePreview(null)}>
+                {t("common:actions.cancel")}
+              </Button>
+              <Button onClick={() => void confirmDriveRestore()}>
+                {t("settings:backup.restorePreviewProceed")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {wipeAllDialog && (
         <div

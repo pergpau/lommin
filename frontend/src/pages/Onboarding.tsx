@@ -371,6 +371,7 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
     setFileMsg("");
     try {
       const { inserted } = await importAll(await loadEncryptedFile(passphrase));
+      await setSetting("backupMethod", "file");
       setFileState("done");
       setFileMsg(t("restore.restored", { count: inserted }));
       setTimeout(() => navigate("/dashboard"), 1000);
@@ -423,6 +424,7 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
       const { inserted } = await importAll(
         await loadBackupFromDrive(driveToken, drivePassphrase),
       );
+      await setSetting("backupMethod", "drive");
       setDriveState("done");
       setDriveMsg(t("restore.restored", { count: inserted }));
       setTimeout(() => navigate("/dashboard"), 1000);

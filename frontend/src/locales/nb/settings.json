@@ -49,7 +49,15 @@
     "dialogSaveHint": "Valgfritt: beskytt filen med et passord. La feltet stå tomt for å lagre uten kryptering.",
     "dialogLoadHint": "Skriv inn passordet du brukte ved lagring, eller la feltet stå tomt.",
     "dialogActionSave": "Lagre",
-    "dialogActionLoad": "Last inn"
+    "dialogActionLoad": "Last inn",
+    "restorePreviewTitle": "Gjenopprett fra Google Drive",
+    "restorePreviewLocalLabel": "Lokalt lagret",
+    "restorePreviewRemoteLabel": "Drive-kopi lagret",
+    "restorePreviewNever": "Aldri",
+    "restorePreviewFileCount": "Transaksjoner i sikkerhetskopi",
+    "restorePreviewLocalCount": "Transaksjoner lokalt",
+    "restorePreviewWarning": "Sikkerhetskopien inneholder flere transaksjoner enn din lokale database. Du kan overskrive viktige data som ikke er inkludert i sikkerhetskopien.",
+    "restorePreviewProceed": "Last inn"
   },
   "spiir": {
     "title": "Importer fra Spiir"
