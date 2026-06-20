@@ -19,7 +19,7 @@ import {
   signInWithGoogle,
 } from "../lib/googleDrive";
 import { clearKey, loadKey, saveKey } from "../lib/keystore";
-import { clearDismissedPairs, clearDriveToken, getAllSettings, getDismissedPairs, getDriveToken, getSetting, HOSTED_PROXY_URL, persistDriveToken, setSetting } from "../lib/settings";
+import { clearDismissedPairs, clearDriveToken, getAllSettings, getDismissedPairs, getDriveToken, getSetting, hasSetting, HOSTED_PROXY_URL, persistDriveToken, setSetting } from "../lib/settings";
 import {
   clearAccounts,
   clearTransactions,
@@ -63,7 +63,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState<"save" | "load" | null>(null);
   const [usePassphrase, setUsePassphrase] = useState(false);
-  const [backupMethod, setBackupMethod] = useState<"drive" | "file">("file");
+  const [backupMethod, setBackupMethod] = useState<"drive" | "file" | null>(null);
   const [driveAutosave, setDriveAutosave] = useState(true);
   const [dialog, setDialog] = useState<"save" | "load" | "drive-save" | "drive-load" | null>(null);
   const [restorePreview, setRestorePreview] = useState<{
@@ -89,7 +89,7 @@ export default function Settings() {
   }, []);
 
   useEffect(() => {
-    getAllSettings().then((s) => {
+    Promise.all([getAllSettings(), hasSetting("backupMethod")]).then(([s, hasMethod]) => {
       if (s.proxyUrl === HOSTED_PROXY_URL) {
         setProxyMode("lommin");
       } else {
@@ -98,7 +98,7 @@ export default function Settings() {
       }
       setLookbackDays(String(s.lookbackDays));
       setUsePassphrase(s.usePassphrase);
-      setBackupMethod(s.backupMethod);
+      setBackupMethod(hasMethod ? s.backupMethod : null);
       setDriveAutosave(s.driveAutosave);
     });
     loadKey().then((kv) => {
@@ -661,7 +661,7 @@ export default function Settings() {
                 </div>
               )}
             </div>
-          ) : (
+          ) : backupMethod === "file" ? (
             <div>
               <div className="flex gap-2">
                 <Button
@@ -685,7 +685,7 @@ export default function Settings() {
                 </Button>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </Card>
 

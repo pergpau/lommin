@@ -61,6 +61,16 @@ function openDb(): Promise<IDBDatabase> {
   });
 }
 
+export async function hasSetting(key: keyof AppSettings): Promise<boolean> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const req = tx.objectStore(STORE).count(key);
+    req.onsuccess = () => resolve(req.result > 0);
+    req.onerror = () => reject(req.error);
+  });
+}
+
 export async function getSetting<K extends keyof AppSettings>(key: K): Promise<AppSettings[K]> {
   const db = await openDb();
   return new Promise((resolve, reject) => {

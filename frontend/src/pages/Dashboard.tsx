@@ -20,7 +20,7 @@ import { DriveAuthError, saveBackupToDrive } from "../lib/googleDrive";
 import { loadKey } from "../lib/keystore";
 import { effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
-import { clearDriveToken, getAllSettings, getDismissedPairs, getDriveToken } from "../lib/settings";
+import { clearDriveToken, getAllSettings, getDismissedPairs, getDriveToken, hasSetting } from "../lib/settings";
 import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
 import { addSaveListener, triggerAutosave } from "../lib/autosave";
 import { useSuccessFlash } from "../hooks/useSuccessFlash";
@@ -46,6 +46,7 @@ export default function Dashboard() {
   const { showSnackbar } = useSnackbar();
   const [hasKey, setHasKey] = useState(true);
   const [backupMethod, setBackupMethod] = useState<"drive" | "file">("file");
+  const [hasBackupMethod, setHasBackupMethod] = useState(false);
   const [usePassphrase, setUsePassphrase] = useState(false);
   const [dashDriveToken, setDashDriveToken] = useState<string | null>(null);
   const [dashBackupSaving, setDashBackupSaving] = useState(false);
@@ -69,6 +70,7 @@ export default function Dashboard() {
       if (stored) setDashDriveToken(stored.token);
     });
     isDemoMode().then(setIsDemo);
+    hasSetting("backupMethod").then(setHasBackupMethod);
 
   }, []);
 
@@ -88,6 +90,10 @@ export default function Dashboard() {
   }, [failedAccounts, showSnackbar]);
 
   const handleQuickSaveClick = useCallback(() => {
+    if (!hasBackupMethod) {
+      navigate("/settings#backup");
+      return;
+    }
     if (usePassphrase) {
       setDashPassphrase("");
       setDashDialog(true);
@@ -95,7 +101,7 @@ export default function Dashboard() {
       void handleQuickSave("");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [usePassphrase, backupMethod, dashDriveToken]);
+  }, [hasBackupMethod, usePassphrase, backupMethod, dashDriveToken, navigate]);
 
   const handleQuickSave = useCallback(async (passphrase: string) => {
     setDashDialog(false);
