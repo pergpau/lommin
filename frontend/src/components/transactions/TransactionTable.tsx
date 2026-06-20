@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Transaction } from "../../lib/store";
 import { PAGE_SIZE } from "../../constants";
+import SearchInput from "../ui/SearchInput";
 import CategoryPicker from "./CategoryPicker";
 import TransactionDetail from "./TransactionDetail";
 import TransactionRow from "./TransactionRow";
@@ -30,6 +31,7 @@ export default function TransactionTable({
   const { t } = useTranslation("transactions");
   const [page, setPage] = useState(0);
   const [prevTransactions, setPrevTransactions] = useState(transactions);
+  const [search, setSearch] = useState("");
   const [pickerFor, setPickerFor] = useState<Transaction | null>(null);
   const [detailForId, setDetailForId] = useState<string | null>(null);
   const detailFor = detailForId ? (transactions.find((tx) => tx.id === detailForId) ?? null) : null;
@@ -39,8 +41,18 @@ export default function TransactionTable({
     setPage(0);
   }
 
-  const totalPages = Math.ceil(transactions.length / pageSize);
-  const pageItems = transactions.slice(page * pageSize, (page + 1) * pageSize);
+  const filtered = search
+    ? transactions.filter((tx) => {
+        const q = search.toLowerCase();
+        return (
+          (tx.description ?? "").toLowerCase().includes(q) ||
+          String(Math.abs(tx.amount)).includes(q)
+        );
+      })
+    : transactions;
+
+  const totalPages = Math.ceil(filtered.length / pageSize);
+  const pageItems = filtered.slice(page * pageSize, (page + 1) * pageSize);
 
   async function handleCategorySelect(categoryId: number | undefined) {
     if (!pickerFor || !onCategoryChange) return;
@@ -57,13 +69,20 @@ export default function TransactionTable({
   return (
     <>
       <div className="card overflow-hidden">
-        {title && (
-          <div className="px-4 py-3 border-b border-border">
-            <h2 className="text-sm font-medium text-text">{title}</h2>
+        <div className="px-4 py-2.5 border-b border-border flex items-center gap-3 min-h-[44px]">
+          {title && <h2 className="text-sm font-medium text-text flex-1">{title}</h2>}
+          <div className={title ? "" : "ml-auto"}>
+            <SearchInput
+              value={search}
+              onChange={(v) => { setSearch(v); setPage(0); }}
+              placeholder={t("table.searchPlaceholder")}
+            />
           </div>
-        )}
+        </div>
         <div className="divide-y divide-border">
-          {pageItems.map((tx) => (
+          {pageItems.length === 0 ? (
+            <div className="p-10 text-center text-muted text-sm">{t("table.empty")}</div>
+          ) : pageItems.map((tx) => (
             <TransactionRow
               key={tx.id}
               transaction={tx}
@@ -78,8 +97,8 @@ export default function TransactionTable({
             <span className="text-xs text-muted">
               {t("table.pagination", {
                 from: page * pageSize + 1,
-                to: Math.min((page + 1) * pageSize, transactions.length),
-                total: transactions.length,
+                to: Math.min((page + 1) * pageSize, filtered.length),
+                total: filtered.length,
               })}
             </span>
             <div className="flex items-center gap-1">

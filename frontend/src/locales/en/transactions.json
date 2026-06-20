@@ -3,7 +3,8 @@
     "empty": "No transactions found.",
     "pagination": "{{from}}–{{to}} of {{total}}",
     "prevPage": "← Previous",
-    "nextPage": "Next →"
+    "nextPage": "Next →",
+    "searchPlaceholder": "Search…"
   },
   "detail": {
     "title": "Transaction",

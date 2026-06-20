@@ -3,7 +3,8 @@
     "empty": "Ingen transaksjoner funnet.",
     "pagination": "{{from}}–{{to}} av {{total}}",
     "prevPage": "← Forrige",
-    "nextPage": "Neste →"
+    "nextPage": "Neste →",
+    "searchPlaceholder": "Søk…"
   },
   "detail": {
     "title": "Transaksjon",
