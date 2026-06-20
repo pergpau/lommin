@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import AccountCard from "../components/AccountCard";
+import AccountsTab from "../components/AccountsTab";
+import TransactionsTab from "../components/TransactionsTab";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import SpendingBreakdown from "../components/charts/SpendingBreakdown";
-import TransactionTable from "../components/transactions/TransactionTable";
 import Button from "../components/ui/Button";
 import { useSnackbar } from "../components/ui/Snackbar";
-import EmptyState from "../components/ui/EmptyState";
-import { GoogleDriveIcon, HardDriveIcon, MenuIcon, PlusIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
+import { GoogleDriveIcon, HardDriveIcon, MenuIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
 import Input from "../components/ui/Input";
 import Spinner from "../components/ui/Spinner";
 import { useAccounts } from "../hooks/useAccounts";
@@ -26,7 +25,7 @@ import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
 import { addSaveListener, triggerAutosave } from "../lib/autosave";
 import { useSuccessFlash } from "../hooks/useSuccessFlash";
 import { clearAccounts, clearTransactions, exportAll, getAllTransactions, getEnableBankingSource } from "../lib/store";
-import { deleteTransaction, setCategoryId, setComment, setCustomDate, setIsExtraordinary } from "../lib/mutations";
+import { setCategoryId, setIsExtraordinary } from "../lib/mutations";
 
 type Tab = "categories" | "accounts" | "transactions";
 
@@ -416,73 +415,30 @@ export default function Dashboard() {
           />
         )}
 
-        {tab === "accounts" &&
-          (accounts.length === 0 ? (
-            <EmptyState message={t("emptyAccounts")}>
-              {!isDemo && (
-                <div className="flex flex-col sm:flex-row items-center gap-2 justify-center mt-8">
-                  <Link to={connectTarget} className="btn-primary inline-flex">
-                    {t("connectBankLink")}
-                  </Link>
-                  <span className="text-muted text-sm">{t("or")}</span>
-                  <Link to="/settings#spiir" className="btn-secondary inline-flex">
-                    {t("importSpiirLink")}
-                  </Link>
-                </div>
-              )}
-            </EmptyState>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {accounts.map((acc) => {
-                const txns = txByAccount.get(acc.uid) ?? [];
-                const balance = acc.balance ?? txns.reduce((s, tx) => s + tx.amount, 0);
-                return (
-                  <AccountCard
-                    key={acc.uid}
-                    acc={acc}
-                    txns={txns}
-                    balance={balance}
-                    isSyncing={syncingAccountUids.has(acc.uid)}
-                    errorMsg={failedAccounts.get(acc.uid)}
-                  />
-                );
-              })}
-              {!isDemo && (
-                <Link
-                  to={connectTarget}
-                  className="card p-4 flex flex-col items-center justify-center gap-2 text-muted hover:text-accent hover:border-accent/40 hover:bg-surface-2/50 hover:shadow-sm transition-all"
-                >
-                  <PlusIcon size={20} />
-                  <span className="text-sm">{t("actions.newAccount")}</span>
-                </Link>
-              )}
-            </div>
-          ))
-        }
+        {tab === "accounts" && (
+          <AccountsTab
+            accounts={accounts}
+            txByAccount={txByAccount}
+            syncingAccountUids={syncingAccountUids}
+            failedAccounts={failedAccounts}
+            isDemo={isDemo}
+            connectTarget={connectTarget}
+          />
+        )}
 
-        {tab === "transactions" &&
-          (recent.length > 0 ? (
-            <TransactionTable
-              transactions={recent}
-              subtitle={
-                selectedMonthBar
-                  ? chartMode === "year"
-                    ? selectedMonthBar.key
-                    : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
-                  : undefined
-              }
-              onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
-              onIsExtraordinaryChange={async (txId, value) => { await setIsExtraordinary(txId, value); refresh(); }}
-              onCustomDateChange={async (txId, date) => { await setCustomDate(txId, date); refresh(); }}
-              onCommentChange={async (txId, comment) => { await setComment(txId, comment); refresh(); }}
-              onDelete={async (txId) => { await deleteTransaction(txId); refresh(); }}
-            />
-          ) : (
-            <div className="card p-10 text-center text-muted text-sm">
-              {t("noTransactionsThisMonth")}
-            </div>
-          ))
-        }
+        {tab === "transactions" && (
+          <TransactionsTab
+            transactions={recent}
+            subtitle={
+              selectedMonthBar
+                ? chartMode === "year"
+                  ? selectedMonthBar.key
+                  : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
+                : undefined
+            }
+            refresh={refresh}
+          />
+        )}
 
         {dashDialog && (
           <div
