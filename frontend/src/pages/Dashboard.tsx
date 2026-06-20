@@ -23,7 +23,7 @@ import { effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
 import { clearDriveToken, getAllSettings, getDriveToken } from "../lib/settings";
 import { triggerAutosave } from "../lib/autosave";
-import { clearAccounts, clearTransactions, exportAll, getEnableBankingSource, setCategoryId, setCustomDate, setIsExtraordinary } from "../lib/store";
+import { clearAccounts, clearTransactions, deleteTransaction, exportAll, getEnableBankingSource, setCategoryId, setCustomDate, setIsExtraordinary } from "../lib/store";
 
 type Tab = "categories" | "accounts" | "transactions";
 
@@ -457,6 +457,10 @@ export default function Dashboard() {
               }}
               onCustomDateChange={async (txId, date) => {
                 await setCustomDate(txId, date);
+                refresh();
+              }}
+              onDelete={async (txId) => {
+                await deleteTransaction(txId);
                 refresh();
               }}
             />

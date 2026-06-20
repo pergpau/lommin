@@ -242,6 +242,11 @@ export async function setIsExtraordinary(
 }
 
 // Remove the enableBanking source from an account so it's no longer synced via API.
+export async function deleteTransaction(transactionId: string): Promise<void> {
+  const d = await db();
+  await d.delete("transactions", transactionId);
+}
+
 export async function disconnectAccount(uid: string): Promise<void> {
   const d = await db();
   const acc = await d.get("accounts", uid);

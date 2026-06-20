@@ -18,7 +18,12 @@
     "rawData": "Rådata",
     "hideFromStats": "Skjul fra statistikk",
     "customDate": "Egendefinert dato",
-    "resetDate": "Tilbakestill"
+    "resetDate": "Tilbakestill",
+    "deleteTransaction": "Slett transaksjon",
+    "deleteConfirmTitle": "Slette transaksjon?",
+    "deleteConfirmBody": "Dette fjerner transaksjonen fra din lokale database. Den kan bli synkronisert inn igjen fra bank-API-et ved neste synkronisering.",
+    "deleteConfirmOk": "Slett",
+    "deleteConfirmCancel": "Avbryt"
   },
   "categoryPicker": {
     "title": "Velg kategori",

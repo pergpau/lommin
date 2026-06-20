@@ -18,7 +18,12 @@
     "rawData": "Raw data",
     "hideFromStats": "Hide from statistics",
     "customDate": "Custom date",
-    "resetDate": "Reset"
+    "resetDate": "Reset",
+    "deleteTransaction": "Delete transaction",
+    "deleteConfirmTitle": "Delete transaction?",
+    "deleteConfirmBody": "This removes the transaction from your local database. It may be resynced from the bank API on the next sync.",
+    "deleteConfirmOk": "Delete",
+    "deleteConfirmCancel": "Cancel"
   },
   "categoryPicker": {
     "title": "Select category",

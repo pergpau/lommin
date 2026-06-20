@@ -13,6 +13,7 @@ type TransactionTableProps = {
   onCategoryChange?: (transactionId: string, categoryId: number | undefined) => Promise<void>;
   onIsExtraordinaryChange?: (transactionId: string, value: boolean) => Promise<void>;
   onCustomDateChange?: (transactionId: string, date: string | undefined) => Promise<void>;
+  onDelete?: (transactionId: string) => Promise<void>;
 };
 
 export default function TransactionTable({
@@ -22,6 +23,7 @@ export default function TransactionTable({
   onCategoryChange,
   onIsExtraordinaryChange,
   onCustomDateChange,
+  onDelete,
 }: TransactionTableProps) {
   const { t } = useTranslation("transactions");
   const [page, setPage] = useState(0);
@@ -111,6 +113,7 @@ export default function TransactionTable({
           }
           onIsExtraordinaryChange={onIsExtraordinaryChange}
           onCustomDateChange={onCustomDateChange}
+          onDelete={onDelete}
         />
       )}
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPencil } from "@fortawesome/free-solid-svg-icons";
+import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { amountClass, effectiveDate, fmtAmount, fmtDate, statusLabel } from "../../lib/format";
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP, type MainCategory, type SubCategory } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
@@ -13,6 +13,7 @@ interface TransactionDetailProps {
   onOpenCategoryPicker?: (t: Transaction) => void;
   onIsExtraordinaryChange?: (txId: string, value: boolean) => Promise<void>;
   onCustomDateChange?: (txId: string, date: string | undefined) => Promise<void>;
+  onDelete?: (txId: string) => Promise<void>;
 }
 
 const FULL_DATE: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
@@ -23,9 +24,11 @@ export default function TransactionDetail({
   onOpenCategoryPicker,
   onIsExtraordinaryChange,
   onCustomDateChange,
+  onDelete,
 }: TransactionDetailProps) {
   const { t } = useTranslation(["transactions", "categories"]);
   const [account, setAccount] = useState<Account | undefined>();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     void getAccounts().then((all) => setAccount(all.find((a) => a.uid === tx.accountUid)));
@@ -174,20 +177,64 @@ export default function TransactionDetail({
           </div>
         </div>
 
-        {onIsExtraordinaryChange && (
-          <div className="px-4 py-3 border-t border-border shrink-0 flex justify-end">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <span className="text-xs text-muted">{t("transactions:detail.hideFromStats")}</span>
-              <input
-                type="checkbox"
-                className="w-4 h-4 rounded accent-accent cursor-pointer"
-                checked={tx.isExtraordinary}
-                onChange={(e) => void onIsExtraordinaryChange(tx.id, e.target.checked)}
-              />
-            </label>
+        {(onIsExtraordinaryChange || onDelete) && (
+          <div className="px-4 py-3 border-t border-border shrink-0 flex items-center justify-between">
+            {onDelete ? (
+              <button
+                className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                onClick={() => setConfirmingDelete(true)}
+              >
+                <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+                {t("transactions:detail.deleteTransaction")}
+              </button>
+            ) : (
+              <span />
+            )}
+            {onIsExtraordinaryChange && (
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <span className="text-xs text-muted">{t("transactions:detail.hideFromStats")}</span>
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 rounded accent-accent cursor-pointer"
+                  checked={tx.isExtraordinary}
+                  onChange={(e) => void onIsExtraordinaryChange(tx.id, e.target.checked)}
+                />
+              </label>
+            )}
           </div>
         )}
       </div>
+
+      {confirmingDelete && (
+        <div
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setConfirmingDelete(false);
+          }}
+        >
+          <div className="bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 shadow-xl p-6 flex flex-col gap-4">
+            <h2 className="text-sm font-semibold text-text">{t("transactions:detail.deleteConfirmTitle")}</h2>
+            <p className="text-xs text-muted leading-relaxed">{t("transactions:detail.deleteConfirmBody")}</p>
+            <div className="flex gap-2 justify-end">
+              <button
+                className="btn-ghost text-sm px-4 py-1.5"
+                onClick={() => setConfirmingDelete(false)}
+              >
+                {t("transactions:detail.deleteConfirmCancel")}
+              </button>
+              <button
+                className="text-sm px-4 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-colors"
+                onClick={() => {
+                  setConfirmingDelete(false);
+                  void onDelete!(tx.id).then(() => onClose());
+                }}
+              >
+                {t("transactions:detail.deleteConfirmOk")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
