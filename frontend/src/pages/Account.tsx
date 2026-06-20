@@ -14,7 +14,9 @@ import Button from "../components/ui/Button";
 import { useSnackbar } from "../components/ui/Snackbar";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import TransactionTable from "../components/transactions/TransactionTable";
-import { ArrowLeftIcon, RefreshCwIcon } from "../components/ui/icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGear } from "@fortawesome/free-solid-svg-icons";
+import { ArrowLeftIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
 import { isDemoMode } from "../lib/demoData";
 import { loadKey } from "../lib/keystore";
 
@@ -133,6 +135,8 @@ export default function AccountPage() {
     [selectedMonth, sorted, chartMode],
   );
 
+  const [actionsOpen, setActionsOpen] = useState(false);
+
   const [prevUid, setPrevUid] = useState(uid);
   if (prevUid !== uid) {
     setPrevUid(uid);
@@ -171,45 +175,67 @@ export default function AccountPage() {
           <ArrowLeftIcon size={18} />
         </Link>
         <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold text-text">
-              {account ? accountLabel(account) : t("fallbackTitle")}
-            </h1>
-            {isConnected && (
-              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-positive/10 text-positive border border-positive/20 leading-none">
-                {t("connectedBadge")}
-              </span>
-            )}
-          </div>
+          <h1 className="text-xl font-semibold text-text">
+            {account ? accountLabel(account) : t("fallbackTitle")}
+          </h1>
           {(account?.bban || account?.iban) && (
             <div className="mono text-xs text-muted">{account?.bban ?? account?.iban}</div>
           )}
+          {isConnected && (
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-positive/10 text-positive border border-positive/20 leading-none">
+              {t("connectedBadge")}
+            </span>
+          )}
         </div>
-        {isConnected ? (
-          <Button
-            size="sm"
-            loading={syncing}
-            disabled={!account}
-            onClick={() => account && runSync([account], () => { reload(); void triggerAutosave(); })}
-          >
-            <RefreshCwIcon size={12} />
-            {t("sync")}
-          </Button>
-        ) : (
-          <Button
-            size="sm"
-            disabled={isDemo}
-            onClick={() => navigate(hasKey ? "/connect" : "/settings#pem")}
-          >
-            {t("connectBank")}
-          </Button>
-        )}
-        <Button size="sm" variant="ghost" onClick={resetSync}>
-          {t("deleteTransactions")}
-        </Button>
-        <Button size="sm" variant="danger" onClick={removeAccount}>
-          {t("removeAccount")}
-        </Button>
+        {/* Sync / Connect button — always visible */}
+        <div className="flex items-center gap-2">
+          {isConnected ? (
+            <Button
+              size="sm"
+              loading={syncing}
+              disabled={!account}
+              onClick={() => account && runSync([account], () => { reload(); void triggerAutosave(); })}
+            >
+              <RefreshCwIcon size={12} />
+              {t("sync")}
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              disabled={isDemo}
+              onClick={() => navigate(hasKey ? "/connect" : "/settings#pem")}
+            >
+              {t("connectBank")}
+            </Button>
+          )}
+
+          {/* Settings cogwheel — Delete transactions + Remove account */}
+          <div className="relative">
+            <button
+              className="p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 transition-colors flex items-center justify-center"
+              onClick={() => setActionsOpen((o) => !o)}
+              aria-label="Account settings"
+            >
+              {actionsOpen ? <XIcon size={18} /> : <FontAwesomeIcon icon={faGear} className="w-[18px] h-[18px]" />}
+            </button>
+            {actionsOpen && (
+              <div className="absolute right-0 top-full mt-1 w-52 card py-1 z-30 shadow-lg">
+                <button
+                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
+                  onClick={() => { setActionsOpen(false); void resetSync(); }}
+                >
+                  {t("deleteTransactions")}
+                </button>
+                <button
+                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-danger hover:bg-surface-2 transition-colors text-left"
+                  onClick={() => { setActionsOpen(false); void removeAccount(); }}
+                >
+                  {t("removeAccount")}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {chartData.length > 0 && (

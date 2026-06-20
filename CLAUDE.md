@@ -93,6 +93,10 @@ To add a new Enable Banking endpoint, add a regex to `PATH_ALLOWLIST` in `worker
 - Encrypted sync files use AES-GCM with PBKDF2-derived keys; the plaintext never leaves the device.
 - The `_headers` file (in `frontend/public/`) sets CSP `connect-src` — update it if you change the proxy URL.
 
+## Icons
+
+Always use **Font Awesome** for icons (`@fortawesome/react-fontawesome` + `@fortawesome/free-solid-svg-icons`). Do not create custom SVG icons. Use `<FontAwesomeIcon icon={faXxx} />` directly at the call site. The custom icon wrappers in `src/components/ui/icons.tsx` are legacy and should not be extended.
+
 ## Deployment
 
 - **Frontend**: `npm run build` → deploy `frontend/dist/` to Netlify. The `public/_redirects` catch-all (`/* /index.html 200`) handles SPA routing.
