@@ -101,9 +101,15 @@ const DESCRIPTION_RULES: Array<[RegExp, number]> = [
   [/\b(kanpla|compass)\b/i, 155],
 ];
 
+function bbanKey(tx: Transaction): string | undefined {
+  if (!tx.to_bban && !tx.from_bban) return undefined;
+  return `${tx.from_bban ?? ""}→${tx.to_bban ?? ""}`;
+}
+
 export function guessCategory(
   tx: Transaction,
   creditorHistory?: Map<string, number>,
+  bbanHistory?: Map<string, number>,
 ): number | undefined {
   const creditorName = (tx.raw.creditor as Record<string, unknown> | undefined)?.name as
     | string
@@ -119,6 +125,12 @@ export function guessCategory(
   // --- Step 0: user's own history for this creditor ---
   if (creditorName && creditorHistory?.has(creditorName)) {
     return creditorHistory.get(creditorName)!;
+  }
+
+  // --- Step 0b: BBAN pair history ---
+  const key = bbanKey(tx);
+  if (key && bbanHistory?.has(key)) {
+    return bbanHistory.get(key)!;
   }
 
   // --- Step 1: BTC description ---

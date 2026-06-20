@@ -134,6 +134,11 @@ export async function createSession(code: string): Promise<SessionResult> {
   };
 }
 
+interface RawAccountRef {
+  iban?: string | null;
+  other?: { identification?: string; scheme_name?: string; issuer?: string | null };
+}
+
 interface RawTransaction {
   entry_reference?: string;
   transaction_id?: string;
@@ -144,7 +149,15 @@ interface RawTransaction {
   status?: string;
   remittance_information?: string[];
   creditor?: { name?: string };
+  creditor_account?: RawAccountRef | null;
+  debtor_account?: RawAccountRef | null;
   bank_transaction_code?: { description?: string | null; code?: string; sub_code?: string | null };
+}
+
+function parseBban(account: RawAccountRef | null | undefined): string | undefined {
+  if (!account?.other) return undefined;
+  if (account.other.scheme_name === "BBAN") return account.other.identification || undefined;
+  return undefined;
 }
 
 // API sends a positive magnitude plus a separate indicator. Apply the sign so
@@ -215,6 +228,8 @@ export async function fetchTransactions(
       bankTransactionCode: r.bank_transaction_code?.description || undefined,
       status: r.status ?? "",
       isExtraordinary: false,
+      to_bban: parseBban(r.creditor_account),
+      from_bban: parseBban(r.debtor_account),
       raw: { ...r },
     };
   });

@@ -50,6 +50,8 @@ export interface Transaction {
   status: string;
   categoryId?: number;
   isExtraordinary: boolean;
+  to_bban?: string;
+  from_bban?: string;
   raw: Record<string, unknown>;
 }
 
@@ -300,6 +302,8 @@ function validateTransaction(v: unknown, i: number): Transaction {
     status: optString(t.status) ?? "",
     categoryId: optNumber(t.categoryId),
     isExtraordinary: t.isExtraordinary === true,
+    to_bban: optString(t.to_bban),
+    from_bban: optString(t.from_bban),
     raw: isRecord(t.raw) ? t.raw : {},
   };
 }
