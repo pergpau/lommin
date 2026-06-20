@@ -11,6 +11,7 @@
     "bookingDate": "Booking date",
     "transactionDate": "Transaction date",
     "category": "Category",
+    "account": "Account",
     "bankCode": "Bank code",
     "reference": "Reference",
     "rawData": "Raw data",

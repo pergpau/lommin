@@ -11,6 +11,7 @@
     "bookingDate": "Bokføringsdato",
     "transactionDate": "Transaksjonsdato",
     "category": "Kategori",
+    "account": "Konto",
     "bankCode": "Bankkode",
     "reference": "Referanse",
     "rawData": "Rådata",

@@ -1,9 +1,10 @@
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { amountClass, fmtAmount, fmtDate, statusLabel } from "../../lib/format";
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP, type MainCategory, type SubCategory } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
-import type { Transaction } from "../../lib/store";
+import { getAccounts, type Account, type Transaction } from "../../lib/store";
 
 interface TransactionDetailProps {
   transaction: Transaction;
@@ -21,6 +22,10 @@ export default function TransactionDetail({
   onIsExtraordinaryChange,
 }: TransactionDetailProps) {
   const { t } = useTranslation(["transactions", "categories"]);
+  const [account, setAccount] = useState<Account | undefined>();
+  useEffect(() => {
+    void getAccounts().then((all) => setAccount(all.find((a) => a.uid === tx.accountUid)));
+  }, [tx.accountUid]);
   const subCat = tx.categoryId != null ? SUB_CATEGORY_MAP[tx.categoryId] : undefined;
   const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
   const showTransactionDate =
@@ -72,6 +77,12 @@ export default function TransactionDetail({
 
           {/* Details list */}
           <div className="border-t border-border divide-y divide-border mx-0">
+            {account?.name && (
+              <DetailRow label={t("transactions:detail.account")}>
+                {account.name}{account.bban && ` (${account.bban})`}
+              </DetailRow>
+            )}
+
             <DetailRow label={t("transactions:detail.bookingDate")}>
               {fmtDate(tx.bookingDate, FULL_DATE)}
             </DetailRow>
