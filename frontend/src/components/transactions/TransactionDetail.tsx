@@ -12,7 +12,7 @@ interface TransactionDetailProps {
   transaction: Transaction;
   onClose: () => void;
   onOpenCategoryPicker?: (t: Transaction) => void;
-  onIsExtraordinaryChange?: (txId: string, value: boolean) => Promise<void>;
+  onExcludeFromCalculationsChange?: (txId: string, value: boolean) => Promise<void>;
   onCustomDateChange?: (txId: string, date: string | undefined) => Promise<void>;
   onCommentChange?: (txId: string, comment: string | undefined) => Promise<void>;
   onDelete?: (txId: string) => Promise<void>;
@@ -24,7 +24,7 @@ export default function TransactionDetail({
   transaction: tx,
   onClose,
   onOpenCategoryPicker,
-  onIsExtraordinaryChange,
+  onExcludeFromCalculationsChange,
   onCustomDateChange,
   onCommentChange,
   onDelete,
@@ -255,7 +255,7 @@ export default function TransactionDetail({
           </div>
         </div>
 
-        {(onIsExtraordinaryChange || onDelete) && (
+        {(onExcludeFromCalculationsChange || onDelete) && (
           <div className="px-4 py-3 border-t border-border shrink-0 flex items-center justify-between">
             {onDelete ? (
               <button
@@ -268,14 +268,14 @@ export default function TransactionDetail({
             ) : (
               <span />
             )}
-            {onIsExtraordinaryChange && (
+            {onExcludeFromCalculationsChange && (
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <span className="text-xs text-muted">{t("transactions:detail.hideFromStats")}</span>
                 <input
                   type="checkbox"
                   className="w-4 h-4 rounded accent-accent cursor-pointer"
-                  checked={tx.isExtraordinary}
-                  onChange={(e) => void onIsExtraordinaryChange(tx.id, e.target.checked)}
+                  checked={tx.excludeFromCalculations}
+                  onChange={(e) => void onExcludeFromCalculationsChange(tx.id, e.target.checked)}
                 />
               </label>
             )}

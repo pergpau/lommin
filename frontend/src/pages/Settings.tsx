@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useTranslation, Trans } from "react-i18next";
 import BankSetupGuide from "../components/BankSetupGuide";
+import CsvImportPanel from "../components/CsvImport";
 import PemImporter from "../components/PemImporter";
 import SpiirImportPanel from "../components/SpiirImport";
-import CsvImportPanel from "../components/CsvImport";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import { DownloadIcon, TrashIcon, UploadIcon } from "../components/ui/icons";
@@ -515,7 +515,6 @@ export default function Settings() {
 
         <div className="mb-4 border border-warning/20 bg-warning/5 rounded-lg p-3">
           <p className="text-xs text-muted leading-relaxed">
-            <span className="text-text/80 font-medium">OBS! </span>
             {t("settings:proxy.warning")}
           </p>
         </div>

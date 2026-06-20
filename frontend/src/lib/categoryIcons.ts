@@ -28,7 +28,7 @@ export const CATEGORY_ICONS: Record<number, IconDefinition> = {
   10:  faEyeSlash,
   100: faArrowRightArrowLeft,
   101: faUserGroup,
-  102: faBan,
+  102: faEyeSlash,
 
   // ── Inntekt ────────────────────────────────────────────
   11:  faWallet,

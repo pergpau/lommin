@@ -170,7 +170,7 @@ describe("buildCsvTransactions", () => {
     const txns = buildCsvTransactions(drafts, "uid-1", "NOK");
     expect(txns[0].currency).toBe("NOK");
     expect(txns[0].accountUid).toBe("uid-1");
-    expect(txns[0].isExtraordinary).toBe(false);
+    expect(txns[0].excludeFromCalculations).toBe(false);
   });
 
   it("uses row currency over account currency when present", () => {

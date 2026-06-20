@@ -24,11 +24,11 @@ interface Props {
   transactions: Transaction[];
   subtitle?: string;
   onCategoryChange?: (txId: string, catId: number | undefined) => Promise<void>;
-  onIsExtraordinaryChange?: (txId: string, value: boolean) => Promise<void>;
+  onExcludeFromCalculationsChange?: (txId: string, value: boolean) => Promise<void>;
 }
 
 function isEligible(t: Transaction): boolean {
-  if (t.isExtraordinary) return false;
+  if (t.excludeFromCalculations) return false;
   if (t.categoryId != null && SUB_CATEGORY_MAP[t.categoryId]?.type === "exclude") return false;
   return true;
 }
@@ -100,7 +100,7 @@ function buildSubRows(
 }
 
 
-export default function SpendingBreakdown({ transactions, subtitle, onCategoryChange, onIsExtraordinaryChange }: Props) {
+export default function SpendingBreakdown({ transactions, subtitle, onCategoryChange, onExcludeFromCalculationsChange }: Props) {
   const { t } = useTranslation(["charts", "categories"]);
   const [view, setView] = useState<View>({ level: "main" });
   const [showAll, setShowAll] = useState(false);
@@ -194,7 +194,7 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
           <span className="text-sm font-medium text-text flex-1">{getSubName(subId, t)}</span>
           <span className="text-sm font-medium text-text tabular-nums mono">{fmtAmount(filteredTotal, undefined, 0)} kr</span>
         </div>
-        <TransactionTable transactions={filtered} subtitle={subtitle} onCategoryChange={onCategoryChange} onIsExtraordinaryChange={onIsExtraordinaryChange} />
+        <TransactionTable transactions={filtered} subtitle={subtitle} onCategoryChange={onCategoryChange} onExcludeFromCalculationsChange={onExcludeFromCalculationsChange} />
       </div>
     );
   }
@@ -219,7 +219,7 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
             <span className="text-muted">?</span>
             <span className="text-sm font-medium text-text">{t("charts:breakdown.uncategorized")}</span>
           </div>
-          <TransactionTable transactions={filtered} subtitle={subtitle} onCategoryChange={onCategoryChange} onIsExtraordinaryChange={onIsExtraordinaryChange} />
+          <TransactionTable transactions={filtered} subtitle={subtitle} onCategoryChange={onCategoryChange} onExcludeFromCalculationsChange={onExcludeFromCalculationsChange} />
         </div>
       );
     }
@@ -287,7 +287,7 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
               })}
             </div>
         </div>
-        <TransactionTable transactions={subTxns} subtitle={subtitle} onCategoryChange={onCategoryChange} onIsExtraordinaryChange={onIsExtraordinaryChange} />
+        <TransactionTable transactions={subTxns} subtitle={subtitle} onCategoryChange={onCategoryChange} onExcludeFromCalculationsChange={onExcludeFromCalculationsChange} />
       </div>
     );
   }

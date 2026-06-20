@@ -178,7 +178,7 @@ export function buildCsvTransactions(
       creditDebit: d.creditDebit,
       description: d.description,
       status: d.status,
-      isExtraordinary: false,
+      excludeFromCalculations: false,
       raw: d.raw,
     };
     const cat = guessCategory(t);

@@ -25,7 +25,7 @@
   },
   "sync": {
     "title": "Synkronisering",
-    "description": "Hvor langt tilbake første synkronisering av en konto henter transaksjoner. Senere synkroniseringer fortsetter der forrige slapp.",
+    "description": "Hvor langt tilbake første synkronisering av en konto henter transaksjoner. Senere synkroniseringer fortsetter der forrige slapp. Merk at mange banker ikke tillater å hente transaksjoner eldre enn 90 dager.",
     "lookbackLabel": "Historikk ved første synkronisering (dager)"
   },
   "backup": {

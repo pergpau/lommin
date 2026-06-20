@@ -23,7 +23,7 @@
   "sub": {
     "100": "Transfer",
     "101": "Shared expense",
-    "102": "Exclude",
+    "102": "Hide",
     "103": "Salary",
     "104": "Unemployment benefits",
     "105": "Interest income",

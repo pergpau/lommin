@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { triggerAutosave } from "../lib/autosave";
 import { type Transaction } from "../lib/store";
-import { deleteAccount, deleteTransaction, disconnectAccount, resetAccountSync, setCategoryId, setComment, setCustomDate, setIsExtraordinary } from "../lib/mutations";
+import { deleteAccount, deleteTransaction, disconnectAccount, resetAccountSync, setCategoryId, setComment, setCustomDate, setExcludeFromCalculations } from "../lib/mutations";
 import { getSetting } from "../lib/settings";
 import { accountLabel, effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
@@ -25,7 +25,7 @@ import { isDemoMode } from "../lib/demoData";
 import { loadKey } from "../lib/keystore";
 
 function txSection(tx: Transaction): "income" | "expense" | "saving" | null {
-  if (tx.isExtraordinary) return null;
+  if (tx.excludeFromCalculations) return null;
   if (tx.categoryId != null) {
     const type = SUB_CATEGORY_MAP[tx.categoryId]?.type;
     if (type === "exclude") return null;
@@ -300,7 +300,7 @@ export default function AccountPage() {
             : undefined
         }
         onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
-        onIsExtraordinaryChange={async (txId, value) => { await setIsExtraordinary(txId, value); refresh(); }}
+        onExcludeFromCalculationsChange={async (txId, value) => { await setExcludeFromCalculations(txId, value); refresh(); }}
         onCustomDateChange={async (txId, date) => { await setCustomDate(txId, date); refresh(); }}
         onCommentChange={async (txId, comment) => { await setComment(txId, comment); refresh(); }}
         onDelete={async (txId) => { await deleteTransaction(txId); refresh(); }}

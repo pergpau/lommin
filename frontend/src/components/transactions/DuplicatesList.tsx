@@ -17,7 +17,7 @@ interface DuplicatesListProps {
   onCategoryChange: (txId: string, categoryId: number | undefined) => Promise<void>;
   onDelete: (txId: string) => Promise<void>;
   onDismissPair: (key: string) => Promise<void>;
-  onIsExtraordinaryChange?: (txId: string, value: boolean) => Promise<void>;
+  onExcludeFromCalculationsChange?: (txId: string, value: boolean) => Promise<void>;
   onCustomDateChange?: (txId: string, date: string | undefined) => Promise<void>;
   onCommentChange?: (txId: string, comment: string | undefined) => Promise<void>;
 }
@@ -27,7 +27,7 @@ export default function DuplicatesList({
   onCategoryChange,
   onDelete,
   onDismissPair,
-  onIsExtraordinaryChange,
+  onExcludeFromCalculationsChange,
   onCustomDateChange,
   onCommentChange,
 }: DuplicatesListProps) {
@@ -117,7 +117,7 @@ export default function DuplicatesList({
           transaction={detailFor}
           onClose={() => setDetailFor(null)}
           onOpenCategoryPicker={(tx) => { setDetailFor(null); setPickerFor(tx); }}
-          onIsExtraordinaryChange={onIsExtraordinaryChange}
+          onExcludeFromCalculationsChange={onExcludeFromCalculationsChange}
           onCustomDateChange={onCustomDateChange}
           onCommentChange={onCommentChange}
           onDelete={async (txId) => { await onDelete(txId); setDetailFor(null); }}

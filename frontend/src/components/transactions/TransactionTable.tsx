@@ -12,7 +12,7 @@ type TransactionTableProps = {
   pageSize?: number;
   subtitle?: string;
   onCategoryChange?: (transactionId: string, categoryId: number | undefined) => Promise<void>;
-  onIsExtraordinaryChange?: (transactionId: string, value: boolean) => Promise<void>;
+  onExcludeFromCalculationsChange?: (transactionId: string, value: boolean) => Promise<void>;
   onCustomDateChange?: (transactionId: string, date: string | undefined) => Promise<void>;
   onCommentChange?: (transactionId: string, comment: string | undefined) => Promise<void>;
   onDelete?: (transactionId: string) => Promise<void>;
@@ -23,7 +23,7 @@ export default function TransactionTable({
   pageSize = PAGE_SIZE,
   subtitle,
   onCategoryChange,
-  onIsExtraordinaryChange,
+  onExcludeFromCalculationsChange,
   onCustomDateChange,
   onCommentChange,
   onDelete,
@@ -133,7 +133,7 @@ export default function TransactionTable({
                 }
               : undefined
           }
-          onIsExtraordinaryChange={onIsExtraordinaryChange}
+          onExcludeFromCalculationsChange={onExcludeFromCalculationsChange}
           onCustomDateChange={onCustomDateChange}
           onCommentChange={onCommentChange}
           onDelete={onDelete}

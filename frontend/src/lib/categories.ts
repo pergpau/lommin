@@ -22,7 +22,7 @@ export const MAIN_CATEGORIES: MainCategory[] = [
     subCategories: [
       { id: 100, name: "Overføring", type: "exclude", mainCategoryId: 10 },
       { id: 101, name: "Delt utgift", type: "exclude", mainCategoryId: 10 },
-      { id: 102, name: "Ekskluder", type: "exclude", mainCategoryId: 10 },
+      { id: 102, name: "Skjul", type: "exclude", mainCategoryId: 10 },
     ],
   },
   {

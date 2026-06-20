@@ -25,7 +25,7 @@ import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
 import { addSaveListener, triggerAutosave } from "../lib/autosave";
 import { useSuccessFlash } from "../hooks/useSuccessFlash";
 import { clearAccounts, clearTransactions, exportAll, getAllTransactions, getEnableBankingSource } from "../lib/store";
-import { setCategoryId, setIsExtraordinary } from "../lib/mutations";
+import { setCategoryId, setExcludeFromCalculations } from "../lib/mutations";
 
 type Tab = "categories" | "accounts" | "transactions";
 
@@ -169,7 +169,7 @@ export default function Dashboard() {
   }, []);
 
   function txSection(tx: (typeof transactions)[0]): "income" | "expense" | "saving" | null {
-    if (tx.isExtraordinary) return null;
+    if (tx.excludeFromCalculations) return null;
     if (tx.categoryId != null) {
       const type = SUB_CATEGORY_MAP[tx.categoryId]?.type;
       if (type === "exclude") return null;
@@ -419,7 +419,7 @@ export default function Dashboard() {
                 : undefined
             }
             onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
-            onIsExtraordinaryChange={async (txId, value) => { await setIsExtraordinary(txId, value); refresh(); }}
+            onExcludeFromCalculationsChange={async (txId, value) => { await setExcludeFromCalculations(txId, value); refresh(); }}
           />
         )}
 

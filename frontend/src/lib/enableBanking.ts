@@ -226,7 +226,7 @@ export async function fetchTransactions(
       description: parseDescription(r),
       bankTransactionCode: r.bank_transaction_code?.description || undefined,
       status: r.status ?? "",
-      isExtraordinary: false,
+      excludeFromCalculations: false,
       to_bban: parseBban(r.creditor_account),
       from_bban: parseBban(r.debtor_account),
       raw: { ...r },

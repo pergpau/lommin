@@ -50,7 +50,7 @@ export interface Transaction {
   bankTransactionCode?: string;
   status: string;
   categoryId?: number;
-  isExtraordinary: boolean;
+  excludeFromCalculations: boolean;
   comment?: string;
   to_bban?: string;
   from_bban?: string;
@@ -162,7 +162,7 @@ export async function upsertTransactions(txns: Transaction[]): Promise<number> {
       await tx.store.put({
         ...t,
         categoryId: existing.categoryId,
-        isExtraordinary: existing.isExtraordinary ?? false,
+        excludeFromCalculations: existing.excludeFromCalculations ?? false,
         customDate: existing.customDate,
         comment: existing.comment,
       });
@@ -176,7 +176,7 @@ export async function upsertTransactions(txns: Transaction[]): Promise<number> {
           id: softMatch.id,
           entryReference: softMatch.entryReference,
           categoryId: softMatch.categoryId,
-          isExtraordinary: softMatch.isExtraordinary ?? false,
+          excludeFromCalculations: softMatch.excludeFromCalculations ?? false,
           customDate: softMatch.customDate,
           comment: softMatch.comment,
         });
@@ -233,14 +233,14 @@ export async function setCustomDate(
   await tx.done;
 }
 
-export async function setIsExtraordinary(
+export async function setExcludeFromCalculations(
   transactionId: string,
   value: boolean,
 ): Promise<void> {
   const d = await db();
   const tx = d.transaction("transactions", "readwrite");
   const t = await tx.store.get(transactionId);
-  if (t) await tx.store.put({ ...t, isExtraordinary: value });
+  if (t) await tx.store.put({ ...t, excludeFromCalculations: value });
   await tx.done;
 }
 
@@ -377,7 +377,7 @@ function validateTransaction(v: unknown, i: number): Transaction {
     description: optString(t.description) ?? "",
     status: optString(t.status) ?? "",
     categoryId: optNumber(t.categoryId),
-    isExtraordinary: t.isExtraordinary === true,
+    excludeFromCalculations: t.excludeFromCalculations === true,
     comment: optString(t.comment),
     to_bban: optString(t.to_bban),
     from_bban: optString(t.from_bban),

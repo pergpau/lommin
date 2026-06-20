@@ -31,7 +31,7 @@ function tx(
     description,
     status: "BOOK",
     categoryId,
-    isExtraordinary: false,
+    excludeFromCalculations: false,
     raw: {},
   };
 }

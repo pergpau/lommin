@@ -25,7 +25,7 @@
   },
   "sync": {
     "title": "Sync",
-    "description": "How far back the first sync of an account fetches transactions. Subsequent syncs continue from where the last one stopped.",
+    "description": "How far back the first sync of an account fetches transactions. Subsequent syncs continue from where the last one stopped. Note that many banks don't allow fetching transactions older than 90 days.",
     "lookbackLabel": "History for first sync (days)"
   },
   "backup": {
