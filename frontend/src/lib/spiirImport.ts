@@ -307,7 +307,7 @@ export function buildImportPayload(
       amount,
       currency,
       creditDebit: amount > 0 ? "CRDT" : "DBIT",
-      description: f[idx["Description"]] || "",
+      description: f[idx["OriginalDescription"]] || f[idx["Description"]] || "",
       status: "BOOK",
       isExtraordinary: f[idx["Extraordinary"]] === "Yes",
       raw: {
@@ -512,7 +512,7 @@ export async function buildImportPayloadFromZip(
       amount,
       currency,
       creditDebit: amount > 0 ? "CRDT" : "DBIT",
-      description: f[pIdx["Description"]] || "",
+      description: f[pIdx["OriginalDescription"]] || f[pIdx["Description"]] || "",
       status,
       isExtraordinary: f[pIdx["IsExtraordinary"]] === "True",
       raw: {

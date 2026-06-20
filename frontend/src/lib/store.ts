@@ -133,22 +133,54 @@ export function makeTransactionId(accountUid: string, entryReference: string): s
   return `${accountUid}::${entryReference}`;
 }
 
+function txSoftKey(t: Transaction): string {
+  return `${t.accountUid}|${t.bookingDate}|${t.amount.toFixed(2)}|${t.description.toLowerCase()}`;
+}
+
 export async function upsertTransactions(txns: Transaction[]): Promise<number> {
+  if (txns.length === 0) return 0;
   const d = await db();
+
+  // Build a cross-source dedup index: soft-key → existing transaction ID.
+  // Catches the same transaction imported from both Spiir and Enable Banking,
+  // which arrive with different IDs but matching date/amount/description (modulo casing).
+  const affectedUids = [...new Set(txns.map((t) => t.accountUid))];
+  const softKeyIndex = new Map<string, string>();
+  for (const uid of affectedUids) {
+    for (const t of await d.getAllFromIndex("transactions", "by-account", uid)) {
+      const k = txSoftKey(t);
+      if (!softKeyIndex.has(k)) softKeyIndex.set(k, t.id);
+    }
+  }
+
   let inserted = 0;
   const tx = d.transaction("transactions", "readwrite");
   for (const t of txns) {
     const existing = await tx.store.get(t.id);
-    if (!existing) {
-      inserted++;
-      await tx.store.put(t);
-    } else {
+    if (existing) {
       await tx.store.put({
         ...t,
         categoryId: existing.categoryId,
         isExtraordinary: existing.isExtraordinary ?? false,
         customDate: existing.customDate,
       });
+    } else {
+      const softMatchId = softKeyIndex.get(txSoftKey(t));
+      const softMatch = softMatchId ? await tx.store.get(softMatchId) : undefined;
+      if (softMatch) {
+        // Merge into the existing record: new description wins, user annotations preserved.
+        await tx.store.put({
+          ...t,
+          id: softMatch.id,
+          entryReference: softMatch.entryReference,
+          categoryId: softMatch.categoryId,
+          isExtraordinary: softMatch.isExtraordinary ?? false,
+          customDate: softMatch.customDate,
+        });
+      } else {
+        inserted++;
+        await tx.store.put(t);
+      }
     }
   }
   await tx.done;
