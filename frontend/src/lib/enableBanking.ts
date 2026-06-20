@@ -162,7 +162,7 @@ function parseCreditDebit(raw: RawTransaction): "CRDT" | "DBIT" | undefined {
 }
 
 function parseDescription(raw: RawTransaction): string {
-  if (raw.remittance_information?.length) return raw.remittance_information[0];
+  if (raw.remittance_information?.length) return raw.remittance_information.join(" ");
   return raw.creditor?.name ?? "";
 }
 
