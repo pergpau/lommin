@@ -16,14 +16,14 @@ export function useSyncState() {
   );
 
   const run = useCallback(
-    async (accounts: Account[], onSuccess?: () => void) => {
+    async (accounts: Account[], onSuccess?: () => void, forcedDateFrom?: string) => {
       setSyncing(true);
       setSyncMsg("");
       setError("");
       setFailedAccounts(new Map());
       setSyncingAccountUids(new Set(accounts.map((a) => a.uid)));
       try {
-        const { inserted, errors } = await syncAccounts(accounts, setSyncMsg);
+        const { inserted, errors } = await syncAccounts(accounts, setSyncMsg, forcedDateFrom);
         setSyncingAccountUids(new Set());
         setSyncMsg(
           i18n.t("dashboard:snackbar.syncResult", { count: inserted }),

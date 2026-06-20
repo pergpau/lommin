@@ -196,6 +196,17 @@ export async function setIsExtraordinary(
   await tx.done;
 }
 
+// Remove the enableBanking source from an account so it's no longer synced via API.
+export async function disconnectAccount(uid: string): Promise<void> {
+  const d = await db();
+  const acc = await d.get("accounts", uid);
+  if (!acc) return;
+  await d.put("accounts", { ...acc, sources: acc.sources.filter((s) => s.type !== "enableBanking") });
+  const ctx = d.transaction("syncCursors", "readwrite");
+  await ctx.store.delete(uid);
+  await ctx.done;
+}
+
 // Wipe transactions and cursor for one account so the next sync refetches from scratch.
 export async function resetAccountSync(accountUid: string): Promise<void> {
   const d = await db();

@@ -3,11 +3,22 @@
   "connectedBadge": "Tilkoblet",
   "sync": "Synkroniser",
   "connectBank": "Koble til bank",
+  "forcedResync": "Tving synkronisering",
+  "disconnectAccount": "Koble fra konto",
   "deleteTransactions": "Slett transaksjoner",
   "removeAccount": "Fjern konto",
   "transactionsLabel": "Transaksjoner",
   "confirm": {
     "deleteTransactions": "Slett lagrede transaksjoner for denne kontoen og nullstill synk-markøren? Neste synkronisering henter alt på nytt basert på historikkinnstillingen.",
-    "removeAccount": "Fjern denne kontoen og alle tilhørende transaksjoner?"
+    "removeAccount": "Fjern denne kontoen og alle tilhørende transaksjoner?",
+    "disconnectAccount": "Koble denne kontoen fra banken? Transaksjoner beholdes, men nye hentes ikke ved synkronisering."
+  },
+  "resync": {
+    "title": "Tving synkronisering",
+    "description": "Hent transaksjoner fra en bestemt dato, uavhengig av siste synk-markør.",
+    "daysLabel_one": "{{count}} dag tilbake",
+    "daysLabel_other": "{{count}} dager tilbake",
+    "cancel": "Avbryt",
+    "action": "Synkroniser"
   }
 }

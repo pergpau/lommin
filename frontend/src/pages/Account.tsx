@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { triggerAutosave } from "../lib/autosave";
-import { deleteAccount, resetAccountSync, setCategoryId, setIsExtraordinary, type Transaction } from "../lib/store";
+import { deleteAccount, disconnectAccount, resetAccountSync, setCategoryId, setIsExtraordinary, type Transaction } from "../lib/store";
+import { getSetting } from "../lib/settings";
 import { accountLabel } from "../lib/format";
 import { getLocale } from "../lib/i18n";
 import { SUB_CATEGORY_MAP } from "../lib/categories";
@@ -14,6 +15,7 @@ import Button from "../components/ui/Button";
 import { useSnackbar } from "../components/ui/Snackbar";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import TransactionTable from "../components/transactions/TransactionTable";
+import ResyncModal from "../components/ResyncModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
 import { ArrowLeftIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
@@ -136,6 +138,8 @@ export default function AccountPage() {
   );
 
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [resyncModal, setResyncModal] = useState(false);
+  const [resyncDays, setResyncDays] = useState(90);
 
   const [prevUid, setPrevUid] = useState(uid);
   if (prevUid !== uid) {
@@ -145,6 +149,28 @@ export default function AccountPage() {
   }
 
   const isConnected = account ? account.sources.some((s) => s.type === "enableBanking") : false;
+
+  const openResyncModal = useCallback(async () => {
+    const days = await getSetting("lookbackDays");
+    setResyncDays(days);
+    setResyncModal(true);
+  }, []);
+
+  const runForcedResync = useCallback(() => {
+    if (!account) return;
+    setResyncModal(false);
+    const d = new Date();
+    d.setDate(d.getDate() - resyncDays);
+    const dateFrom = d.toISOString().split("T")[0];
+    void runSync([account], () => { reload(); void triggerAutosave(); }, dateFrom);
+  }, [account, resyncDays, runSync, reload]);
+
+  const disconnectBank = useCallback(async () => {
+    if (!uid || !confirm(t("confirm.disconnectAccount"))) return;
+    await disconnectAccount(uid);
+    reload();
+    void triggerAutosave();
+  }, [uid, t, reload]);
 
   const removeAccount = useCallback(async () => {
     if (!uid || !confirm(t("confirm.removeAccount"))) return;
@@ -220,6 +246,22 @@ export default function AccountPage() {
             </button>
             {actionsOpen && (
               <div className="absolute right-0 top-full mt-1 w-52 card py-1 z-30 shadow-lg">
+                {isConnected && (
+                  <button
+                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
+                    onClick={() => { setActionsOpen(false); void openResyncModal(); }}
+                  >
+                    {t("forcedResync")}
+                  </button>
+                )}
+                {isConnected && (
+                  <button
+                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
+                    onClick={() => { setActionsOpen(false); void disconnectBank(); }}
+                  >
+                    {t("disconnectAccount")}
+                  </button>
+                )}
                 <button
                   className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
                   onClick={() => { setActionsOpen(false); void resetSync(); }}
@@ -270,6 +312,15 @@ export default function AccountPage() {
           autosaveTimer.current = setTimeout(() => void triggerAutosave(), 3000);
         }}
       />
+
+      {resyncModal && (
+        <ResyncModal
+          days={resyncDays}
+          onDaysChange={setResyncDays}
+          onConfirm={runForcedResync}
+          onCancel={() => setResyncModal(false)}
+        />
+      )}
     </div>
   );
 }

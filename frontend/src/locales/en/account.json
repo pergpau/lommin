@@ -3,11 +3,22 @@
   "connectedBadge": "Connected",
   "sync": "Sync",
   "connectBank": "Connect bank",
+  "forcedResync": "Force resync",
+  "disconnectAccount": "Disconnect account",
   "deleteTransactions": "Delete transactions",
   "removeAccount": "Remove account",
   "transactionsLabel": "Transactions",
   "confirm": {
     "deleteTransactions": "Delete saved transactions for this account and reset the sync cursor? The next sync will re-fetch everything based on the history setting.",
-    "removeAccount": "Remove this account and all its transactions?"
+    "removeAccount": "Remove this account and all its transactions?",
+    "disconnectAccount": "Disconnect this account from the bank? Transactions will be kept but no new ones will be fetched on sync."
+  },
+  "resync": {
+    "title": "Force resync",
+    "description": "Fetch transactions from a specific date, regardless of the last sync cursor.",
+    "daysLabel_one": "{{count}} day back",
+    "daysLabel_other": "{{count}} days back",
+    "cancel": "Cancel",
+    "action": "Sync"
   }
 }

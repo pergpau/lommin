@@ -24,18 +24,24 @@ function dateFromDaysAgo(days: number): string {
 export async function syncAccount(
   acc: Account,
   onProgress?: (msg: string) => void,
+  forcedDateFrom?: string,
 ): Promise<number> {
   const label = acc.name ?? acc.uid.slice(0, 8);
   const src = getEnableBankingSource(acc);
   if (!src) return 0; // Spiir-only account — nothing to sync via API
 
-  const cursor = await getSyncCursor(acc.uid);
-  const defaultDateFrom = dateFromDaysAgo(await getSetting("lookbackDays"));
-  const dateFrom = cursor?.lastBookingDate
-    ? new Date(new Date(cursor.lastBookingDate).getTime() - 2 * 86400_000)
-        .toISOString()
-        .split("T")[0]
-    : defaultDateFrom;
+  let dateFrom: string;
+  if (forcedDateFrom) {
+    dateFrom = forcedDateFrom;
+  } else {
+    const cursor = await getSyncCursor(acc.uid);
+    const defaultDateFrom = dateFromDaysAgo(await getSetting("lookbackDays"));
+    dateFrom = cursor?.lastBookingDate
+      ? new Date(new Date(cursor.lastBookingDate).getTime() - 2 * 86400_000)
+          .toISOString()
+          .split("T")[0]
+      : defaultDateFrom;
+  }
 
   const apiUid = src.sourceId;
   onProgress?.(`Fetching ${label}…`);
@@ -91,6 +97,7 @@ export interface SyncResult {
 export async function syncAccounts(
   accounts: Account[],
   onProgress?: (msg: string) => void,
+  forcedDateFrom?: string,
 ): Promise<SyncResult> {
   let inserted = 0;
   const errors: SyncResult["errors"] = [];
@@ -98,7 +105,7 @@ export async function syncAccounts(
   const results = await Promise.all(
     accounts.map(async (acc) => {
       try {
-        return { inserted: await syncAccount(acc, onProgress), acc, error: null };
+        return { inserted: await syncAccount(acc, onProgress, forcedDateFrom), acc, error: null };
       } catch (e) {
         return { inserted: 0, acc, error: e };
       }
