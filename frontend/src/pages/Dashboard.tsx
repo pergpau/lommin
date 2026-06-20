@@ -22,8 +22,9 @@ import { loadKey } from "../lib/keystore";
 import { effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
 import { clearDriveToken, getAllSettings, getDriveToken } from "../lib/settings";
-import { triggerAutosave } from "../lib/autosave";
-import { clearAccounts, clearTransactions, deleteTransaction, exportAll, getEnableBankingSource, setCategoryId, setComment, setCustomDate, setIsExtraordinary } from "../lib/store";
+import { addSaveListener, triggerAutosave } from "../lib/autosave";
+import { clearAccounts, clearTransactions, exportAll, getEnableBankingSource } from "../lib/store";
+import { deleteTransaction, setCategoryId, setComment, setCustomDate, setIsExtraordinary } from "../lib/mutations";
 
 type Tab = "categories" | "accounts" | "transactions";
 
@@ -51,16 +52,8 @@ export default function Dashboard() {
   const [isDemo, setIsDemo] = useState(false);
   const [exitingDemo, setExitingDemo] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
-  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const doAutosave = useCallback(async () => {
-    setAutoSaving(true);
-    try {
-      await triggerAutosave();
-    } finally {
-      setAutoSaving(false);
-    }
-  }, []);
+  useEffect(() => addSaveListener(setAutoSaving), []);
+  const doAutosave = useCallback(() => void triggerAutosave(), []);
 
   useEffect(() => {
     loadKey().then((kv) => setHasKey(!!kv));
@@ -382,18 +375,8 @@ export default function Dashboard() {
                   : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
                 : undefined
             }
-            onCategoryChange={async (txId, catId) => {
-              await setCategoryId(txId, catId);
-              refresh();
-              if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
-              autosaveTimer.current = setTimeout(() => void doAutosave(), 3000);
-            }}
-            onIsExtraordinaryChange={async (txId, value) => {
-              await setIsExtraordinary(txId, value);
-              refresh();
-              if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
-              autosaveTimer.current = setTimeout(() => void doAutosave(), 3000);
-            }}
+            onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
+            onIsExtraordinaryChange={async (txId, value) => { await setIsExtraordinary(txId, value); refresh(); }}
           />
         )}
 
@@ -452,30 +435,11 @@ export default function Dashboard() {
                     : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
                   : undefined
               }
-              onCategoryChange={async (txId, catId) => {
-                await setCategoryId(txId, catId);
-                refresh();
-                if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
-                autosaveTimer.current = setTimeout(() => void doAutosave(), 3000);
-              }}
-              onIsExtraordinaryChange={async (txId, value) => {
-                await setIsExtraordinary(txId, value);
-                refresh();
-                if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
-                autosaveTimer.current = setTimeout(() => void doAutosave(), 3000);
-              }}
-              onCustomDateChange={async (txId, date) => {
-                await setCustomDate(txId, date);
-                refresh();
-              }}
-              onCommentChange={async (txId, comment) => {
-                await setComment(txId, comment);
-                refresh();
-              }}
-              onDelete={async (txId) => {
-                await deleteTransaction(txId);
-                refresh();
-              }}
+              onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
+              onIsExtraordinaryChange={async (txId, value) => { await setIsExtraordinary(txId, value); refresh(); }}
+              onCustomDateChange={async (txId, date) => { await setCustomDate(txId, date); refresh(); }}
+              onCommentChange={async (txId, comment) => { await setComment(txId, comment); refresh(); }}
+              onDelete={async (txId) => { await deleteTransaction(txId); refresh(); }}
             />
           ) : (
             <div className="card p-10 text-center text-muted text-sm">

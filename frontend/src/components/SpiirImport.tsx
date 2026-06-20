@@ -10,8 +10,8 @@ import {
   parseSpiirZipAccounts,
   type SpiirAccount,
 } from "../lib/spiirImport";
-import { triggerAutosave } from "../lib/autosave";
-import { getAccounts, importAll, type Account } from "../lib/store";
+import { getAccounts, type Account } from "../lib/store";
+import { importAll } from "../lib/mutations";
 
 type Props = { onSuccess?: () => void };
 
@@ -111,7 +111,6 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
         t("spiirImport.success", { count: spiirAccounts.length, txCount: inserted, skipNote }),
         "ok",
       );
-      void triggerAutosave();
       setSpiirStep("idle");
       onSuccess?.();
     } catch (e) {

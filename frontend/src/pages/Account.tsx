@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { triggerAutosave } from "../lib/autosave";
-import { deleteAccount, deleteTransaction, disconnectAccount, resetAccountSync, setCategoryId, setComment, setCustomDate, setIsExtraordinary, type Transaction } from "../lib/store";
+import { type Transaction } from "../lib/store";
+import { deleteAccount, deleteTransaction, disconnectAccount, resetAccountSync, setCategoryId, setComment, setCustomDate, setIsExtraordinary } from "../lib/mutations";
 import { getSetting } from "../lib/settings";
 import { accountLabel, effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
@@ -45,7 +46,6 @@ export default function AccountPage() {
   const { showSnackbar } = useSnackbar();
   const [selectedMonth, setSelectedMonth] = useState("");
   const [chartMode, setChartMode] = useState<ChartMode>("month");
-  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isDemo, setIsDemo] = useState(false);
   const [hasKey, setHasKey] = useState(true);
 
@@ -167,13 +167,11 @@ export default function AccountPage() {
     if (!uid || !confirm(t("confirm.disconnectAccount"))) return;
     await disconnectAccount(uid);
     reload();
-    void triggerAutosave();
   }, [uid, t, reload]);
 
   const removeAccount = useCallback(async () => {
     if (!uid || !confirm(t("confirm.removeAccount"))) return;
     await deleteAccount(uid);
-    void triggerAutosave();
     navigate("/dashboard");
   }, [uid, navigate, t]);
 
@@ -181,7 +179,6 @@ export default function AccountPage() {
     if (!uid || !confirm(t("confirm.deleteTransactions"))) return;
     await resetAccountSync(uid);
     refresh();
-    void triggerAutosave();
   }, [uid, t, refresh]);
 
   if (loading) {
@@ -299,30 +296,11 @@ export default function AccountPage() {
               : new Date(selectedMonth + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
             : undefined
         }
-        onCategoryChange={async (txId, catId) => {
-          await setCategoryId(txId, catId);
-          refresh();
-          if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
-          autosaveTimer.current = setTimeout(() => void triggerAutosave(), 3000);
-        }}
-        onIsExtraordinaryChange={async (txId, value) => {
-          await setIsExtraordinary(txId, value);
-          refresh();
-          if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
-          autosaveTimer.current = setTimeout(() => void triggerAutosave(), 3000);
-        }}
-        onCustomDateChange={async (txId, date) => {
-          await setCustomDate(txId, date);
-          refresh();
-        }}
-        onCommentChange={async (txId, comment) => {
-          await setComment(txId, comment);
-          refresh();
-        }}
-        onDelete={async (txId) => {
-          await deleteTransaction(txId);
-          refresh();
-        }}
+        onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
+        onIsExtraordinaryChange={async (txId, value) => { await setIsExtraordinary(txId, value); refresh(); }}
+        onCustomDateChange={async (txId, date) => { await setCustomDate(txId, date); refresh(); }}
+        onCommentChange={async (txId, comment) => { await setComment(txId, comment); refresh(); }}
+        onDelete={async (txId) => { await deleteTransaction(txId); refresh(); }}
       />
 
       {resyncModal && (
