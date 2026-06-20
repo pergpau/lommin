@@ -21,7 +21,10 @@ PLAN.md     Original architecture and feasibility notes (historical context)
 ```sh
 npm run dev       # dev server (localhost:5173)
 npm run build     # TypeScript check + Vite production build
-npm run lint      # ESLint
+npm run lint      # oxlint (not ESLint)
+npm run lint:fix  # oxlint --fix
+npm run format    # oxfmt formatter
+npm run test      # Vitest (unit tests)
 npm run preview   # preview the production build locally
 ```
 
@@ -37,32 +40,71 @@ wrangler deploy   # deploy to Cloudflare Workers
 The app is a React 19 SPA with React Router v7, Tailwind CSS, and no state management library. All persistence is client-side via two separate IndexedDB databases:
 
 - **`lommin-data`** (`src/lib/store.ts`) — accounts, transactions, sync cursors. Transactions are keyed by `${accountUid}::${entryReference}`; upserts ignore duplicates.
-- **`lommin-settings`** (`src/lib/settings.ts`) — just `proxyUrl` (defaults to `https://proxy.lommin.workers.dev`).
+- **`lommin-settings`** (`src/lib/settings.ts`) — `proxyUrl`, `lookbackDays`, `usePassphrase`, `backupMethod` (`"file" | "drive"`), `driveAutosave`, `lastLocalSavedAt`. Also stores Google Drive access token/expiry.
 - **`lommin-keystore`** (`src/lib/keystore.ts`) — stores the non-extractable `CryptoKey` + `appId`.
 
 ### `src/lib/` — core logic
 
-| File               | Responsibility                                                                                  |
-| ------------------ | ----------------------------------------------------------------------------------------------- |
-| `pem.ts`           | Strip PEM armor, base64-decode DER                                                              |
-| `jwt.ts`           | Mint RS256 JWTs via Web Crypto (`RSASSA-PKCS1-v1_5`)                                            |
-| `keystore.ts`      | Import `.pem` as a **non-extractable** `CryptoKey`, persist it in IndexedDB                     |
-| `enableBanking.ts` | Enable Banking API client (port of `fetch_transactions.py`); routes all calls through the proxy |
-| `store.ts`         | IndexedDB CRUD for accounts, transactions, sync cursors                                         |
-| `settings.ts`      | IndexedDB CRUD for app settings                                                                 |
-| `cryptoFile.ts`    | AES-GCM encrypted file export/import via File System Access API (PBKDF2 key derivation)         |
-| `sync.ts`          | Orchestrates a full sync: paginated transaction fetch → upsert → cursor update                  |
-| `format.ts`        | Number/date formatting helpers                                                                  |
+| File                 | Responsibility                                                                                     |
+| -------------------- | -------------------------------------------------------------------------------------------------- |
+| `pem.ts`             | Strip PEM armor, base64-decode DER                                                                 |
+| `jwt.ts`             | Mint RS256 JWTs via Web Crypto (`RSASSA-PKCS1-v1_5`)                                              |
+| `keystore.ts`        | Import `.pem` as a **non-extractable** `CryptoKey`, persist it in IndexedDB                       |
+| `enableBanking.ts`   | Enable Banking API client; routes all calls through the proxy                                      |
+| `store.ts`           | IndexedDB CRUD for accounts, transactions, sync cursors                                            |
+| `mutations.ts`       | Re-exports store write functions wrapped to trigger autosave — **use this instead of `store.ts`** |
+| `settings.ts`        | IndexedDB CRUD for app settings (proxy URL, lookback days, backup method, Drive token, etc.)      |
+| `cryptoFile.ts`      | AES-GCM encrypted file export/import via File System Access API (PBKDF2 key derivation)           |
+| `sync.ts`            | Orchestrates a full sync: paginated transaction fetch → upsert → cursor update                    |
+| `format.ts`          | Number/date formatting helpers                                                                     |
+| `categories.ts`      | Norwegian category taxonomy (`MAIN_CATEGORIES`); `CategoryType`: income/expense/saving/exclude    |
+| `categoryIcons.ts`   | Maps category IDs to Font Awesome icons                                                            |
+| `autoCategorize.ts`  | Guesses category from `bankTransactionCode` (BTC rules) and description patterns                  |
+| `autosave.ts`        | Debounced (3 s) autosave to Google Drive; `triggerAutosave()` / `addSaveListener()`               |
+| `googleDrive.ts`     | Google Drive backup/restore using `drive.appdata` scope; `DriveAuthError` for token expiry        |
+| `spiirImport.ts`     | Parse Spiir ZIP export → Accounts + Transactions; maps Spiir category IDs to own IDs             |
+| `transfers.ts`       | `detectTransfers()` — greedy same-amount opposite-sign matcher across accounts (±3 days)          |
+| `i18n.ts`            | i18next setup; Norwegian (`nb`) + English (`en`); auto-detects browser language                   |
+| `theme.ts`           | Dark/light theme toggle; persisted in `localStorage`; `ThemeContext`                              |
+| `validate.ts`        | Runtime validation guards for external data (API responses, import files); no Zod dependency      |
+| `demoData.ts`        | Seeds two demo accounts with synthetic transactions for the demo onboarding flow                  |
 
 ### `src/hooks/` — data hooks for pages
 
-`useAccounts`, `useTransactions`, `useSyncState` — thin wrappers over the IndexedDB store that load data on mount and expose loading/error state. Pages consume these rather than calling store functions directly.
+- `useAccounts`, `useTransactions`, `useSyncState` — thin wrappers over the IndexedDB store that load data on mount and expose loading/error state
+- `useAsyncData<T>(fetcher, initial, deps)` — generic async data hook with loading/error/reload; prefer this over bespoke hooks
+- `useSuccessFlash(duration?)` — returns `{ success, flash }` for transient success animation state
 
 ### Pages and routing
 
-`/setup` → `/connect` → `/dashboard` / `/account/:uid` / `/settings`
+`/onboarding` → `/connect` → `/dashboard` / `/account/:uid` / `/settings`
+(`/setup` redirects to `/onboarding`)
 
-`RequireKey` (in `App.tsx`) guards dashboard/account/settings routes — redirects to `/setup` if no signing key is in IndexedDB.
+`RequireKey` (in `App.tsx`) guards dashboard/account/settings routes — redirects to `/onboarding` if neither a signing key nor any accounts exist. Accounts can exist without a key (demo mode, Spiir import).
+
+Additional routes: `/oauth/google` (Google Drive OAuth callback), `/privacy`, `/terms`.
+
+### i18n
+
+All user-facing strings are in `src/locales/{nb,en}/*.json`. Use `useTranslation()` from `react-i18next`; namespace matches the JSON file name (e.g. `t('key', { ns: 'dashboard' })`).
+
+### Mutations vs. store
+
+For any write that modifies user data, import from `src/lib/mutations.ts` (not `store.ts`). `mutations.ts` wraps each write to debounce-trigger autosave. Exception: `sync.ts`, which batches writes and triggers autosave itself via its callback.
+
+### Account and Transaction models
+
+`Account.sources: AccountSource[]` — each account can have multiple sources. `AccountSource.type` is `"enableBanking" | "spiir" | "demo"`. Use `getEnableBankingSource(acc)` to get the Enable Banking source. Spiir and demo accounts have no signing key requirement.
+
+`Transaction` additional fields beyond the Enable Banking basics: `categoryId` (number), `isExtraordinary` (boolean), `comment` (string), `customDate` (string), `to_bban`, `from_bban`.
+
+### Demo mode
+
+`demoData.ts#seedDemoData()` creates two local accounts with synthetic transactions. Triggered from the onboarding flow. Demo accounts have `source.type === "demo"` and no sync capability.
+
+### Testing
+
+Unit tests use Vitest (`npm run test`). Test files live alongside source: `*.test.ts`. Existing tests: `autoCategorize.test.ts`, `cryptoFile.test.ts`, `jwt.test.ts`, `spiirImport.test.ts`, `transfers.test.ts`, `validate.test.ts`.
 
 ### Constants (`src/constants.ts`)
 
