@@ -97,6 +97,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Link to="/terms" className="text-xs text-muted hover:text-text transition-colors">
             {t("footer.terms")}
           </Link>
+          <span className="text-border">·</span>
+          <a
+            href="https://github.com/pergpau/lommin"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-muted hover:text-text transition-colors"
+          >
+            GitHub
+          </a>
         </div>
       </footer>
     </div>
