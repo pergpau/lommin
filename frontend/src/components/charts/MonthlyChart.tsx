@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { fmtAmount } from "../../lib/format";
 import { ArrowLeftIcon, ArrowRightIcon } from "../ui/icons";
@@ -32,6 +32,46 @@ type MonthlyChartProps = {
   onModeChange: (mode: ChartMode) => void;
 };
 
+type StatBlockProps = {
+  label: string;
+  value: number;
+  avg: number;
+  valueClassName: string;
+};
+
+function StatBlock({ label, value, avg, valueClassName }: StatBlockProps) {
+  const { t } = useTranslation("charts");
+  return (
+    <div className="w-24 sm:w-32 text-left">
+      <div className="text-[11px] sm:text-xs text-muted uppercase tracking-wider mb-0.5 sm:mb-1">
+        {label}
+      </div>
+      <div className={`text-lg sm:text-2xl font-semibold tabular-nums whitespace-nowrap ${valueClassName}`}>
+        {fmtAmount(value, undefined, 0)}
+      </div>
+      <div className="text-[11px] sm:text-xs text-muted mt-0.5">
+        {t("monthly.avg", { amount: fmtAmount(avg, undefined, 0) })}
+      </div>
+    </div>
+  );
+}
+
+type StatsRowProps = {
+  children: ReactNode;
+  modeToggle: ReactNode;
+};
+
+function StatsRow({ children, modeToggle }: StatsRowProps) {
+  return (
+    <div className="flex items-start justify-between mb-5">
+      <div className="flex-1 flex">
+        <div className="flex w-full justify-between sm:w-auto sm:justify-start sm:gap-6">{children}</div>
+      </div>
+      <div className="hidden sm:block shrink-0">{modeToggle}</div>
+    </div>
+  );
+}
+
 const BAR_MAX = 80;
 const PAGE_SIZE = 6;
 const PAGE_SIZE_MOBILE = 3;
@@ -53,11 +93,9 @@ export default function MonthlyChart({
   }, [bars.length, pageSize]);
 
   const visibleBars =
-    mode === "month"
+    mode === "month" || isMobile
       ? bars.slice(windowStart, windowStart + pageSize)
-      : isMobile
-        ? bars.slice(-3)
-        : bars;
+      : bars;
   const selected = bars.find((b) => b.key === activeKey) ?? bars[bars.length - 1];
   const avgIncome = bars.length > 0 ? bars.reduce((s, b) => s + b.income, 0) / bars.length : 0;
   const avgExpenses = bars.length > 0 ? bars.reduce((s, b) => s + b.expenses, 0) / bars.length : 0;
@@ -155,42 +193,14 @@ export default function MonthlyChart({
       {/* Mobile: filter above stats */}
       <div className="flex justify-end mb-3 sm:hidden">{modeToggle}</div>
 
-      <div className="flex items-start justify-between mb-5">
-        <div className="flex gap-6">
-          <div>
-            <div className="text-xs text-muted uppercase tracking-wider mb-1">{t("monthly.income")}</div>
-            <div className="text-2xl font-semibold text-positive">
-              {fmtAmount(selected?.income ?? 0, undefined, 0)}
-            </div>
-            <div className="text-xs text-muted mt-0.5">
-              {t("monthly.avg", { amount: fmtAmount(avgIncome, undefined, 0) })}
-            </div>
-          </div>
-          <div>
-            <div className="text-xs text-muted uppercase tracking-wider mb-1">{t("monthly.saving")}</div>
-            <div className="text-2xl font-semibold" style={{ color: "#7c3aed" }}>
-              {fmtAmount(selected?.saving ?? 0, undefined, 0)}
-            </div>
-            <div className="text-xs text-muted mt-0.5">
-              {t("monthly.avg", { amount: fmtAmount(avgSaving, undefined, 0) })}
-            </div>
-          </div>
-          <div>
-            <div className="text-xs text-muted uppercase tracking-wider mb-1">{t("monthly.expenses")}</div>
-            <div className="text-2xl font-semibold text-negative">
-              {fmtAmount(selected?.expenses ?? 0, undefined, 0)}
-            </div>
-            <div className="text-xs text-muted mt-0.5">
-              {t("monthly.avg", { amount: fmtAmount(avgExpenses, undefined, 0) })}
-            </div>
-          </div>
-        </div>
-        {/* Desktop: filter beside stats */}
-        <div className="hidden sm:block">{modeToggle}</div>
-      </div>
+      <StatsRow modeToggle={modeToggle}>
+          <StatBlock label={t("monthly.income")} value={selected?.income ?? 0} avg={avgIncome} valueClassName="text-positive" />
+          <StatBlock label={t("monthly.saving")} value={selected?.saving ?? 0} avg={avgSaving} valueClassName="text-[#7c3aed]" />
+          <StatBlock label={t("monthly.expenses")} value={selected?.expenses ?? 0} avg={avgExpenses} valueClassName="text-negative" />
+        </StatsRow>
 
       <div className="flex items-center gap-1">
-        {mode === "month" && (
+        {(mode === "month" || isMobile) && (
           <button
             className="shrink-0 p-2 rounded-lg text-muted hover:text-text hover:bg-surface disabled:opacity-20 disabled:cursor-default transition-colors"
             onClick={() => setWindowStart(Math.max(0, windowStart - pageSize))}
@@ -215,12 +225,12 @@ export default function MonthlyChart({
             </div>
           ) : (
             <div className="flex items-end w-full">
-              {(isMobile ? bars.slice(-3) : bars).map((b) => renderBar(b))}
+              {visibleBars.map((b) => renderBar(b))}
             </div>
           )}
         </div>
 
-        {mode === "month" && (
+        {(mode === "month" || isMobile) && (
           <button
             className="shrink-0 p-2 rounded-lg text-muted hover:text-text hover:bg-surface disabled:opacity-20 disabled:cursor-default transition-colors"
             onClick={() =>
