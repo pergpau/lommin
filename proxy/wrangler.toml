@@ -9,6 +9,12 @@ compatibility_date = "2024-01-01"
 [vars]
 ALLOWED_ORIGINS = "https://lommin.no"
 
+# Smart placement routes the Worker to the edge location closest to the upstream origin.
+# api.enablebanking.com resolves to Google Cloud in Brussels (BE), so this naturally
+# keeps execution in the EU
+
+mode = "smart"
+
 # Per-IP rate limiting (fixed window). Without a bound KV, rate limiting is skipped.
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
