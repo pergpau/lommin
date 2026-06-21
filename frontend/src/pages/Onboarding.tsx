@@ -4,6 +4,7 @@ import { useTranslation, Trans } from "react-i18next";
 import BankSetupGuide from "../components/BankSetupGuide";
 import CsvImportPanel from "../components/CsvImport";
 import PemImporter from "../components/PemImporter";
+import PemSafetyAccordion from "../components/PemSafetyAccordion";
 import SpiirImportPanel from "../components/SpiirImport";
 import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
@@ -231,6 +232,9 @@ function StepBankPem({ onNext }: { onNext: GoTo }) {
           components={{ pem: <span className="mono" /> }}
         />
       </p>
+      <div className="mb-4">
+        <PemSafetyAccordion />
+      </div>
       <PemImporter
         onImported={(key, appId) => onNext({ kind: "bank-confirm", pendingKey: key, appId })}
       />

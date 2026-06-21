@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import BankSetupGuide from "../components/BankSetupGuide";
 import CsvImportPanel from "../components/CsvImport";
 import PemImporter from "../components/PemImporter";
+import PemSafetyAccordion from "../components/PemSafetyAccordion";
 import SpiirImportPanel from "../components/SpiirImport";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -455,6 +456,7 @@ export default function Settings() {
                     <BankSetupGuide />
                   </div>
                 )}
+                <PemSafetyAccordion />
                 <PemImporter
                   onImported={(key, id) => {
                     pendingPemKey.current = key;

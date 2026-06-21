@@ -10,7 +10,7 @@ interface Props {
 export default function Accordion({ label, children }: Props) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
+    <div className="border border-border rounded-lg overflow-hidden bg-surface">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
