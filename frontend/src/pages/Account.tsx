@@ -227,7 +227,13 @@ export default function AccountPage() {
             <Button
               size="sm"
               disabled={isDemo}
-              onClick={() => navigate(hasKey ? "/connect" : "/settings#pem")}
+              onClick={() => {
+                if (!hasKey) { navigate("/settings#pem"); return; }
+                const p = new URLSearchParams();
+                if (account?.bankName) p.set("bank", account.bankName);
+                if (account?.bankCountry) p.set("country", account.bankCountry);
+                navigate(`/connect${p.toString() ? "?" + p.toString() : ""}`);
+              }}
             >
               {t("connectBank")}
             </Button>

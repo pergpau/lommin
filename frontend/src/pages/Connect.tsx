@@ -23,7 +23,7 @@ type Phase = "pick" | "connecting" | "callback" | "syncing" | "done" | "error";
 function phaseFromUrl(): Phase {
   const sp = new URLSearchParams(window.location.search);
   if (sp.get("code")) return "callback";
-  if (sp.get("reauth") || sp.get("uid")) return "connecting";
+  if (sp.get("reauth") || sp.get("uid") || sp.get("bank")) return "connecting";
   return "pick";
 }
 
@@ -34,7 +34,10 @@ export default function Connect() {
   const { showSnackbar } = useSnackbar();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const [country, setCountry] = useState("NO");
+  const [country, setCountry] = useState(() => {
+    const c = new URLSearchParams(window.location.search).get("country") ?? "";
+    return (COUNTRY_CODES as readonly string[]).includes(c) ? c : "NO";
+  });
   const [banks, setBanks] = useState<BankEntry[]>([]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<BankEntry | null>(null);
@@ -46,6 +49,7 @@ export default function Connect() {
   const reauthStarted = useRef(false);
   const [previousBanks, setPreviousBanks] = useState<Array<{ name: string; country: string }>>([]);
   const quickConnectStarted = useRef(false);
+  const autoConnectStarted = useRef(false);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
@@ -241,6 +245,19 @@ export default function Connect() {
       .then((list) => {
         setBanks(list);
         setLoadedCountry(country);
+        const bankParam = params.get("bank");
+        if (bankParam) {
+          const match = list.find((b) => b.name === bankParam);
+          if (match) {
+            if (!autoConnectStarted.current) {
+              autoConnectStarted.current = true;
+              setSelected(match);
+              setPhase("connecting");
+              void initiateConnectFor(match);
+            }
+            return;
+          }
+        }
         setPhase("pick");
       })
       .catch((e) => {
@@ -250,7 +267,7 @@ export default function Connect() {
         setPhase("error");
         showSnackbar(msg, "error");
       });
-  }, [country, params, showSnackbar, t]);
+  }, [country, params, showSnackbar, t, initiateConnectFor]);
 
   const isReauth = (!!params.get("reauth") || !!params.get("uid")) && !params.get("code");
   const isOAuthFlow = !!(params.get("code") || params.get("reauth") || params.get("uid"));
