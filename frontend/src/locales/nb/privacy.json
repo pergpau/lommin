@@ -1,28 +1,66 @@
 {
   "back": "← Tilbake",
   "title": "Personvernerklæring",
-  "effectiveDate": "Gjelder fra: juni 2025",
+  "lastUpdated": "Sist oppdatert: 21. juni 2025",
   "sections": {
+    "controller": {
+      "heading": "Hvem er ansvarlig",
+      "body": "Lommin er et personlig open source-prosjekt. Det er ingen bedrift bak. Har du spørsmål om personvern, ta kontakt på <email>lommin.pointer632@passmail.net</email> eller <github>opprett et issue på GitHub</github>."
+    },
     "noData": {
-      "heading": "Vi samler ingen data",
-      "body": "Lommin samler ikke inn, lagrer eller overfører noen personopplysninger til noen server vi drifter. Det er ingen analyse, ingen sporingsskript, ingen informasjonskapsler og ingen kontoer. Alt — signeringsnøkkelen din, transaksjonshistorikk og innstillinger — ligger utelukkende i nettleserens IndexedDB."
+      "heading": "Vi drifter ingen servere som samler dataene dine",
+      "body": "Lommin har ingen backend, ingen analyse, ingen sporingsskript, ingen informasjonskapsler og ingen brukerkontoer. Dataene dine ligger i nettleserens lokale lagring. Avsnittene under beskriver nøyaktig hva som lagres, hva som eventuelt forlater enheten din, og hvilke tredjeparter som er involvert."
+    },
+    "localStorage": {
+      "heading": "Nettleserlagring (ikke-sensitiv)",
+      "body": "Lommin lagrer temavalg og språkinnstilling i nettleserens localStorage. Under bankforbindelsesprosessen lagres et midlertidig CSRF-token og valgt banknavn, og slettes når tilkoblingen er ferdig. Ingenting av dette er personopplysninger."
     },
     "signingKey": {
       "heading": "Signeringsnøkkelen din",
-      "body": "Den private <pem>.pem</pem>-nøkkelen din importeres som et ikke-ekstraherbart <crypto>CryptoKey</crypto>-objekt. Rå nøkkelmateriale er aldri tilgjengelig for JavaScript etter import og forlater aldri enheten din."
+      "body": "Den private <pem>.pem</pem>-nøkkelen din importeres som et ikke-ekstraherbart <crypto>CryptoKey</crypto>-objekt. Rånøkkeldataene kan ikke leses av noen kode etter import og forlater aldri enheten din."
+    },
+    "indexedDB": {
+      "heading": "Dine finansdata (IndexedDB)",
+      "body1": "Alle kontoer, transaksjoner, synkroniseringspekere og appinnstillinger lagres i IndexedDB — en lokal database i nettleseren din. Disse dataene forlater aldri enheten din med mindre du aktivt slår på Google Drive-sikkerhetskopi.",
+      "body2": "Data beholdes til du sletter dem. Du kan slette enkeltkontoer, tømme alle transaksjoner, eller bruke «Slett alt» under Innstillinger for å fjerne all lokal data og starte på nytt."
     },
     "proxy": {
       "heading": "Proxyen og tilgangstokenet ditt",
-      "body1": "For å omgå nettleserens CORS-begrensninger rutes API-kall til Enable Banking gjennom en proxy. Denne proxyen ser <strong>det kortvarige tilgangstokenet</strong> (Bearer-token) som brukes til å autorisere hver forespørsel — ikke den private nøkkelen din.",
-      "body2": "Som standard bruker Lommin en delt proxy. Ønsker du full kontroll, kan du kjøre din egen proxy og peke Lommin mot den under <settingsLink>Innstillinger → CORS-proxy</settingsLink>. Selvhosting av proxyen betyr at ingen tredjepart ser noen del av økten din."
+      "body1": "Enable Bankings API godtar ikke forespørsler direkte fra nettlesere, så de rutes gjennom en liten proxyserver. Denne proxyen ser <strong>det kortvarige tilgangstokenet</strong> som brukes til å autorisere hver forespørsel — ikke den private nøkkelen din.",
+      "body2": "Som standard bruker Lommin en delt proxy. Ønsker du full kontroll, kan du kjøre din egen proxy og peke Lommin mot den under <settingsLink>Innstillinger → CORS-proxy</settingsLink>. Selvhosting av proxyen betyr at ingen tredjepart ser noen del av økten din.",
+      "body3": "Proxyen lagrer en <hash>SHA-256</hash>-hash av IP-adressen din for hastighetsbegrensning. Disse hashene utløper automatisk etter 120 sekunder. Ingen rå IP-adresser, forespørselskropper eller tokener lagres. Proxyen kjører på Cloudflare Workers — se <cfLink>Cloudflares personvernerklæring</cfLink>."
+    },
+    "googleDrive": {
+      "heading": "Google Drive-sikkerhetskopi (valgfritt)",
+      "body1": "Hvis du aktiverer Google Drive-sikkerhetskopi under Innstillinger, laster Lommin opp én kryptert fil (<mono>lommin-backup.enc</mono>) til Google Drives skjulte appdatamappe. Denne mappen er bare synlig for Lommin — den vises ikke i den vanlige Drive-oversikten.",
+      "body2": "Filen krypteres med <mono>AES-GCM</mono> før opplasting. Google ser aldri innholdet i klartekst. Lommin ber bare om <mono>drive.appdata</mono>-tilgang og kan ikke se eller endre andre filer i Driven din.",
+      "body3": "«Slett alt» i Innstillinger fjerner all lokal data og Google-tilgangstokenet, men sletter <strong>ikke</strong> sikkerhetskopifilen fra Google Drive. For å fjerne den helt, slett Lommins appdata via <googleLink>Google-kontoinnstillingene</googleLink>."
     },
     "thirdParty": {
       "heading": "Tredjepartstjenester",
-      "body": "Lommin kommuniserer med Enable Bankings API på dine vegne, ved hjelp av legitimasjon du oppgir. Enable Bankings egen personvernerklæring regulerer hva de gjør med disse forespørslene. Lommin har ingen innsikt i det."
+      "enableBanking": "<strong>Enable Banking</strong> — Lommin kommuniserer med Enable Bankings API på dine vegne. API-et mottar et signert autorisasjonstoken og returnerer bank- og transaksjonsdata. Se <ebLink>Enable Bankings personvernerklæring</ebLink>.",
+      "google": "<strong>Google</strong> — Bruker du Google Drive-sikkerhetskopi, lagres den krypterte sikkerhetskopien i Google Drive (se over). I tillegg laster Lommin inn Geist-fonten fra Google Fonts, noe som betyr at Google mottar IP-adressen din for fontforespørselen. Se <googleLink>Googles personvernerklæring</googleLink>.",
+      "cloudflare": "<strong>Cloudflare</strong> — CORS-proxyen kjører på Cloudflare Workers. Cloudflare behandler forespørslene dine som infrastrukturleverandør. Se <cfLink>Cloudflares personvernerklæring</cfLink>.",
+      "netlify": "<strong>Netlify</strong> — Appen hostes på Netlify, som leverer de statiske filene og behandler standard HTTP-tilkoblingsdata. Se <netlifyLink>Netlifys personvernerklæring</netlifyLink>."
+    },
+    "legalBasis": {
+      "heading": "Rettslig grunnlag for behandling",
+      "body1": "<strong>Samtykke</strong> — Google Drive-sikkerhetskopi og banktilkoblinger er valgfrie funksjoner du velger å aktivere. Du kan koble fra eller slette når som helst.",
+      "body2": "<strong>Berettiget interesse</strong> — Hastighetsbegrensning via hashet IP i proxyen er nødvendig for å forhindre misbruk. Lasting av fonter og levering av appen gjennom Netlify og Cloudflare er nødvendig for at den skal fungere.",
+      "body3": "Siden appen behandler finansdataene dine lokalt i nettleseren din, faller det meste utenfor GDPR. Proxyen ser kun forbigående forespørselsdata som beskrevet over."
+    },
+    "rights": {
+      "heading": "Dine rettigheter etter GDPR",
+      "intro": "I henhold til personvernforordningen (GDPR) har du følgende rettigheter:",
+      "access": "<strong>Innsyn</strong> — Alle dataene dine er allerede synlige for deg i appen. Du kan eksportere alt via Innstillinger.",
+      "erasure": "<strong>Sletting</strong> — Slett enkeltkontoer, tøm alle transaksjoner, eller bruk «Slett alt» under <settingsLink>Innstillinger</settingsLink>. For Google Drive-sikkerhetskopier, fjern filen fra Google-kontoen din.",
+      "portability": "<strong>Dataportabilitet</strong> — Eksporter dataene dine som en kryptert sikkerhetskopifil når som helst via Innstillinger.",
+      "restriction": "<strong>Begrensning og innsigelse</strong> — Lommin behandler ikke personopplysninger på noen server — den eneste serverlagrede dataen er en kortvarig hash av IP-adressen din for hastighetsbegrensning. Det er ingenting å begrense eller protestere mot på vår side. For tredjepartstjenester, kontakt dem direkte.",
+      "complaint": "<strong>Klage</strong> — Du kan klage til ditt nasjonale datatilsyn. I Norge: <dpaLink>Datatilsynet</dpaLink>."
     },
     "contact": {
       "heading": "Kontakt",
-      "body": "Spørsmål? Åpne et issue eller ta kontakt via prosjektets repository."
+      "body": "For personvernspørsmål, send e-post til <email>lommin.pointer632@passmail.net</email> eller <github>opprett et issue på GitHub</github>."
     }
   }
 }

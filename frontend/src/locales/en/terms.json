@@ -1,28 +1,43 @@
 {
   "back": "← Back",
   "title": "Terms of Service",
-  "effectiveDate": "Effective: June 2025",
+  "lastUpdated": "Last updated: 21 June 2025",
   "sections": {
     "noWarranty": {
       "heading": "Free to use, without warranty",
-      "body": "Lommin is available free of charge, as is, without any warranty — either express or implied. Use at your own risk. We make no guarantees about availability, accuracy or fitness for any particular purpose."
+      "body": "Lommin is available free of charge, as is, without any warranty — either express or implied. Use at your own risk. We make no guarantees about availability, accuracy or fitness for any particular purpose. We are not liable for any data loss resulting from browser storage clearing, device failure or third-party service changes."
     },
     "yourData": {
       "heading": "Your data, your responsibility",
-      "body": "All data is stored locally in your browser. We do not have access to it and cannot restore it if you clear browser storage. Back up using the encrypted backup feature under Settings."
+      "body": "All data is stored locally in your browser. We do not have access to it and cannot restore it if you clear browser storage. Use the encrypted backup feature or Google Drive backup under <settingsLink>Settings</settingsLink> to protect against data loss."
+    },
+    "dataPortability": {
+      "heading": "Data portability",
+      "body": "You can export all your data at any time via Settings. Exports are encrypted with a passphrase you choose. You can import a backup to restore your data on any device."
+    },
+    "googleDriveBackup": {
+      "heading": "Google Drive backup",
+      "body1": "When you enable Google Drive backup, Lommin stores an encrypted backup file in Google Drive's hidden app data folder. Lommin only requests the <mono>drive.appdata</mono> scope — it cannot access your other Drive files. The backup is encrypted before upload; Google cannot read its contents.",
+      "body2": "\"Delete Everything\" in Lommin removes local data and the Drive access token, but does <strong>not</strong> delete the backup from Google Drive. You must remove it yourself if you want it fully deleted. <googleLink>Google's terms of service</googleLink> apply to your use of Google Drive."
     },
     "proxy": {
       "heading": "Proxy access",
       "body1": "API requests are forwarded through a proxy to handle CORS. The proxy sees the short-lived Bearer token associated with each request. It does not see your private key.",
-      "body2": "If this is a concern, you can set up your own proxy and configure it under <settingsLink>Settings → CORS proxy</settingsLink>. You can run the included Cloudflare Worker locally with <wrangler>wrangler dev</wrangler>."
+      "body2": "If this is a concern, you can set up your own proxy and configure it under <settingsLink>Settings → CORS proxy</settingsLink>. You can run the included Cloudflare Worker locally with <wrangler>wrangler dev</wrangler>.",
+      "body3": "The proxy runs on Cloudflare Workers. It stores only <hash>SHA-256</hash> hashed IP addresses for rate limiting, with automatic expiry after 120 seconds."
     },
     "enableBanking": {
       "heading": "Enable Banking API",
-      "body": "Lommin uses the Enable Banking API. Your use of this API is governed by Enable Banking's own terms of service. You are responsible for ensuring you have the correct credentials and necessary permissions."
+      "body1": "Lommin uses the Enable Banking API. When you connect a bank account, your bank data — account details, transactions and balances — flows through the CORS proxy as described above and is stored only in your browser.",
+      "body2": "Your use of the Enable Banking API is governed by <ebLink>Enable Banking's terms of service</ebLink>. Enable Banking may change their API or terms at any time. Lommin has no control over this and cannot guarantee continued bank connectivity."
+    },
+    "openSource": {
+      "heading": "Open source",
+      "body": "Lommin is open source. The full source code — including the CORS proxy — is available on <repoLink>GitHub</repoLink>. You can verify every privacy and security claim in these documents by reading the code."
     },
     "changes": {
       "heading": "Changes",
-      "body": "These terms may be updated at any time. Continued use of Lommin after changes constitutes acceptance of the updated terms."
+      "body": "If these terms change, the \"last updated\" date at the top of this page will be updated. We encourage you to review this page periodically. For significant changes, we will update the version history in the project repository."
     }
   }
 }

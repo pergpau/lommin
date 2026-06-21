@@ -1,28 +1,66 @@
 {
   "back": "← Back",
   "title": "Privacy Policy",
-  "effectiveDate": "Effective: June 2025",
+  "lastUpdated": "Last updated: 21 June 2025",
   "sections": {
+    "controller": {
+      "heading": "Who is responsible",
+      "body": "Lommin is a personal open-source project. There is no company behind it. If you have questions about privacy, reach out at <email>lommin.pointer632@passmail.net</email> or <github>open an issue on GitHub</github>."
+    },
     "noData": {
-      "heading": "We collect no data",
-      "body": "Lommin does not collect, store or transfer any personal data to any server we operate. There is no analytics, no tracking scripts, no cookies and no accounts. Everything — your signing key, transaction history and settings — lives exclusively in the browser's IndexedDB."
+      "heading": "We don't run servers that collect your data",
+      "body": "Lommin has no backend, no analytics, no tracking scripts, no cookies and no user accounts. Your data lives in your browser's local storage. The sections below describe exactly what is stored, what optionally leaves your device, and which third parties are involved."
+    },
+    "localStorage": {
+      "heading": "Browser storage (non-sensitive)",
+      "body": "Lommin stores your theme preference and language setting in the browser's localStorage. During the bank connection flow, a temporary CSRF token and your selected bank name are stored and cleared once the connection completes. None of this is personal data."
     },
     "signingKey": {
       "heading": "Your signing key",
-      "body": "Your private <pem>.pem</pem> key is imported as a non-extractable <crypto>CryptoKey</crypto> object. Raw key material is never accessible to JavaScript after import and never leaves your device."
+      "body": "Your private <pem>.pem</pem> key is imported as a non-extractable <crypto>CryptoKey</crypto> object. The raw key data cannot be read by any code after import and never leaves your device."
+    },
+    "indexedDB": {
+      "heading": "Your financial data (IndexedDB)",
+      "body1": "All accounts, transactions, sync cursors and app settings are stored in IndexedDB — a local database inside your browser. This data never leaves your device unless you explicitly enable Google Drive backup.",
+      "body2": "Data is kept until you delete it. You can delete individual accounts, clear all transactions, or use \"Delete Everything\" under Settings to wipe all local data and start fresh."
     },
     "proxy": {
       "heading": "The proxy and your access token",
-      "body1": "To bypass browser CORS restrictions, API calls to Enable Banking are routed through a proxy. This proxy sees <strong>the short-lived access token</strong> (Bearer token) used to authorise each request — not your private key.",
-      "body2": "By default Lommin uses a shared proxy. For full control, you can run your own proxy and point Lommin at it under <settingsLink>Settings → CORS proxy</settingsLink>. Self-hosting the proxy means no third party sees any part of your session."
+      "body1": "Enable Banking's API does not accept requests directly from browsers, so they are routed through a small proxy server. This proxy sees <strong>the short-lived access token</strong> used to authorise each request — not your private key.",
+      "body2": "By default Lommin uses a shared proxy. For full control, you can run your own proxy and point Lommin at it under <settingsLink>Settings → CORS proxy</settingsLink>. Self-hosting the proxy means no third party sees any part of your session.",
+      "body3": "The proxy stores a <hash>SHA-256</hash> hash of your IP address for rate limiting. These hashes expire automatically after 120 seconds. No raw IP addresses, request bodies or tokens are stored. The proxy runs on Cloudflare Workers — see <cfLink>Cloudflare's privacy policy</cfLink>."
+    },
+    "googleDrive": {
+      "heading": "Google Drive backup (optional)",
+      "body1": "If you enable Google Drive backup under Settings, Lommin uploads a single encrypted file (<mono>lommin-backup.enc</mono>) to your Google Drive's hidden app data folder. This folder is only visible to Lommin — it does not appear in your regular Drive.",
+      "body2": "The file is encrypted with <mono>AES-GCM</mono> before upload. Google never sees the plaintext. Lommin requests only the <mono>drive.appdata</mono> scope and cannot see or modify any other files in your Drive.",
+      "body3": "\"Delete Everything\" in Settings removes all local data and the Google access token, but does <strong>not</strong> delete the backup file from Google Drive. To remove it completely, delete Lommin's app data via your <googleLink>Google account settings</googleLink>."
     },
     "thirdParty": {
       "heading": "Third-party services",
-      "body": "Lommin communicates with Enable Banking's API on your behalf, using credentials you provide. Enable Banking's own privacy policy governs what they do with those requests. Lommin has no insight into that."
+      "enableBanking": "<strong>Enable Banking</strong> — Lommin communicates with Enable Banking's API on your behalf. The API receives a signed authorization token and returns your bank account and transaction data. See <ebLink>Enable Banking's privacy policy</ebLink>.",
+      "google": "<strong>Google</strong> — If you use Google Drive backup, your encrypted backup file is stored in Google Drive (see above). Additionally, Lommin loads the Geist font from Google Fonts, which means Google receives your IP address for the font request. See <googleLink>Google's privacy policy</googleLink>.",
+      "cloudflare": "<strong>Cloudflare</strong> — The CORS proxy runs on Cloudflare Workers. Cloudflare processes your requests as infrastructure provider. See <cfLink>Cloudflare's privacy policy</cfLink>.",
+      "netlify": "<strong>Netlify</strong> — The app is hosted on Netlify, which serves the static files and processes standard HTTP connection data. See <netlifyLink>Netlify's privacy policy</netlifyLink>."
+    },
+    "legalBasis": {
+      "heading": "Legal basis for processing",
+      "body1": "<strong>Consent</strong> — Google Drive backup and bank account connections are optional features you choose to enable. You can disconnect or delete at any time.",
+      "body2": "<strong>Legitimate interest</strong> — Rate limiting via hashed IP in the proxy is necessary to prevent abuse. Loading fonts and serving the app through Netlify and Cloudflare are necessary for it to work.",
+      "body3": "Since the app processes your financial data locally in your browser, most of what it does falls outside GDPR. The proxy only sees transient request data as described above."
+    },
+    "rights": {
+      "heading": "Your rights under GDPR",
+      "intro": "Under the General Data Protection Regulation, you have the following rights:",
+      "access": "<strong>Access</strong> — All your data is already visible to you in the app. You can export everything via Settings.",
+      "erasure": "<strong>Erasure</strong> — Delete individual accounts, clear all transactions, or use \"Delete Everything\" under <settingsLink>Settings</settingsLink>. For Google Drive backups, remove the file from your Google account.",
+      "portability": "<strong>Portability</strong> — Export your data as an encrypted backup file at any time via Settings.",
+      "restriction": "<strong>Restriction & objection</strong> — Lommin does not process personal data on any server — the only server-side data is a short-lived hash of your IP for rate limiting. There is nothing to restrict or object to on our side. For third-party services, contact them directly.",
+      "complaint": "<strong>Complaint</strong> — You may lodge a complaint with your national data protection authority. In Norway: <dpaLink>Datatilsynet</dpaLink>."
     },
     "contact": {
       "heading": "Contact",
-      "body": "Questions? Open an issue or get in touch via the project repository."
+      "body": "For privacy questions, email <email>lommin.pointer632@passmail.net</email> or <github>open an issue on GitHub</github>."
     }
   }
 }
