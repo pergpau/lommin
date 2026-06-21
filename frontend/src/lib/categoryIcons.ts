@@ -1,6 +1,6 @@
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
-  faEyeSlash, faBan, faArrowRightArrowLeft, faUserGroup,
+  faEyeSlash, faArrowRightArrowLeft, faUserGroup,
   faWallet, faBriefcase, faReceipt, faPercent, faChartColumn,
   faArrowRotateLeft, faUmbrella, faSun, faChildReaching,
   faHouseChimneyUser, faGraduationCap, faCoins,
