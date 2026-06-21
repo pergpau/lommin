@@ -130,7 +130,7 @@ export default function Dashboard() {
       setDashBackupSaving(false);
       setDashPassphrase("");
     }
-  }, [backupMethod, dashDriveToken, showSnackbar, t, saveFlash]);
+  }, [backupMethod, dashDriveToken, navigate, showSnackbar, t, saveFlash]);
 
   const exitDemo = useCallback(async () => {
     setExitingDemo(true);

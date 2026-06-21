@@ -111,7 +111,7 @@ export default function AccountPage() {
     d.setDate(d.getDate() - resyncDays);
     const dateFrom = d.toISOString().split("T")[0];
     void runSync([account], (hadErrors) => { reload(); refresh(); if (!hadErrors) void triggerAutosave(); }, dateFrom);
-  }, [account, resyncDays, runSync, reload]);
+  }, [account, resyncDays, runSync, reload, refresh]);
 
   const disconnectBank = useCallback(async () => {
     if (!uid || !confirm(t("confirm.disconnectAccount"))) return;
