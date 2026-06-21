@@ -1,7 +1,7 @@
 import { mintJwt } from "./jwt";
 import { loadKey } from "./keystore";
 import { getSetting } from "./settings";
-import { type Transaction, makeTransactionId } from "./store";
+import { type Transaction, makeTransactionId, normalizeForMatch } from "./store";
 import { asArray, asRecord, isRecord, optString, reqString } from "./validate";
 
 export class ProxyNetworkError extends Error {
@@ -225,6 +225,7 @@ export async function fetchTransactions(
       currency: r.transaction_amount?.currency ?? "",
       creditDebit: parseCreditDebit(r),
       description: parseDescription(r),
+      matchDescription: normalizeForMatch(r.remittance_information?.[0] ?? r.creditor?.name ?? ""),
       bankTransactionCode: r.bank_transaction_code?.description || undefined,
       status: r.status ?? "",
       excludeFromCalculations: false,

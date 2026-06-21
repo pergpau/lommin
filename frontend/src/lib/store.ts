@@ -57,6 +57,7 @@ export interface Transaction {
   comment?: string;
   to_bban?: string;
   from_bban?: string;
+  matchDescription?: string;
   raw: Record<string, unknown>;
 }
 
@@ -136,8 +137,17 @@ export function makeTransactionId(accountUid: string, entryReference: string): s
   return `${accountUid}::${entryReference}`;
 }
 
+export function normalizeForMatch(text: string): string {
+  return text
+    .replace(/^\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s*/, "")
+    .replace(/\s+/g, " ")
+    .toLowerCase()
+    .trim();
+}
+
 function txSoftKey(t: Transaction): string {
-  return `${t.accountUid}|${t.bookingDate}|${t.amount.toFixed(2)}|${t.description.toLowerCase()}`;
+  const desc = t.matchDescription ?? normalizeForMatch(t.description);
+  return `${t.accountUid}|${t.transactionDate}|${t.amount.toFixed(2)}|${desc}`;
 }
 
 export async function upsertTransactions(txns: Transaction[]): Promise<number> {

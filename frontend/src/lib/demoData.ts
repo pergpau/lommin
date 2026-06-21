@@ -1,4 +1,4 @@
-import { getAccounts, saveAccount, upsertTransactions, type Account, type Transaction } from "./store";
+import { getAccounts, saveAccount, upsertTransactions, normalizeForMatch, type Account, type Transaction } from "./store";
 
 const BRUKSKONTO_UID = "demo-brukskonto";
 const KREDITTKORT_UID = "demo-kredittkort";
@@ -29,6 +29,7 @@ function tx(
     currency: "NOK",
     creditDebit: amount > 0 ? "CRDT" : "DBIT",
     description,
+    matchDescription: normalizeForMatch(description),
     status: "BOOK",
     categoryId,
     excludeFromCalculations: false,
