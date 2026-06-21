@@ -37,6 +37,7 @@ export default function Dashboard() {
   const { transactions, loading: txLoading, refresh } = useTransactions();
   const {
     syncing,
+    syncProgress,
     syncMsg,
     error,
     failedAccounts,
@@ -73,6 +74,10 @@ export default function Dashboard() {
     hasSetting("backupMethod").then(setHasBackupMethod);
 
   }, []);
+
+  useEffect(() => {
+    if (syncProgress) showSnackbar(syncProgress, "info", null);
+  }, [syncProgress, showSnackbar]);
 
   useEffect(() => {
     if (syncMsg) showSnackbar(syncMsg, "ok");

@@ -29,7 +29,7 @@ export default function AccountPage() {
   const navigate = useNavigate();
   const { accounts, loading: accountsLoading, reload } = useAccounts();
   const { transactions: all, loading: txLoading, refresh } = useTransactions(uid);
-  const { syncing, syncMsg, error: syncError, failedAccounts, run: runSync } = useSyncState();
+  const { syncing, syncProgress, syncMsg, error: syncError, failedAccounts, run: runSync } = useSyncState();
   const accountError = failedAccounts.get(uid ?? "");
   const { showSnackbar } = useSnackbar();
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -42,6 +42,10 @@ export default function AccountPage() {
     void isDemoMode().then(setIsDemo);
     void loadKey().then((kv) => setHasKey(!!kv));
   }, []);
+
+  useEffect(() => {
+    if (syncProgress) showSnackbar(syncProgress, "info", null);
+  }, [syncProgress, showSnackbar]);
 
   useEffect(() => {
     if (syncMsg) showSnackbar(syncMsg, "ok");

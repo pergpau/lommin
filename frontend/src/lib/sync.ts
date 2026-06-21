@@ -1,17 +1,22 @@
-import { fetchAllTransactions, fetchBalance, ProxyNetworkError } from "./enableBanking";
+import { t } from "i18next";
+import { guessCategory } from "./autoCategorize";
 import {
-  getSyncCursor,
-  setSyncCursor,
-  saveAccount,
-  upsertTransactions,
+  fetchAllTransactions,
+  fetchBalance,
+  ProxyNetworkError,
+} from "./enableBanking";
+import { getSetting } from "./settings";
+import {
   getAllTransactions,
-  tagTransferCategory,
   getEnableBankingSource,
+  getSyncCursor,
+  saveAccount,
+  setSyncCursor,
+  tagTransferCategory,
+  upsertTransactions,
   type Account,
 } from "./store";
 import { detectTransfers } from "./transfers";
-import { guessCategory } from "./autoCategorize";
-import { getSetting } from "./settings";
 
 function dateFromDaysAgo(days: number): string {
   const d = new Date();
@@ -44,12 +49,12 @@ export async function syncAccount(
   }
 
   const apiUid = src.sourceId;
-  onProgress?.(`Fetching ${label}…`);
+  onProgress?.(`${t("actions.fetching")}: ${label}`);
   const [txns, balance] = await Promise.all([
     fetchAllTransactions(
       apiUid,
       dateFrom,
-      (n) => onProgress?.(`Fetching ${label}… (${n})`),
+      (n) => onProgress?.(`${t("actions.fetching")}: ${label} (${n})`),
       acc.uid,
     ),
     fetchBalance(apiUid).catch(() => undefined),

@@ -15,7 +15,8 @@
     "confirm": "Bekreft",
     "close": "Lukk",
     "saving": "Lagrer…",
-    "loading": "Laster…"
+    "loading": "Laster…",
+    "fetching": "Henter transaksjoner"
   },
   "sync": {
     "syncing": "Henter data fra Google Drive",

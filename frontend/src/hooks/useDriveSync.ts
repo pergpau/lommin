@@ -23,7 +23,7 @@ export function useDriveSync() {
       if (!driveModifiedAt) return;
       if (settings.lastLocalSavedAt !== null && driveModifiedAt <= settings.lastLocalSavedAt) return;
 
-      showSnackbar(t("sync.syncing"), "ok", null);
+      showSnackbar(t("sync.syncing"), "info", null);
       const data = await loadBackupFromDrive(stored.token, "");
       await clearAccounts();
       await clearTransactions();

@@ -1,11 +1,12 @@
 import { useCallback, useState } from "react";
-import i18n from "../lib/i18n";
 import { ProxyNetworkError } from "../lib/enableBanking";
+import i18n from "../lib/i18n";
 import { type Account } from "../lib/store";
 import { syncAccounts } from "../lib/sync";
 
 export function useSyncState() {
   const [syncing, setSyncing] = useState(false);
+  const [syncProgress, setSyncProgress] = useState("");
   const [syncMsg, setSyncMsg] = useState("");
   const [error, setError] = useState("");
   const [failedAccounts, setFailedAccounts] = useState<Map<string, string>>(
@@ -18,13 +19,15 @@ export function useSyncState() {
   const run = useCallback(
     async (accounts: Account[], onSuccess?: (hadErrors: boolean) => void, forcedDateFrom?: string) => {
       setSyncing(true);
+      setSyncProgress("");
       setSyncMsg("");
       setError("");
       setFailedAccounts(new Map());
       setSyncingAccountUids(new Set(accounts.map((a) => a.uid)));
       try {
-        const { inserted, errors } = await syncAccounts(accounts, setSyncMsg, forcedDateFrom);
+        const { inserted, errors } = await syncAccounts(accounts, setSyncProgress, forcedDateFrom);
         setSyncingAccountUids(new Set());
+        setSyncProgress("");
         setSyncMsg(
           i18n.t("dashboard:snackbar.syncResult", { count: inserted }),
         );
@@ -47,6 +50,7 @@ export function useSyncState() {
           ? i18n.t("dashboard:snackbar.proxyUnreachable")
           : (e instanceof Error ? e.message : "");
         setError(detail ? `${base}: ${detail}` : base);
+        setSyncProgress("");
         setSyncMsg("");
         setSyncingAccountUids(new Set());
       } finally {
@@ -56,5 +60,5 @@ export function useSyncState() {
     [],
   );
 
-  return { syncing, syncMsg, error, failedAccounts, syncingAccountUids, run };
+  return { syncing, syncProgress, syncMsg, error, failedAccounts, syncingAccountUids, run };
 }

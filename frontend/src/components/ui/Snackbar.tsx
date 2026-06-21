@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { XIcon } from "./icons";
+import Spinner from "./Spinner";
 
-type SnackType = "ok" | "error";
+type SnackType = "ok" | "error" | "info";
 
 type SnackbarContextValue = {
   showSnackbar: (message: string, type: SnackType, duration?: number | null) => void;
@@ -12,6 +13,7 @@ const SnackbarContext = createContext<SnackbarContextValue | null>(null);
 const typeStyles: Record<SnackType, string> = {
   ok: "border-positive bg-positive text-white",
   error: "border-negative bg-negative text-white",
+  info: "border-border-2 bg-surface-2 text-text",
 };
 
 export function SnackbarProvider({ children }: { children: React.ReactNode }) {
@@ -47,13 +49,19 @@ export function SnackbarProvider({ children }: { children: React.ReactNode }) {
             }`}
         >
           <span>{snack?.message}</span>
-          <button
-            onClick={dismiss}
-            className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
-            aria-label="Lukk"
-          >
-            <XIcon size={14} />
-          </button>
+          {snack?.type === "info" ? (
+            <span className="shrink-0 opacity-60">
+              <Spinner size={14} />
+            </span>
+          ) : (
+            <button
+              onClick={dismiss}
+              className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
+              aria-label="Lukk"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
         </div>
       </div>
     </SnackbarContext.Provider>

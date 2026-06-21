@@ -152,6 +152,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
     if (!driveToken) return;
     setDialog(null);
     setDriveSyncing("load");
+    showSnackbar(t("common:sync.syncing"), "info", null);
     try {
       const data = await loadBackupFromDrive(driveToken, passphrase);
       const [localTxs, localSavedAt] = await Promise.all([
@@ -181,6 +182,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
     const { data } = restorePreview;
     setRestorePreview(null);
     setDriveSyncing("load");
+    showSnackbar(t("common:sync.syncing"), "info", null);
     try {
       await importAll(data);
       showSnackbar(t("settings:snackbar.driveRestoreSuccess"), "ok");
