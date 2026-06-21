@@ -158,13 +158,15 @@ export default function Dashboard() {
   const [actionsOpen, setActionsOpen] = useState(false);
   const [showDuplicatesBanner, setShowDuplicatesBanner] = useState(false);
 
+  const checkAndShowDuplicatesBanner = useCallback(async () => {
+    const [all, dismissed] = await Promise.all([getAllTransactions(), getDismissedPairs()]);
+    const visible = filterVisiblePairs(detectDuplicatePairs(all), new Set(dismissed));
+    if (visible.length > 0) setShowDuplicatesBanner(true);
+  }, []);
+
   useEffect(() => {
     if (!location.state?.checkDuplicates) return;
-    void (async () => {
-      const [all, dismissed] = await Promise.all([getAllTransactions(), getDismissedPairs()]);
-      const visible = filterVisiblePairs(detectDuplicatePairs(all), new Set(dismissed));
-      if (visible.length > 0) setShowDuplicatesBanner(true);
-    })();
+    void checkAndShowDuplicatesBanner();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -321,7 +323,7 @@ export default function Dashboard() {
               <Button
                 loading={syncing}
                 success={syncSuccess}
-                onClick={() => runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); setShowDuplicatesBanner(true); } })}
+                onClick={() => runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); void checkAndShowDuplicatesBanner(); } })}
               >
                 <RefreshCwIcon size={14} />
                 {t("actions.sync")}
@@ -366,7 +368,7 @@ export default function Dashboard() {
                     disabled={syncing}
                     onClick={() => {
                       setActionsOpen(false);
-                      runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); setShowDuplicatesBanner(true); } });
+                      runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); void checkAndShowDuplicatesBanner(); } });
                     }}
                   >
                     <RefreshCwIcon size={13} />
