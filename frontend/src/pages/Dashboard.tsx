@@ -275,7 +275,7 @@ export default function Dashboard() {
   const TABS: Tab[] = ["categories", "transactions", "accounts"];
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="w-full max-w-3xl mx-auto px-4 py-8">
       {isDemo && (
         <div className="bg-warning/10 border border-warning/20 rounded-xl px-4 py-3 flex items-center justify-between mb-6">
           <span className="text-sm text-warning font-medium">{t("demo.banner")}</span>

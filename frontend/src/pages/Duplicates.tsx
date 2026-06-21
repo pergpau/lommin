@@ -48,7 +48,7 @@ export default function Duplicates() {
   const visiblePairs = filterVisiblePairs(pairs, dismissedKeys);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="w-full max-w-3xl mx-auto px-4 py-8">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-text">{t("duplicates.modalTitle")}</h1>
