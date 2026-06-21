@@ -1,6 +1,6 @@
 # Lommin
 
-A privacy-first personal spending tracker that connects to your European bank accounts via [Enable Banking](https://enablebanking.com/). No shared backend, no Lommin account, no tracking. Your data lives in your browser.
+A privacy-first personal spending tracker that connects to your European bank accounts via [Enable Banking](https://enablebanking.com/). No shared backend, no Lommin account, no individual tracking. Your data lives in your browser.
 
 > **Try it:** [lommin.no](https://lommin.no)
 
@@ -21,7 +21,7 @@ Don't have an Enable Banking account, or just want to try it out first? There's 
 
 ### Just use lommin.no
 
-[lommin.no](https://lommin.no) is the hosted version. It uses a shared CORS proxy to relay requests to Enable Banking (browsers can't call the API directly). The proxy can observe your transaction data and short-lived access tokens in transit — it never sees your signing key and can't mint new tokens. See [lommin.no/privacy](https://lommin.no/privacy) for the full breakdown.
+[lommin.no](https://lommin.no) is the hosted version. It uses a shared CORS proxy to relay requests to Enable Banking (browsers can't call the API directly). The proxy can observe your transaction data and short-lived access tokens in transit — it never sees your signing key and can't mint new tokens. The hosted version also uses Cloudflare Web Analytics for anonymous page-view counting (cookieless, no individual tracking). See [lommin.no/privacy](https://lommin.no/privacy) for the full breakdown.
 
 ### Self-host the frontend
 

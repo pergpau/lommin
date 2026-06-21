@@ -1,7 +1,7 @@
 {
   "back": "← Back",
   "title": "Privacy Policy",
-  "lastUpdated": "Last updated: 21 June 2025",
+  "lastUpdated": "Last updated: 21 June 2026",
   "sections": {
     "controller": {
       "heading": "Who is responsible",
@@ -9,7 +9,7 @@
     },
     "noData": {
       "heading": "We don't run servers that collect your data",
-      "body": "Lommin has no backend, no analytics, no tracking scripts, no cookies and no user accounts. Your data lives in your browser's local storage. The sections below describe exactly what is stored, what optionally leaves your device, and which third parties are involved."
+      "body": "Lommin has no backend, no cookies and no user accounts. Your data lives in your browser's local storage. Lommin uses Cloudflare Web Analytics — a cookieless, privacy-respecting page-view counter that does not track individual users. The sections below describe exactly what is stored, what optionally leaves your device, and which third parties are involved."
     },
     "localStorage": {
       "heading": "Browser storage (non-sensitive)",
@@ -40,13 +40,13 @@
       "heading": "Third-party services",
       "enableBanking": "<strong>Enable Banking</strong> — Lommin communicates with Enable Banking's API on your behalf. The API receives a signed authorization token and returns your bank account and transaction data. See <ebLink>Enable Banking's privacy policy</ebLink>.",
       "google": "<strong>Google</strong> — If you use Google Drive backup, your encrypted backup file is stored in Google Drive (see above). Additionally, Lommin loads the Geist font from Google Fonts, which means Google receives your IP address for the font request. See <googleLink>Google's privacy policy</googleLink>.",
-      "cloudflare": "<strong>Cloudflare</strong> — The CORS proxy runs on Cloudflare Workers. Cloudflare processes your requests as infrastructure provider. See <cfLink>Cloudflare's privacy policy</cfLink>.",
+      "cloudflare": "<strong>Cloudflare</strong> — The CORS proxy runs on Cloudflare Workers. Lommin also uses Cloudflare Web Analytics for anonymous page-view counting — it is cookieless and does not track individual users or store personal data. See <cfLink>Cloudflare's privacy policy</cfLink>.",
       "netlify": "<strong>Netlify</strong> — The app is hosted on Netlify, which serves the static files and processes standard HTTP connection data. See <netlifyLink>Netlify's privacy policy</netlifyLink>."
     },
     "legalBasis": {
       "heading": "Legal basis for processing",
       "body1": "<strong>Consent</strong> — Google Drive backup and bank account connections are optional features you choose to enable. You can disconnect or delete at any time.",
-      "body2": "<strong>Legitimate interest</strong> — Rate limiting via hashed IP in the proxy is necessary to prevent abuse. Loading fonts and serving the app through Netlify and Cloudflare are necessary for it to work.",
+      "body2": "<strong>Legitimate interest</strong> — Rate limiting via hashed IP in the proxy is necessary to prevent abuse. Loading fonts and serving the app through Netlify and Cloudflare are necessary for it to work. Cloudflare Web Analytics collects no personal data and no individual tracking occurs.",
       "body3": "Since the app processes your financial data locally in your browser, most of what it does falls outside GDPR. The proxy only sees transient request data as described above."
     },
     "rights": {
