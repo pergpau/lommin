@@ -87,7 +87,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 flex flex-col">{children}</main>
       <footer className="border-t border-border py-4">
         <div className="max-w-3xl mx-auto px-4 flex items-center justify-center gap-4">
           <Link to="/privacy" className="text-xs text-muted hover:text-text transition-colors">

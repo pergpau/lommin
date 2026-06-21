@@ -258,7 +258,7 @@ export default function Connect() {
 
   if ((isReauth || phase === "connecting") && phase !== "error") {
     return (
-      <div className="min-h-screen bg-bg grid-bg flex items-center justify-center">
+      <div className="flex-1 bg-bg grid-bg flex items-center justify-center">
         <div className="flex flex-col items-center animate-fade-in">
           <Spinner size={32} />
           <div className="text-muted text-sm mt-4">{t("statuses.connecting")}</div>
@@ -269,7 +269,7 @@ export default function Connect() {
 
   if (phase === "callback" || phase === "syncing" || phase === "done") {
     return (
-      <div className="min-h-screen bg-bg grid-bg flex items-center justify-center">
+      <div className="flex-1 bg-bg grid-bg flex items-center justify-center">
         <div className="text-center animate-fade-in">
           {phase === "done" ? (
             <>
