@@ -213,7 +213,8 @@ export async function fetchTransactions(
     isRecord,
   ) as RawTransaction[];
   const transactions: Transaction[] = raws.map((r) => {
-    const ref = r.entry_reference ?? r.transaction_id ?? deriveStableRef(r);
+    const isPending = r.status === "PDNG";
+    const ref = (!isPending && r.entry_reference) ? r.entry_reference : (r.transaction_id ?? deriveStableRef(r));
     return {
       id: makeTransactionId(txAccountUid, ref),
       accountUid: txAccountUid,
