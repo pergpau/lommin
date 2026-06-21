@@ -80,15 +80,14 @@ let _db: IDBPDatabase<LomminDB> | null = null;
 
 async function db(): Promise<IDBPDatabase<LomminDB>> {
   if (_db) return _db;
-  // v0: no migrations. Until a v1 schema is declared, breaking changes are
-  // handled by wiping all data and re-inserting, so the upgrade hook just
-  // creates the stores from scratch.
   _db = await openDB<LomminDB>(`${APP_NAME}-data`, 1, {
-    upgrade(db) {
-      db.createObjectStore("accounts", { keyPath: "uid" });
-      const txStore = db.createObjectStore("transactions", { keyPath: "id" });
-      txStore.createIndex("by-account", "accountUid");
-      db.createObjectStore("syncCursors", { keyPath: "accountUid" });
+    upgrade(db, oldVersion) {
+      if (oldVersion < 1) {
+        db.createObjectStore("accounts", { keyPath: "uid" });
+        const txStore = db.createObjectStore("transactions", { keyPath: "id" });
+        txStore.createIndex("by-account", "accountUid");
+        db.createObjectStore("syncCursors", { keyPath: "accountUid" });
+      }
     },
     blocked() {
       window.location.reload();
