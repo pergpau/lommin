@@ -41,15 +41,13 @@ The app is a React 19 SPA with React Router v7, Tailwind CSS, and no state manag
 
 - **`lommin-data`** (`src/lib/store.ts`) — accounts, transactions, sync cursors. Transactions are keyed by `${accountUid}::${entryReference}`; upserts ignore duplicates.
 - **`lommin-settings`** (`src/lib/settings.ts`) — `proxyUrl`, `lookbackDays`, `usePassphrase`, `backupMethod` (`"file" | "drive"`), `driveAutosave`, `lastLocalSavedAt`. Also stores Google Drive access token/expiry.
-- **`lommin-keystore`** (`src/lib/keystore.ts`) — stores the non-extractable `CryptoKey` + `appId`.
+- **`lommin-keystore`** (`src/lib/auth.ts`) — stores the non-extractable `CryptoKey` + `appId`.
 
 ### `src/lib/` — core logic
 
 | File                 | Responsibility                                                                                     |
 | -------------------- | -------------------------------------------------------------------------------------------------- |
-| `pem.ts`             | Strip PEM armor, base64-decode DER                                                                 |
-| `jwt.ts`             | Mint RS256 JWTs via Web Crypto (`RSASSA-PKCS1-v1_5`)                                              |
-| `keystore.ts`        | Import `.pem` as a **non-extractable** `CryptoKey`, persist it in IndexedDB                       |
+| `auth.ts`            | PEM parsing, RS256 JWT minting, CryptoKey import + IndexedDB persistence (keystore)               |
 | `enableBanking.ts`   | Enable Banking API client; routes all calls through the proxy                                      |
 | `store.ts`           | IndexedDB CRUD for accounts, transactions, sync cursors                                            |
 | `mutations.ts`       | Re-exports store write functions wrapped to trigger autosave — **use this instead of `store.ts`** |

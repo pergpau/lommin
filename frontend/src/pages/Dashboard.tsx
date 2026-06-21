@@ -16,7 +16,7 @@ import { useTransactions } from "../hooks/useTransactions";
 import { saveEncryptedFile } from "../lib/cryptoFile";
 import { isDemoMode } from "../lib/demoData";
 import { DriveAuthError, saveBackupToDrive } from "../lib/googleDrive";
-import { loadKey } from "../lib/keystore";
+import { loadKey } from "../lib/auth";
 import { effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
 import { buildMonthlyData, buildYearlyData } from "../lib/transactionAggregation";

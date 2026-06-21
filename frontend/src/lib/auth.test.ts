@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { clearJwtCache, mintJwt } from "./jwt";
+import { clearJwtCache, mintJwt } from "./auth";
 
 function genKeys() {
   return crypto.subtle.generateKey(

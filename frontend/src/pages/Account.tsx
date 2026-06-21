@@ -21,7 +21,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
 import { ArrowLeftIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
 import { isDemoMode } from "../lib/demoData";
-import { loadKey } from "../lib/keystore";
+import { loadKey } from "../lib/auth";
 
 export default function AccountPage() {
   const { t } = useTranslation("account");

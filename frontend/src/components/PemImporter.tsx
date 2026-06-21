@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { importPemKey } from "../lib/keystore";
+import { importPemKey } from "../lib/auth";
 import Alert from "./ui/Alert";
 import Button from "./ui/Button";
 import { FileUpIcon } from "./ui/icons";

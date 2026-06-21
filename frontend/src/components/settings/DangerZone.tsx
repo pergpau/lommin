@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
 import { useSnackbar } from "../ui/Snackbar";
-import { clearKey } from "../../lib/keystore";
+import { clearKey } from "../../lib/auth";
 import { clearDismissedPairs, clearDriveToken } from "../../lib/settings";
 import { clearAccounts, clearTransactions } from "../../lib/store";
 

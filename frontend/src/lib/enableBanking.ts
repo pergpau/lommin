@@ -1,5 +1,4 @@
-import { mintJwt } from "./jwt";
-import { loadKey } from "./keystore";
+import { loadKey, mintJwt } from "./auth";
 import { getSetting } from "./settings";
 import { type Transaction, makeTransactionId, normalizeForMatch } from "./store";
 import { asArray, asRecord, isRecord, optString, reqString } from "./validate";

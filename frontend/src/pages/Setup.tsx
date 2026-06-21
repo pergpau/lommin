@@ -19,7 +19,7 @@ import {
   loadBackupFromDrive,
   signInWithGoogle,
 } from "../lib/googleDrive";
-import { importPemKey, saveKey } from "../lib/keystore";
+import { importPemKey, saveKey } from "../lib/auth";
 import { persistDriveToken } from "../lib/settings";
 import { importAll, validateImportData } from "../lib/store";
 

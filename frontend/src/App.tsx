@@ -8,7 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Account from "./pages/Account";
 import Settings from "./pages/Settings";
 import Duplicates from "./pages/Duplicates";
-import { loadKey } from "./lib/keystore";
+import { loadKey } from "./lib/auth";
 import { getAccounts } from "./lib/store";
 import Spinner from "./components/ui/Spinner";
 import ErrorBoundary from "./components/ErrorBoundary";

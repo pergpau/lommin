@@ -9,7 +9,7 @@ import Card from "../ui/Card";
 import { TrashIcon } from "../ui/icons";
 import Input from "../ui/Input";
 import { useSnackbar } from "../ui/Snackbar";
-import { clearKey, loadKey, saveKey } from "../../lib/keystore";
+import { clearKey, loadKey, saveKey } from "../../lib/auth";
 import { clearDriveToken } from "../../lib/settings";
 
 export default function KeySection({ highlightedHash }: { highlightedHash: string | null }) {

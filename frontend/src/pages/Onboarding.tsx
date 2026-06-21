@@ -21,7 +21,7 @@ import Input from "../components/ui/Input";
 import { loadEncryptedFile } from "../lib/cryptoFile";
 import { seedDemoData } from "../lib/demoData";
 import { DriveAuthError, loadBackupFromDrive, signInWithGoogle } from "../lib/googleDrive";
-import { loadKey, saveKey } from "../lib/keystore";
+import { loadKey, saveKey } from "../lib/auth";
 import { getSetting, HOSTED_PROXY_URL, persistDriveToken, setSetting } from "../lib/settings";
 import { getAccounts, importAll } from "../lib/store";
 
