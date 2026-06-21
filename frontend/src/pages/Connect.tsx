@@ -312,7 +312,7 @@ export default function Connect() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-8 animate-slide-up">
+    <div className="max-w-lg w-full mx-auto px-4 py-8 animate-slide-up">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-text tracking-tight">{t("title")}</h1>
         <p className="text-muted text-sm mt-1">{t("subtitle")}</p>
