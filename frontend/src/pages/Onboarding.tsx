@@ -38,6 +38,8 @@ type OnboardingStep =
   | { kind: "import-spiir" }
   | { kind: "import-own" }
   | { kind: "restore" }
+  | { kind: "restore-file" }
+  | { kind: "restore-drive" }
   | { kind: "demo" };
 
 type GoTo = (step: OnboardingStep) => void;
@@ -362,7 +364,33 @@ function StepImportOwn() {
   );
 }
 
-function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
+function StepRestore({ onNext }: { onNext: GoTo }) {
+  const { t } = useTranslation("onboarding");
+  return (
+    <div>
+      <h2 className="text-xl font-semibold text-text mb-1">{t("restore.title")}</h2>
+      <p className="text-sm text-muted mb-6 leading-relaxed">{t("restore.body")}</p>
+      <div className="space-y-3">
+        {GOOGLE_CLIENT_ID && (
+          <PickCard
+            icon={<DownloadIcon size={20} />}
+            title={t("restore.fromDrive.title")}
+            description={t("restore.fromDrive.description")}
+            onClick={() => onNext({ kind: "restore-drive" })}
+          />
+        )}
+        <PickCard
+          icon={<UploadIcon size={20} />}
+          title={t("restore.fromFile.title")}
+          description={t("restore.fromFile.description")}
+          onClick={() => onNext({ kind: "restore-file" })}
+        />
+      </div>
+    </div>
+  );
+}
+
+function StepRestoreFile({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
   const { t } = useTranslation("onboarding");
   const [passphrase, setPassphrase] = useState("");
   const [fileState, setFileState] = useState<"idle" | "loading" | "done" | "error">("idle");
@@ -396,6 +424,43 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
     }
   }, [passphrase, navigate, t]);
 
+  return (
+    <div>
+      <h2 className="text-xl font-semibold text-text mb-1">{t("restore.fromFile.title")}</h2>
+      <p className="text-sm text-muted mb-6 leading-relaxed">
+        <Trans
+          i18nKey="onboarding:restore.fromFile.body"
+          components={{ enc: <span className="mono" /> }}
+        />
+      </p>
+      <Input
+        label={t("restore.fromFile.passwordLabel")}
+        type="password"
+        placeholder={t("restore.fromFile.passwordPlaceholder")}
+        value={passphrase}
+        onChange={(e) => setPassphrase(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") void restore();
+        }}
+        className="mb-3"
+      />
+      <Button className="w-full justify-center" loading={fileState === "loading"} onClick={restore}>
+        {fileState !== "loading" && <UploadIcon size={13} />}
+        {t("restore.fromFile.button")}
+      </Button>
+      {fileMsg && (
+        <Alert
+          type={fileState === "error" ? "error" : "ok"}
+          message={fileMsg}
+          className="mt-3"
+        />
+      )}
+    </div>
+  );
+}
+
+function StepRestoreDrive({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
+  const { t } = useTranslation("onboarding");
   const [driveToken, setDriveToken] = useState<string | null>(null);
   const [drivePassphrase, setDrivePassphrase] = useState("");
   const [driveState, setDriveState] = useState<
@@ -448,91 +513,46 @@ function StepRestore({ navigate }: { navigate: ReturnType<typeof useNavigate> })
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-text mb-1">{t("restore.title")}</h2>
-      <p className="text-sm text-muted mb-6 leading-relaxed">{t("restore.body")}</p>
-
-      <div className="space-y-4">
-        <div className="border border-border rounded-xl p-4">
-          <div className="text-sm font-medium text-text mb-1">{t("restore.fromFile.title")}</div>
-          <p className="text-xs text-muted mb-3">
-            <Trans
-              i18nKey="onboarding:restore.fromFile.body"
-              components={{ enc: <span className="mono" /> }}
-            />
-          </p>
+      <h2 className="text-xl font-semibold text-text mb-1">{t("restore.fromDrive.title")}</h2>
+      <p className="text-sm text-muted mb-6 leading-relaxed">{t("restore.fromDrive.body")}</p>
+      {!driveToken ? (
+        <Button
+          className="w-full justify-center"
+          loading={driveState === "connecting"}
+          onClick={connectDrive}
+        >
+          {t("restore.fromDrive.connectButton")}
+        </Button>
+      ) : (
+        <>
           <Input
-            label={t("restore.fromFile.passwordLabel")}
+            label={t("restore.fromDrive.passwordLabel")}
             type="password"
-            placeholder={t("restore.fromFile.passwordPlaceholder")}
-            value={passphrase}
-            onChange={(e) => setPassphrase(e.target.value)}
+            placeholder={t("restore.fromDrive.passwordPlaceholder")}
+            value={drivePassphrase}
+            onChange={(e) => setDrivePassphrase(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") void restore();
+              if (e.key === "Enter") void loadDrive();
             }}
             className="mb-3"
           />
           <Button
             className="w-full justify-center"
-            loading={fileState === "loading"}
-            onClick={restore}
+            loading={driveState === "loading"}
+            onClick={loadDrive}
           >
-            {fileState !== "loading" && <UploadIcon size={13} />}
-            {t("restore.fromFile.button")}
+            {driveState !== "loading" && <UploadIcon size={13} />}
+            {t("restore.fromDrive.loadButton")}
           </Button>
-          {fileMsg && (
-            <Alert
-              type={fileState === "error" ? "error" : "ok"}
-              message={fileMsg}
-              className="mt-3"
-            />
-          )}
-        </div>
-
-        {GOOGLE_CLIENT_ID && (
-          <div className="border border-border rounded-xl p-4">
-            <div className="text-sm font-medium text-text mb-1">{t("restore.fromDrive.title")}</div>
-            <p className="text-xs text-muted mb-3">{t("restore.fromDrive.body")}</p>
-            {!driveToken ? (
-              <Button
-                className="w-full justify-center"
-                loading={driveState === "connecting"}
-                onClick={connectDrive}
-              >
-                {t("restore.fromDrive.connectButton")}
-              </Button>
-            ) : (
-              <>
-                <Input
-                  label={t("restore.fromDrive.passwordLabel")}
-                  type="password"
-                  placeholder={t("restore.fromDrive.passwordPlaceholder")}
-                  value={drivePassphrase}
-                  onChange={(e) => setDrivePassphrase(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") void loadDrive();
-                  }}
-                  className="mb-3"
-                />
-                <Button
-                  className="w-full justify-center"
-                  loading={driveState === "loading"}
-                  onClick={loadDrive}
-                >
-                  {driveState !== "loading" && <UploadIcon size={13} />}
-                  {t("restore.fromDrive.loadButton")}
-                </Button>
-              </>
-            )}
-            {driveMsg && (
-              <Alert
-                type={driveState === "error" ? "error" : "ok"}
-                message={driveMsg}
-                className="mt-3"
-              />
-            )}
-          </div>
-        )}
-      </div>
+        </>
+      )}
+      {driveMsg && (
+        <Alert
+          type={driveState === "error" ? "error" : "ok"}
+          message={driveMsg}
+          className="mt-3"
+        />
+      )}
     </div>
   );
 }
@@ -631,7 +651,9 @@ export default function Onboarding() {
           </div>
         )}
         {current.kind === "import-own" && <StepImportOwn />}
-        {current.kind === "restore" && <StepRestore navigate={navigate} />}
+        {current.kind === "restore" && <StepRestore onNext={goTo} />}
+        {current.kind === "restore-file" && <StepRestoreFile navigate={navigate} />}
+        {current.kind === "restore-drive" && <StepRestoreDrive navigate={navigate} />}
         {current.kind === "demo" && <StepDemo navigate={navigate} />}
       </div>
     </div>

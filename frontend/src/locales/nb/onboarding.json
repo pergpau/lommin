@@ -78,6 +78,7 @@
     "body": "Dekrypter og gjenopprett kontoer og transaksjoner fra en tidligere sikkerhetskopi.",
     "fromFile": {
       "title": "Fra lokal fil",
+      "description": "Dekrypter en sikkerhetskopifil fra din enhet",
       "body": "Dekrypter en <enc>.enc</enc>-sikkerhetskopi fra din enhet.",
       "passwordLabel": "Passord",
       "passwordPlaceholder": "La stå tomt hvis du ikke har brukt passord",
@@ -85,6 +86,7 @@
     },
     "fromDrive": {
       "title": "Fra Google Drive",
+      "description": "Last ned og dekrypter sikkerhetskopien fra Google Drive",
       "body": "Last ned og dekrypter sikkerhetskopien din fra Google Drive.",
       "connectButton": "Koble til Google Drive",
       "passwordLabel": "Passord",
