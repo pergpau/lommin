@@ -1,98 +1,61 @@
-# Lommin
+# Lommin — frontend
 
-Frontend-only, local-first PSD2 spending tracker. You bring your own Enable Banking
-`.pem`; the browser signs RS256 JWTs with Web Crypto and stores data in IndexedDB.
+React + TypeScript + Vite SPA. No backend — all data is stored locally in IndexedDB.
+
+## Prerequisites
+
+- Node.js 20+
+- An [Enable Banking](https://enablebanking.com/) application with a `.pem` signing key (or just use demo mode in the app)
+
+## Local dev
+
+```sh
+cd frontend
+npm install
+npm run dev
+# → http://localhost:5173
+```
+
+The dev server proxies requests through `https://proxy.lommin.no` by default (the shared hosted proxy). You can point it at a local proxy instead via **Settings → CORS Proxy** in the app, or by running `wrangler dev` from `proxy/` — see [`../proxy/README.md`](../proxy/README.md).
+
+## Build
+
+```sh
+npm run build
+# output: frontend/dist/
+```
+
+This runs `tsc -b` (type check) followed by `vite build`. The `dist/` folder is a fully static site — no Node.js required to serve it.
+
+## Deploy
+
+Drop `frontend/dist/` on any static host. The included `public/_redirects` file handles SPA routing on Netlify (`/* /index.html 200`). For other hosts, set up a catch-all redirect to `index.html` yourself.
+
+**Netlify (one-time setup):**
+
+```sh
+# from the repo root
+netlify deploy --dir frontend/dist --prod
+```
+
+Or connect the repo in the Netlify dashboard — `netlify.toml` at the root already configures the build command and publish directory.
+
+After deploying, add your new SPA URL to `ALLOWED_ORIGINS` in `proxy/wrangler.toml` and redeploy the proxy.
+
+## Other commands
+
+```sh
+npm run lint        # oxlint
+npm run lint:fix    # oxlint --fix
+npm run format      # oxfmt
+npm run test        # Vitest (unit tests, run once)
+npm run test:watch  # Vitest in watch mode
+npm run preview     # serve the production build locally
+```
 
 ## Security model
 
-- **Your key never leaves the device.** The `.pem` is imported as a non-extractable
-  `CryptoKey`; raw bytes are unrecoverable by JS after import.
-- **CORS proxy trust boundary.** Browsers can't call `api.enablebanking.com` directly,
-  so requests are relayed through a proxy (`proxy/worker.ts`, a Cloudflare Worker). The
-  default is a **shared hosted proxy** used by everyone. That proxy **can observe your
-  transaction data and short-lived (5 min) access token in transit** — it never receives
-  your signing key, and cannot mint new tokens. For full privacy, deploy your own proxy
-  (`wrangler deploy`) and set its URL in **Settings → CORS Proxy**.
-- **Proxy hardening.** The Worker only relays the Enable Banking endpoints the app uses,
-  to allowlisted origins (`ALLOWED_ORIGINS`), with per-IP rate limiting (KV) and a
-  minimal forwarded header set — it is not an open relay.
-- **CSP.** `script-src 'self'` (no inline/eval) is the primary XSS defense. `connect-src`
-  permits any HTTPS origin so users can configure a custom proxy at runtime.
-- **Encrypted backup.** Optional export is AES-GCM encrypted with a PBKDF2-derived key;
-  the passphrase never leaves the device.
-
----
-
-# React + TypeScript + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
-
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+- **Key never leaves the device.** The `.pem` is imported as `extractable: false`; raw bytes are unrecoverable by JS after import.
+- **CORS proxy trust boundary.** The shared proxy at `proxy.lommin.no` can observe transaction data and short-lived access tokens in transit. It never receives the signing key. For full privacy, deploy your own proxy and configure it in Settings.
+- **Encrypted backup.** AES-GCM with PBKDF2-derived keys; the passphrase never leaves the device.
+- **CSP.** `script-src 'self'` (no inline/eval). `connect-src` permits any HTTPS origin so users can configure a custom proxy at runtime. The CSP is in `public/_headers` — update `connect-src` there if you change the proxy URL.
