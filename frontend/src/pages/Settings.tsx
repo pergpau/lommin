@@ -458,10 +458,21 @@ export default function Settings() {
                 )}
                 <PemSafetyAccordion />
                 <PemImporter
-                  onImported={(key, id) => {
-                    pendingPemKey.current = key;
-                    setPemAppId(id);
-                    setPemConfirming(true);
+                  onImported={async (key, id) => {
+                    if (id) {
+                      try {
+                        await saveKey(key, id);
+                        setAppId(id);
+                        savedAppId.current = id;
+                        setHasKey(true);
+                      } catch (e) {
+                        showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.saveKeyFailed"), "error");
+                      }
+                    } else {
+                      pendingPemKey.current = key;
+                      setPemAppId("");
+                      setPemConfirming(true);
+                    }
                   }}
                 />
               </>
