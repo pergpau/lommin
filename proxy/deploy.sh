@@ -1,22 +1,34 @@
 #!/usr/bin/env bash
-# Deploy the proxy Worker, passing the dev tunnel origin from .dev.vars as
-# ALLOWED_ORIGINS for this deploy only (keeps the ephemeral ngrok URL out of git).
-# `wrangler deploy --var` overrides the empty wrangler.toml value at deploy time.
+# Deploy the proxy Worker. Reads ALLOWED_ORIGINS and KV_NAMESPACE_ID from
+# .dev.vars (gitignored) so neither value needs to live in wrangler.toml.
 set -euo pipefail
 cd "$(dirname "$0")"
 
+read_var() { grep -E "^[[:space:]]*$1=" .dev.vars 2>/dev/null | tail -n1 | cut -d= -f2-; }
+
 if [[ ! -f .dev.vars ]]; then
-  echo "No .dev.vars found; deploying with ALLOWED_ORIGINS from wrangler.toml." >&2
+  echo "No .dev.vars found; deploying with values from wrangler.toml." >&2
   exec wrangler deploy
 fi
 
-# Read ALLOWED_ORIGINS=... from .dev.vars (ignoring comments/blank lines).
-origins="$(grep -E '^[[:space:]]*ALLOWED_ORIGINS=' .dev.vars | tail -n1 | cut -d= -f2-)"
+origins="$(read_var ALLOWED_ORIGINS)"
+kv_id="$(read_var KV_NAMESPACE_ID)"
 
-if [[ -z "$origins" ]]; then
-  echo "ALLOWED_ORIGINS is empty in .dev.vars; deploying without an override." >&2
-  exec wrangler deploy
+# If a KV namespace ID is set, substitute it into a temp config and deploy from that.
+if [[ -n "$kv_id" ]]; then
+  tmp="$(mktemp ./wrangler.XXXXXX.toml)"
+  trap 'rm -f "$tmp"' EXIT
+  sed "s/YOUR_KV_NAMESPACE_ID/$kv_id/" wrangler.toml > "$tmp"
+  echo "Deploying with KV_NAMESPACE_ID=$kv_id" >&2
+  config_flag=(--config "$tmp")
+else
+  echo "KV_NAMESPACE_ID not set in .dev.vars; using wrangler.toml as-is." >&2
+  config_flag=()
 fi
 
-echo "Deploying with ALLOWED_ORIGINS=$origins" >&2
-exec wrangler deploy --var "ALLOWED_ORIGINS:$origins"
+if [[ -n "$origins" ]]; then
+  echo "Deploying with ALLOWED_ORIGINS=$origins" >&2
+  exec wrangler deploy "${config_flag[@]}" --var "ALLOWED_ORIGINS:$origins"
+else
+  exec wrangler deploy "${config_flag[@]}"
+fi

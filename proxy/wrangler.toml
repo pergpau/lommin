@@ -12,4 +12,4 @@ ALLOWED_ORIGINS = "https://lommin.no"
 # Per-IP rate limiting (fixed window). Without a bound KV, rate limiting is skipped.
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
-id = "46df682c24ab42b3bed6cc88ca3a0da1"
+id = "YOUR_KV_NAMESPACE_ID" # create with: wrangler kv namespace create RATE_LIMIT_KV

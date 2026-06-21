@@ -20,6 +20,11 @@ dist-ssr
 # Local imports
 *.csv
 *.zip
+full/
+full.zip
+
+# Deploy temp files
+proxy/wrangler.*.toml
 
 # AI
 PLAN.MD
