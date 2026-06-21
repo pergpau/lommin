@@ -42,3 +42,26 @@ export function reqString(v: unknown, what: string): string {
   }
   return v;
 }
+
+export interface SyncedSettings {
+  proxyUrl: string;
+  lookbackDays: number;
+  backupMethod: string;
+  driveAutosave: boolean;
+  usePassphrase: boolean;
+  dismissedPairs: string[];
+}
+
+export function validateSyncedSettings(v: unknown): SyncedSettings {
+  const s = asRecord(v, "settings");
+  return {
+    proxyUrl: reqString(s.proxyUrl, "settings.proxyUrl"),
+    lookbackDays: optNumber(s.lookbackDays) ?? 90,
+    backupMethod: optString(s.backupMethod) ?? "drive",
+    driveAutosave: s.driveAutosave === true,
+    usePassphrase: s.usePassphrase === true,
+    dismissedPairs: Array.isArray(s.dismissedPairs)
+      ? s.dismissedPairs.filter((x): x is string => typeof x === "string")
+      : [],
+  };
+}

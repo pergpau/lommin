@@ -42,6 +42,12 @@ export function useAsyncData<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick, ...deps]);
 
+  useEffect(() => {
+    const handler = () => setTick((t) => t + 1);
+    window.addEventListener("lommin:data-reload", handler);
+    return () => window.removeEventListener("lommin:data-reload", handler);
+  }, []);
+
   const reload = useCallback(() => setTick((t) => t + 1), []);
 
   return { data, loading, error, reload };

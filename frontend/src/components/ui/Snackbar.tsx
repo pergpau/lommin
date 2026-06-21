@@ -4,7 +4,7 @@ import { XIcon } from "./icons";
 type SnackType = "ok" | "error";
 
 type SnackbarContextValue = {
-  showSnackbar: (message: string, type: SnackType) => void;
+  showSnackbar: (message: string, type: SnackType, duration?: number | null) => void;
 };
 
 const SnackbarContext = createContext<SnackbarContextValue | null>(null);
@@ -18,10 +18,13 @@ export function SnackbarProvider({ children }: { children: React.ReactNode }) {
   const [snack, setSnack] = useState<{ message: string; type: SnackType } | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const showSnackbar = useCallback((message: string, type: SnackType) => {
+  const showSnackbar = useCallback((message: string, type: SnackType, duration: number | null = 3500) => {
     if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = null;
     setSnack({ message, type });
-    timerRef.current = setTimeout(() => setSnack(null), 3500);
+    if (duration !== null) {
+      timerRef.current = setTimeout(() => setSnack(null), duration);
+    }
   }, []);
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);

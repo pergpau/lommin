@@ -1,4 +1,5 @@
 import { APP_NAME, SYNC_LOOKBACK_DAYS } from "../constants";
+import { type SyncedSettings } from "./validate";
 
 const DB_NAME = `${APP_NAME}-settings`;
 const DB_VERSION = 1;
@@ -180,6 +181,29 @@ export async function clearDismissedPairs(): Promise<void> {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
+}
+
+export async function getSyncedSettings(): Promise<SyncedSettings> {
+  const [settings, dismissedPairs] = await Promise.all([getAllSettings(), getDismissedPairs()]);
+  return {
+    proxyUrl: settings.proxyUrl,
+    lookbackDays: settings.lookbackDays,
+    backupMethod: settings.backupMethod,
+    driveAutosave: settings.driveAutosave,
+    usePassphrase: settings.usePassphrase,
+    dismissedPairs,
+  };
+}
+
+export async function applySyncedSettings(s: SyncedSettings): Promise<void> {
+  await Promise.all([
+    setSetting("proxyUrl", s.proxyUrl),
+    setSetting("lookbackDays", s.lookbackDays),
+    setSetting("backupMethod", s.backupMethod as "drive" | "file"),
+    setSetting("driveAutosave", s.driveAutosave),
+    setSetting("usePassphrase", s.usePassphrase),
+    dismissAllPairs(s.dismissedPairs),
+  ]);
 }
 
 export async function clearDriveToken(): Promise<void> {

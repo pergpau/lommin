@@ -1,5 +1,5 @@
 import { DriveAuthError, saveBackupToDrive } from "./googleDrive";
-import { clearDriveToken, getAllSettings, getDriveToken, setSetting } from "./settings";
+import { clearDriveToken, getAllSettings, getDriveToken, getSyncedSettings, setSetting } from "./settings";
 import { exportAll } from "./store";
 
 type SaveListener = (saving: boolean) => void;
@@ -20,8 +20,8 @@ export async function triggerAutosave(): Promise<void> {
 
     _listeners.forEach((cb) => cb(true));
     try {
-      const data = await exportAll();
-      await saveBackupToDrive(stored.token, data, "");
+      const [data, settings] = await Promise.all([exportAll(), getSyncedSettings()]);
+      await saveBackupToDrive(stored.token, { ...data, settings }, "");
       await setSetting("lastLocalSavedAt", Date.now());
     } finally {
       _listeners.forEach((cb) => cb(false));

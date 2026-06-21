@@ -17,6 +17,11 @@
     "saving": "Lagrer…",
     "loading": "Laster…"
   },
+  "sync": {
+    "syncing": "Henter data fra Google Drive",
+    "done": "Google Drive-data lastet inn",
+    "error": "Datahenting fra Google Drive feilet"
+  },
   "dialog": {
     "passwordLabel": "Passord (valgfritt)",
     "passwordPlaceholder": "La stå tomt for ingen kryptering",

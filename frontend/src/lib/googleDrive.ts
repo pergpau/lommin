@@ -53,6 +53,18 @@ async function findBackupFile(token: string): Promise<string | null> {
   return data.files[0]?.id ?? null;
 }
 
+export async function getDriveBackupModifiedTime(token: string): Promise<number | null> {
+  const params = new URLSearchParams({
+    spaces: "appDataFolder",
+    fields: "files(modifiedTime)",
+    q: `name='${BACKUP_FILE_NAME}'`,
+  });
+  const res = await driveRequest("GET", `${DRIVE_API}/files?${params}`, token);
+  const data = (await res.json()) as { files: { modifiedTime: string }[] };
+  const iso = data.files[0]?.modifiedTime;
+  return iso ? new Date(iso).getTime() : null;
+}
+
 function buildMultipartBody(
   metadata: string,
   fileBytes: Uint8Array,

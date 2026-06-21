@@ -7,8 +7,11 @@ import {
   optNumber,
   optString,
   reqString,
+  type SyncedSettings,
+  validateSyncedSettings,
   ValidationError,
 } from "./validate";
+import { applySyncedSettings } from "./settings";
 
 export interface AccountSource {
   type: "enableBanking" | "spiir" | "demo" | "manual";
@@ -322,6 +325,7 @@ interface ImportData {
   accounts: Account[];
   transactions: Transaction[];
   cursors: SyncCursor[];
+  settings?: SyncedSettings;
 }
 
 function validateAccountSource(v: unknown, where: string): AccountSource {
@@ -403,12 +407,17 @@ export function validateImportData(data: unknown): ImportData {
     accounts: asArray(root.accounts ?? [], "accounts").map(validateAccount),
     transactions: asArray(root.transactions ?? [], "transactions").map(validateTransaction),
     cursors: asArray(root.cursors ?? [], "cursors").map(validateCursor),
+    settings: root.settings !== undefined ? validateSyncedSettings(root.settings) : undefined,
   };
 }
 
 // Import (merge) from encrypted file or Spiir parser. Input is validated first.
-export async function importAll(data: unknown): Promise<{ inserted: number; skipped: number }> {
-  const { accounts, transactions, cursors } = validateImportData(data);
+// Pass overwrite:true for Drive pulls where the remote version is authoritative.
+export async function importAll(
+  data: unknown,
+  options?: { overwrite?: boolean },
+): Promise<{ inserted: number; skipped: number }> {
+  const { accounts, transactions, cursors, settings } = validateImportData(data);
   const d = await db();
   const atx = d.transaction("accounts", "readwrite");
   for (const a of accounts) await atx.store.put(a);
@@ -422,6 +431,8 @@ export async function importAll(data: unknown): Promise<{ inserted: number; skip
     if (!existing) {
       await ttx.store.put(t);
       inserted++;
+    } else if (options?.overwrite) {
+      await ttx.store.put(t);
     } else {
       skipped++;
     }
@@ -434,6 +445,8 @@ export async function importAll(data: unknown): Promise<{ inserted: number; skip
     if (!existing || c.updatedAt > existing.updatedAt) await ctx.store.put(c);
   }
   await ctx.done;
+
+  if (settings) await applySyncedSettings(settings);
 
   return { inserted, skipped };
 }

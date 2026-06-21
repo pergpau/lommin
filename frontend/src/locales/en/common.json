@@ -17,6 +17,11 @@
     "saving": "Saving…",
     "loading": "Loading…"
   },
+  "sync": {
+    "syncing": "Loading data from Google Drive",
+    "done": "Google Drive data loaded",
+    "error": "Google Drive data load failed"
+  },
   "dialog": {
     "passwordLabel": "Password (optional)",
     "passwordPlaceholder": "Leave blank for no encryption",

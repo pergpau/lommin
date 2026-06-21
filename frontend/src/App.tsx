@@ -15,6 +15,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import OAuthCallback from "./pages/OAuthCallback";
+import { useDriveSync } from "./hooks/useDriveSync";
 
 function RequireKey({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<"loading" | "ok" | "missing">("loading");
@@ -49,12 +50,12 @@ function RootRedirect() {
   return <Navigate to={dest} replace />;
 }
 
-export default function App() {
+function AppContent() {
+  useDriveSync();
   return (
-    <SnackbarProvider>
-      <Layout>
-        <ErrorBoundary>
-          <Routes>
+    <Layout>
+      <ErrorBoundary>
+        <Routes>
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/setup" element={<Navigate to="/onboarding" replace />} />
             <Route path="/connect" element={<Connect />} />
@@ -97,6 +98,13 @@ export default function App() {
           </Routes>
         </ErrorBoundary>
       </Layout>
+  );
+}
+
+export default function App() {
+  return (
+    <SnackbarProvider>
+      <AppContent />
     </SnackbarProvider>
   );
 }
