@@ -2,12 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { triggerAutosave } from "../lib/autosave";
-import { type Transaction } from "../lib/store";
 import { deleteAccount, deleteTransaction, disconnectAccount, resetAccountSync, setCategoryId, setComment, setCustomDate, setExcludeFromCalculations } from "../lib/mutations";
 import { getSetting } from "../lib/settings";
 import { accountLabel, effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
-import { SUB_CATEGORY_MAP } from "../lib/categories";
+import { buildMonthlyData, buildYearlyData } from "../lib/transactionAggregation";
 import { useAccounts } from "../hooks/useAccounts";
 import { useTransactions } from "../hooks/useTransactions";
 import { useSyncState } from "../hooks/useSyncState";
@@ -23,18 +22,6 @@ import { faGear } from "@fortawesome/free-solid-svg-icons";
 import { ArrowLeftIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
 import { isDemoMode } from "../lib/demoData";
 import { loadKey } from "../lib/keystore";
-
-function txSection(tx: Transaction): "income" | "expense" | "saving" | null {
-  if (tx.excludeFromCalculations) return null;
-  if (tx.categoryId != null) {
-    const type = SUB_CATEGORY_MAP[tx.categoryId]?.type;
-    if (type === "exclude") return null;
-    if (type === "income") return "income";
-    if (type === "saving") return "saving";
-    return "expense";
-  }
-  return tx.amount > 0 ? "income" : "expense";
-}
 
 export default function AccountPage() {
   const { t } = useTranslation("account");
@@ -80,47 +67,8 @@ export default function AccountPage() {
     [all],
   );
 
-  const monthlyData = useMemo<MonthBar[]>(() => {
-    const map = new Map<string, { income: number; expenses: number; saving: number }>();
-    for (const tx of sorted) {
-      const section = txSection(tx);
-      if (!section) continue;
-      const date = effectiveDate(tx);
-      if (!date) continue;
-      const key = date.slice(0, 7);
-      const entry = map.get(key) ?? { income: 0, expenses: 0, saving: 0 };
-      if (section === "income") entry.income += tx.amount;
-      else if (section === "saving") entry.saving += -tx.amount;
-      else entry.expenses += -tx.amount;
-      map.set(key, entry);
-    }
-    return [...map.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, { income, expenses, saving }]) => {
-        const d = new Date(key + "-15");
-        const raw = d.toLocaleDateString(getLocale(), { month: "long" });
-        return { key, label: raw.charAt(0).toUpperCase() + raw.slice(1), income, expenses, saving };
-      });
-  }, [sorted]);
-
-  const yearlyData = useMemo<MonthBar[]>(() => {
-    const map = new Map<string, { income: number; expenses: number; saving: number }>();
-    for (const tx of sorted) {
-      const section = txSection(tx);
-      if (!section) continue;
-      const date = effectiveDate(tx);
-      if (!date) continue;
-      const key = date.slice(0, 4);
-      const entry = map.get(key) ?? { income: 0, expenses: 0, saving: 0 };
-      if (section === "income") entry.income += tx.amount;
-      else if (section === "saving") entry.saving += -tx.amount;
-      else entry.expenses += -tx.amount;
-      map.set(key, entry);
-    }
-    return [...map.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, { income, expenses, saving }]) => ({ key, label: key, income, expenses, saving }));
-  }, [sorted]);
+  const monthlyData = useMemo<MonthBar[]>(() => buildMonthlyData(sorted), [sorted]);
+  const yearlyData = useMemo<MonthBar[]>(() => buildYearlyData(sorted), [sorted]);
 
   const chartData = chartMode === "month" ? monthlyData : yearlyData;
 

@@ -13,13 +13,13 @@ import Spinner from "../components/ui/Spinner";
 import { useAccounts } from "../hooks/useAccounts";
 import { useSyncState } from "../hooks/useSyncState";
 import { useTransactions } from "../hooks/useTransactions";
-import { SUB_CATEGORY_MAP } from "../lib/categories";
 import { saveEncryptedFile } from "../lib/cryptoFile";
 import { isDemoMode } from "../lib/demoData";
 import { DriveAuthError, saveBackupToDrive } from "../lib/googleDrive";
 import { loadKey } from "../lib/keystore";
 import { effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
+import { buildMonthlyData, buildYearlyData } from "../lib/transactionAggregation";
 import { clearDriveToken, getAllSettings, getDismissedPairs, getDriveToken, hasSetting } from "../lib/settings";
 import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
 import { addSaveListener, triggerAutosave } from "../lib/autosave";
@@ -170,67 +170,8 @@ export default function Dashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function txSection(tx: (typeof transactions)[0]): "income" | "expense" | "saving" | null {
-    if (tx.excludeFromCalculations) return null;
-    if (tx.categoryId != null) {
-      const type = SUB_CATEGORY_MAP[tx.categoryId]?.type;
-      if (type === "exclude") return null;
-      if (type === "income") return "income";
-      if (type === "saving") return "saving";
-      return "expense";
-    }
-    return tx.amount > 0 ? "income" : "expense";
-  }
-
-  const monthlyData = useMemo<MonthBar[]>(() => {
-    const map = new Map<string, { income: number; expenses: number; saving: number }>();
-    for (const tx of transactions) {
-      const section = txSection(tx);
-      if (!section) continue;
-      const date = effectiveDate(tx);
-      if (!date) continue;
-      const key = date.slice(0, 7);
-      const entry = map.get(key) ?? { income: 0, expenses: 0, saving: 0 };
-      if (section === "income") entry.income += tx.amount;
-      else if (section === "saving") entry.saving += -tx.amount;
-      else entry.expenses += -tx.amount;
-      map.set(key, entry);
-    }
-    return [...map.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, { income, expenses, saving }]) => {
-        const d = new Date(key + "-15");
-        const raw = d.toLocaleDateString(getLocale(), { month: "long" });
-        return { key, label: raw.charAt(0).toUpperCase() + raw.slice(1), income, expenses, saving };
-      });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transactions]);
-
-  const yearlyData = useMemo<MonthBar[]>(() => {
-    const map = new Map<string, { income: number; expenses: number; saving: number }>();
-    for (const tx of transactions) {
-      const section = txSection(tx);
-      if (!section) continue;
-      const date = effectiveDate(tx);
-      if (!date) continue;
-      const key = date.slice(0, 4);
-      const entry = map.get(key) ?? { income: 0, expenses: 0, saving: 0 };
-      if (section === "income") entry.income += tx.amount;
-      else if (section === "saving") entry.saving += -tx.amount;
-      else entry.expenses += -tx.amount;
-      map.set(key, entry);
-    }
-    return [...map.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, { income, expenses, saving }]) => ({
-        key,
-        label: key,
-        income,
-        expenses,
-        saving,
-      }));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transactions]);
+  const monthlyData = useMemo<MonthBar[]>(() => buildMonthlyData(transactions), [transactions]);
+  const yearlyData = useMemo<MonthBar[]>(() => buildYearlyData(transactions), [transactions]);
 
   const chartData = chartMode === "month" ? monthlyData : yearlyData;
   const activeMonth =
