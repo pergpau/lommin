@@ -137,7 +137,7 @@ export default function MonthlyChart({
               height: `${incomeH}px`,
               width: "14px",
               borderRadius: "3px 3px 0 0",
-              backgroundColor: isActive ? "#22c55e" : "rgba(34,197,94,0.18)",
+              backgroundColor: isActive ? "rgb(var(--c-positive))" : "rgb(var(--c-positive) / 0.18)",
               transition: "background-color 0.15s",
             }}
           />
@@ -147,7 +147,7 @@ export default function MonthlyChart({
                 height: `${savingH}px`,
                 width: "14px",
                 borderRadius: "3px 3px 0 0",
-                backgroundColor: isActive ? "#7c3aed" : "rgba(124,58,237,0.18)",
+                backgroundColor: isActive ? "#8b3eb8" : "rgba(139,62,184,0.18)",
                 transition: "background-color 0.15s",
               }}
             />
@@ -157,7 +157,7 @@ export default function MonthlyChart({
               height: `${expenseH}px`,
               width: "14px",
               borderRadius: "3px 3px 0 0",
-              backgroundColor: isActive ? "#ef4444" : "rgba(239,68,68,0.18)",
+              backgroundColor: isActive ? "rgb(var(--c-negative))" : "rgb(var(--c-negative) / 0.18)",
               transition: "background-color 0.15s",
             }}
           />
@@ -195,7 +195,7 @@ export default function MonthlyChart({
 
       <StatsRow modeToggle={modeToggle}>
           <StatBlock label={t("monthly.income")} value={selected?.income ?? 0} avg={avgIncome} valueClassName="text-positive" />
-          <StatBlock label={t("monthly.saving")} value={selected?.saving ?? 0} avg={avgSaving} valueClassName="text-[#7c3aed]" />
+          <StatBlock label={t("monthly.saving")} value={selected?.saving ?? 0} avg={avgSaving} valueClassName="text-[#8b3eb8]" />
           <StatBlock label={t("monthly.expenses")} value={selected?.expenses ?? 0} avg={avgExpenses} valueClassName="text-negative" />
         </StatsRow>
 

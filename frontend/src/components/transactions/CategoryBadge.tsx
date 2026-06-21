@@ -20,7 +20,7 @@ export default function CategoryBadge({ categoryId, onClick }: CategoryBadgeProp
         className="flex flex-col items-center gap-0.5 w-14 shrink-0 group"
         title={t("transactions:categoryPicker.title")}
       >
-        <div className="w-8 h-8 rounded-lg border border-dashed border-border group-hover:border-text/30 flex items-center justify-center text-muted/40 group-hover:text-muted transition-colors text-sm leading-none">
+        <div className="w-8 h-8 rounded-lg border border-dashed border-text/25 group-hover:border-text/50 flex items-center justify-center text-text/35 group-hover:text-text/60 transition-colors text-base font-light leading-none">
           +
         </div>
       </button>

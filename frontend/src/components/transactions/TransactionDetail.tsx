@@ -60,7 +60,7 @@ export default function TransactionDetail({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-          <span className="font-semibold text-text text-sm">{t("transactions:detail.title")}</span>
+          <span className="font-semibold text-accent text-sm">{t("transactions:detail.title")}</span>
           <button className="text-muted hover:text-text text-lg leading-none" onClick={onClose}>
             ✕
           </button>

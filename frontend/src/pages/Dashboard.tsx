@@ -303,7 +303,7 @@ export default function Dashboard() {
       )}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-xl font-semibold text-text">{t("title")}</h1>
+            <h1 className="text-xl font-semibold">{t("title")}</h1>
             <p className="text-muted text-sm mt-0.5">
               {t("subtitle", { count: accounts.length, txCount: transactions.length })}
             </p>

@@ -5,15 +5,15 @@
 /* ── Theme tokens ─────────────────────────────────────────── */
 :root {
   color-scheme: light;
-  --c-bg: 244 246 248;
+  --c-bg: 255 252 248;
   --c-surface: 255 255 255;
-  --c-surface-2: 238 241 244;
-  --c-border: 221 227 233;
-  --c-border-2: 196 207 216;
-  --c-text: 13 27 38;
-  --c-muted: 107 127 142;
-  --c-accent: 59 130 246;
-  --c-accent-dim: 37 99 235;
+  --c-surface-2: 249 239 228;
+  --c-border: 240 216 196;
+  --c-border-2: 224 196 168;
+  --c-text: 26 18 9;
+  --c-muted: 152 112 80;
+  --c-accent: 252 138 32;
+  --c-accent-dim: 235 115 28;
   --c-positive: 22 163 74;
   --c-negative: 220 38 38;
   --c-warning: 217 119 6;
@@ -21,15 +21,15 @@
 
 html.dark {
   color-scheme: dark;
-  --c-bg: 8 11 13;
-  --c-surface: 14 19 23;
-  --c-surface-2: 20 27 33;
-  --c-border: 26 34 41;
-  --c-border-2: 36 48 64;
-  --c-text: 212 221 228;
-  --c-muted: 90 106 118;
-  --c-accent: 59 130 246;
-  --c-accent-dim: 29 78 216;
+  --c-bg: 18 12 7;
+  --c-surface: 26 18 10;
+  --c-surface-2: 36 26 16;
+  --c-border: 52 36 22;
+  --c-border-2: 72 52 34;
+  --c-text: 245 230 210;
+  --c-muted: 140 108 80;
+  --c-accent: 235 115 28;
+  --c-accent-dim: 255 140 50;
   --c-positive: 34 197 94;
   --c-negative: 239 68 68;
   --c-warning: 245 158 11;
@@ -56,6 +56,10 @@ html.dark {
     min-height: 100svh;
     display: flex;
     flex-direction: column;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: rgb(var(--c-accent));
   }
 }
 

@@ -45,7 +45,11 @@ export default function TransactionRow({ transaction: tx, onClick, onCategoryCli
             {t("categories:sub." + subCat.id)}
           </div>
         ) : (
-          <div className="text-[11px] text-muted mt-0.5">{t("row.uncategorized")}</div>
+          <div className="mt-0.5">
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-orange-400/12 text-orange-500 border border-orange-400/35 leading-none dark:text-orange-400">
+              {t("row.uncategorized")}
+            </span>
+          </div>
         )}
       </div>
       <div className="flex flex-col items-end shrink-0">

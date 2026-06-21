@@ -378,7 +378,7 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
   const excludedSectionTotal = excludedSubRows.reduce((sum, r) => sum + r.total, 0);
 
   const inntektColor = MAIN_CATEGORY_MAP[11]?.color ?? "#16a34a";
-  const sparingColor = MAIN_CATEGORY_MAP[20]?.color ?? "#6d28d9";
+  const sparingColor = MAIN_CATEGORY_MAP[20]?.color ?? "#8b3eb8";
   const excludedColor = MAIN_CATEGORY_MAP[10]?.color ?? "#6b7280";
 
   return (

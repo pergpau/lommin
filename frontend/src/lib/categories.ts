@@ -46,7 +46,7 @@ export const MAIN_CATEGORIES: MainCategory[] = [
   {
     id: 20,
     name: "Pensjon & Sparing",
-    color: "#6d28d9",
+    color: "#8b3eb8",
     subCategories: [
       { id: 182, name: "Pensjonssparing", type: "saving", mainCategoryId: 20 },
       { id: 183, name: "Barnesparing", type: "saving", mainCategoryId: 20 },
