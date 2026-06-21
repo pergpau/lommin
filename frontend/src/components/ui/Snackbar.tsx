@@ -39,11 +39,11 @@ export function SnackbarProvider({ children }: { children: React.ReactNode }) {
       {children}
       <div
         aria-live="polite"
-        className={`fixed top-10 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${snack ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0 pointer-events-none"
+        className={`fixed top-10 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 w-[90vw] sm:w-auto ${snack ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0 pointer-events-none"
           }`}
       >
         <div
-          className={`flex items-center gap-3 border rounded-lg px-4 py-3 text-sm shadow-lg max-w-sm ${snack ? typeStyles[snack.type] : ""
+          className={`flex items-center justify-between gap-3 border rounded-lg px-4 py-3 text-sm shadow-lg w-full max-w-sm min-w-64 ${snack ? typeStyles[snack.type] : ""
             }`}
         >
           <span>{snack?.message}</span>
