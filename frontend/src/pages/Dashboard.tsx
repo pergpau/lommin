@@ -25,7 +25,7 @@ import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
 import { addSaveListener, triggerAutosave } from "../lib/autosave";
 import { useSuccessFlash } from "../hooks/useSuccessFlash";
 import { clearAccounts, clearTransactions, exportAll, getAllTransactions, getEnableBankingSource } from "../lib/store";
-import { setCategoryId, setExcludeFromCalculations } from "../lib/mutations";
+import { setCategoryId } from "../lib/mutations";
 
 type Tab = "categories" | "accounts" | "transactions";
 
@@ -367,7 +367,7 @@ export default function Dashboard() {
                 : undefined
             }
             onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
-            onExcludeFromCalculationsChange={async (txId, value) => { await setExcludeFromCalculations(txId, value); refresh(); }}
+            onMutated={refresh}
           />
         )}
 

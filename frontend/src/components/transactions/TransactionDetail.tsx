@@ -6,16 +6,14 @@ import { amountClass, effectiveDate, fmtAmount, fmtDate, statusLabel } from "../
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP, type MainCategory, type SubCategory } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
 import { getAccounts, type Account, type Transaction } from "../../lib/store";
+import { deleteTransaction, setComment, setCustomDate, setExcludeFromCalculations } from "../../lib/mutations";
 import DeleteConfirmModal from "../ui/DeleteConfirmModal";
 
 interface TransactionDetailProps {
   transaction: Transaction;
   onClose: () => void;
   onOpenCategoryPicker?: (t: Transaction) => void;
-  onExcludeFromCalculationsChange?: (txId: string, value: boolean) => Promise<void>;
-  onCustomDateChange?: (txId: string, date: string | undefined) => Promise<void>;
-  onCommentChange?: (txId: string, comment: string | undefined) => Promise<void>;
-  onDelete?: (txId: string) => Promise<void>;
+  onMutated?: () => void;
 }
 
 const FULL_DATE: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
@@ -24,10 +22,7 @@ export default function TransactionDetail({
   transaction: tx,
   onClose,
   onOpenCategoryPicker,
-  onExcludeFromCalculationsChange,
-  onCustomDateChange,
-  onCommentChange,
-  onDelete,
+  onMutated,
 }: TransactionDetailProps) {
   const { t } = useTranslation(["transactions", "categories"]);
   const [account, setAccount] = useState<Account | undefined>();
@@ -108,42 +103,36 @@ export default function TransactionDetail({
                       {fmtDate(tx.transactionDate, FULL_DATE)}
                     </span>
                     <span className="text-text text-right">{fmtDate(tx.customDate, FULL_DATE)}</span>
-                    {onCustomDateChange && (
-                      <button
-                        className="text-muted hover:text-text text-xs leading-none"
-                        title={t("transactions:detail.resetDate")}
-                        onClick={() => void onCustomDateChange(tx.id, undefined)}
-                      >
-                        ✕
-                      </button>
-                    )}
+                    <button
+                      className="text-muted hover:text-text text-xs leading-none"
+                      title={t("transactions:detail.resetDate")}
+                      onClick={() => void setCustomDate(tx.id, undefined).then(() => onMutated?.())}
+                    >
+                      ✕
+                    </button>
                   </>
                 ) : (
                   <span className="text-text text-right">
                     {fmtDate(tx.transactionDate, FULL_DATE)}
                   </span>
                 )}
-                {onCustomDateChange && (
-                  <>
-                    <input
-                      ref={dateInputRef}
-                      type="date"
-                      className="w-0 h-0 opacity-0 overflow-hidden flex-none border-0 p-0"
-                      value={effectiveDate(tx) ?? ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        const naturalDate = tx.transactionDate;
-                        void onCustomDateChange(tx.id, val === naturalDate ? undefined : val || undefined);
-                      }}
-                    />
-                    <button
-                      className="text-muted hover:text-text text-xs leading-none"
-                      onClick={() => dateInputRef.current?.showPicker()}
-                    >
-                      <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
-                    </button>
-                  </>
-                )}
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  className="w-0 h-0 opacity-0 overflow-hidden flex-none border-0 p-0"
+                  value={effectiveDate(tx) ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const naturalDate = tx.transactionDate;
+                    void setCustomDate(tx.id, val === naturalDate ? undefined : val || undefined).then(() => onMutated?.());
+                  }}
+                />
+                <button
+                  className="text-muted hover:text-text text-xs leading-none"
+                  onClick={() => dateInputRef.current?.showPicker()}
+                >
+                  <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
+                </button>
               </div>
             </div>
 
@@ -170,8 +159,7 @@ export default function TransactionDetail({
               <span className="mono text-xs">{tx.entryReference}</span>
             </DetailRow>
 
-            {(onCommentChange || tx.comment) && (
-              <div className="px-6 py-3">
+            <div className="px-6 py-3">
                 {editingComment ? (
                   <>
                     <span className="text-muted text-xs block mb-1.5">{t("transactions:detail.comment")}</span>
@@ -195,7 +183,8 @@ export default function TransactionDetail({
                         <button
                           className="text-xs text-accent hover:opacity-80 flex items-center gap-1 font-medium"
                           onClick={async () => {
-                            await onCommentChange!(tx.id, commentDraft || undefined);
+                            await setComment(tx.id, commentDraft || undefined);
+                            onMutated?.();
                             setEditingComment(false);
                           }}
                         >
@@ -209,23 +198,21 @@ export default function TransactionDetail({
                   <>
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-muted text-xs">{t("transactions:detail.comment")}</span>
-                      {onCommentChange && (
-                        <button
-                          className="text-muted hover:text-text text-xs leading-none"
-                          title={t("transactions:detail.editComment")}
-                          onClick={() => {
-                            setCommentDraft(tx.comment ?? "");
-                            setEditingComment(true);
-                            setTimeout(() => commentRef.current?.focus(), 0);
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
-                        </button>
-                      )}
+                      <button
+                        className="text-muted hover:text-text text-xs leading-none"
+                        title={t("transactions:detail.editComment")}
+                        onClick={() => {
+                          setCommentDraft(tx.comment ?? "");
+                          setEditingComment(true);
+                          setTimeout(() => commentRef.current?.focus(), 0);
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
+                      </button>
                     </div>
                     <p className="text-sm text-text whitespace-pre-wrap">{tx.comment}</p>
                   </>
-                ) : onCommentChange ? (
+                ) : (
                   <button
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border border-border text-muted hover:text-text hover:border-text/30 transition-colors"
                     onClick={() => {
@@ -237,9 +224,8 @@ export default function TransactionDetail({
                     <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
                     {t("transactions:detail.addComment")}
                   </button>
-                ) : null}
-              </div>
-            )}
+                )}
+            </div>
           </div>
 
           {/* Raw data */}
@@ -255,32 +241,24 @@ export default function TransactionDetail({
           </div>
         </div>
 
-        {(onExcludeFromCalculationsChange || onDelete) && (
-          <div className="px-4 py-3 border-t border-border shrink-0 flex items-center justify-between">
-            {onDelete ? (
-              <button
-                className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-                onClick={() => setConfirmingDelete(true)}
-              >
-                <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
-                {t("transactions:detail.deleteTransaction")}
-              </button>
-            ) : (
-              <span />
-            )}
-            {onExcludeFromCalculationsChange && (
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <span className="text-xs text-muted">{t("transactions:detail.hideFromStats")}</span>
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded accent-accent cursor-pointer"
-                  checked={tx.excludeFromCalculations}
-                  onChange={(e) => void onExcludeFromCalculationsChange(tx.id, e.target.checked)}
-                />
-              </label>
-            )}
-          </div>
-        )}
+        <div className="px-4 py-3 border-t border-border shrink-0 flex items-center justify-between">
+          <button
+            className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+            onClick={() => setConfirmingDelete(true)}
+          >
+            <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+            {t("transactions:detail.deleteTransaction")}
+          </button>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <span className="text-xs text-muted">{t("transactions:detail.hideFromStats")}</span>
+            <input
+              type="checkbox"
+              className="w-4 h-4 rounded accent-accent cursor-pointer"
+              checked={tx.excludeFromCalculations}
+              onChange={(e) => void setExcludeFromCalculations(tx.id, e.target.checked).then(() => onMutated?.())}
+            />
+          </label>
+        </div>
       </div>
 
       <DeleteConfirmModal
@@ -288,7 +266,7 @@ export default function TransactionDetail({
         onCancel={() => setConfirmingDelete(false)}
         onConfirm={() => {
           setConfirmingDelete(false);
-          void onDelete!(tx.id).then(() => onClose());
+          void deleteTransaction(tx.id).then(() => { onMutated?.(); onClose(); });
         }}
       />
     </div>

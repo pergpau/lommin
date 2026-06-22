@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import TransactionTable from "./transactions/TransactionTable";
 import type { Transaction } from "../lib/store";
-import { deleteTransaction, setCategoryId, setComment, setCustomDate, setExcludeFromCalculations } from "../lib/mutations";
+import { setCategoryId } from "../lib/mutations";
 
 interface Props {
   transactions: Transaction[];
@@ -25,10 +25,7 @@ export default function TransactionsTab({ transactions, subtitle, refresh }: Pro
       transactions={transactions}
       subtitle={subtitle}
       onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
-      onExcludeFromCalculationsChange={async (txId, value) => { await setExcludeFromCalculations(txId, value); refresh(); }}
-      onCustomDateChange={async (txId, date) => { await setCustomDate(txId, date); refresh(); }}
-      onCommentChange={async (txId, comment) => { await setComment(txId, comment); refresh(); }}
-      onDelete={async (txId) => { await deleteTransaction(txId); refresh(); }}
+      onMutated={refresh}
     />
   );
 }

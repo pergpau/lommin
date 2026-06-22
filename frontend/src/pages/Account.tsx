@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { triggerAutosave } from "../lib/autosave";
-import { deleteAccount, deleteTransaction, disconnectAccount, resetAccountSync, setCategoryId, setComment, setCustomDate, setExcludeFromCalculations } from "../lib/mutations";
+import { deleteAccount, disconnectAccount, resetAccountSync, setCategoryId } from "../lib/mutations";
 import { getSetting } from "../lib/settings";
 import { accountLabel, effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
@@ -258,10 +258,7 @@ export default function AccountPage() {
             : undefined
         }
         onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
-        onExcludeFromCalculationsChange={async (txId, value) => { await setExcludeFromCalculations(txId, value); refresh(); }}
-        onCustomDateChange={async (txId, date) => { await setCustomDate(txId, date); refresh(); }}
-        onCommentChange={async (txId, comment) => { await setComment(txId, comment); refresh(); }}
-        onDelete={async (txId) => { await deleteTransaction(txId); refresh(); }}
+        onMutated={refresh}
       />
 
       {resyncModal && (

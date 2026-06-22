@@ -12,10 +12,7 @@ type TransactionTableProps = {
   pageSize?: number;
   subtitle?: string;
   onCategoryChange?: (transactionId: string, categoryId: number | undefined) => Promise<void>;
-  onExcludeFromCalculationsChange?: (transactionId: string, value: boolean) => Promise<void>;
-  onCustomDateChange?: (transactionId: string, date: string | undefined) => Promise<void>;
-  onCommentChange?: (transactionId: string, comment: string | undefined) => Promise<void>;
-  onDelete?: (transactionId: string) => Promise<void>;
+  onMutated?: () => void;
 };
 
 export default function TransactionTable({
@@ -23,10 +20,7 @@ export default function TransactionTable({
   pageSize = PAGE_SIZE,
   subtitle,
   onCategoryChange,
-  onExcludeFromCalculationsChange,
-  onCustomDateChange,
-  onCommentChange,
-  onDelete,
+  onMutated,
 }: TransactionTableProps) {
   const { t } = useTranslation("transactions");
   const [page, setPage] = useState(0);
@@ -133,10 +127,7 @@ export default function TransactionTable({
                 }
               : undefined
           }
-          onExcludeFromCalculationsChange={onExcludeFromCalculationsChange}
-          onCustomDateChange={onCustomDateChange}
-          onCommentChange={onCommentChange}
-          onDelete={onDelete}
+          onMutated={onMutated}
         />
       )}
 

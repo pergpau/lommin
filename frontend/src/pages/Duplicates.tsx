@@ -4,7 +4,7 @@ import Button from "../components/ui/Button";
 import DuplicatesList from "../components/transactions/DuplicatesList";
 import Spinner from "../components/ui/Spinner";
 import { detectDuplicatePairs, filterVisiblePairs, pairKey } from "../lib/duplicates";
-import { deleteTransaction, setCategoryId, setComment, setCustomDate, setExcludeFromCalculations } from "../lib/mutations";
+import { deleteTransaction, setCategoryId } from "../lib/mutations";
 import { addDismissedPair, dismissAllPairs, getDismissedPairs } from "../lib/settings";
 import { getAllTransactions, type Transaction } from "../lib/store";
 
@@ -70,9 +70,7 @@ export default function Duplicates() {
         onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); await reload(); }}
         onDelete={async (txId) => { await deleteTransaction(txId); await reload(); }}
         onDismissPair={handleDismissPair}
-        onExcludeFromCalculationsChange={async (txId, value) => { await setExcludeFromCalculations(txId, value); }}
-        onCustomDateChange={async (txId, date) => { await setCustomDate(txId, date); }}
-        onCommentChange={async (txId, comment) => { await setComment(txId, comment); }}
+        onMutated={() => void reload()}
       />
     </div>
   );

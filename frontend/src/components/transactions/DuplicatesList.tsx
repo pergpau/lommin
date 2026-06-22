@@ -17,9 +17,7 @@ interface DuplicatesListProps {
   onCategoryChange: (txId: string, categoryId: number | undefined) => Promise<void>;
   onDelete: (txId: string) => Promise<void>;
   onDismissPair: (key: string) => Promise<void>;
-  onExcludeFromCalculationsChange?: (txId: string, value: boolean) => Promise<void>;
-  onCustomDateChange?: (txId: string, date: string | undefined) => Promise<void>;
-  onCommentChange?: (txId: string, comment: string | undefined) => Promise<void>;
+  onMutated?: () => void;
 }
 
 export default function DuplicatesList({
@@ -27,13 +25,13 @@ export default function DuplicatesList({
   onCategoryChange,
   onDelete,
   onDismissPair,
-  onExcludeFromCalculationsChange,
-  onCustomDateChange,
-  onCommentChange,
+  onMutated,
 }: DuplicatesListProps) {
   const { t } = useTranslation("dashboard");
   const [pickerFor, setPickerFor] = useState<Transaction | null>(null);
-  const [detailFor, setDetailFor] = useState<Transaction | null>(null);
+  const [detailForId, setDetailForId] = useState<string | null>(null);
+  const allTxs = pairs.flatMap(([a, b]) => [a, b]);
+  const detailFor = detailForId ? (allTxs.find((tx) => tx.id === detailForId) ?? null) : null;
   const [deletingTx, setDeletingTx] = useState<Transaction | null>(null);
   const [dismissingKeys, setDismissingKeys] = useState<Set<string>>(new Set());
 
@@ -78,7 +76,7 @@ export default function DuplicatesList({
                   resolved={isResolved(a)}
                   onCategoryClick={() => setPickerFor(a)}
                   onDelete={() => setDeletingTx(a)}
-                  onTransactionClick={() => setDetailFor(a)}
+                  onTransactionClick={() => setDetailForId(a.id)}
                 />
                 <div className="border-t border-border" />
                 <DuplicateRow
@@ -86,7 +84,7 @@ export default function DuplicatesList({
                   resolved={isResolved(b)}
                   onCategoryClick={() => setPickerFor(b)}
                   onDelete={() => setDeletingTx(b)}
-                  onTransactionClick={() => setDetailFor(b)}
+                  onTransactionClick={() => setDetailForId(b.id)}
                 />
                 <div className="border-t border-border px-4 py-2 flex justify-end">
                   <Button
@@ -115,12 +113,9 @@ export default function DuplicatesList({
       {detailFor && (
         <TransactionDetail
           transaction={detailFor}
-          onClose={() => setDetailFor(null)}
-          onOpenCategoryPicker={(tx) => { setDetailFor(null); setPickerFor(tx); }}
-          onExcludeFromCalculationsChange={onExcludeFromCalculationsChange}
-          onCustomDateChange={onCustomDateChange}
-          onCommentChange={onCommentChange}
-          onDelete={async (txId) => { await onDelete(txId); setDetailFor(null); }}
+          onClose={() => setDetailForId(null)}
+          onOpenCategoryPicker={(tx) => { setDetailForId(null); setPickerFor(tx); }}
+          onMutated={onMutated}
         />
       )}
 
