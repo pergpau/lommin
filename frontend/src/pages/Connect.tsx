@@ -298,7 +298,9 @@ export default function Connect() {
             </>
           ) : (
             <>
-              <Spinner size={32} />
+              <div className="flex justify-center">
+                <Spinner size={32} />
+              </div>
               <div className="text-muted text-sm mt-4">
                 {phase === "syncing"
                   ? syncMsg || t("statuses.fetchingTransactions")
