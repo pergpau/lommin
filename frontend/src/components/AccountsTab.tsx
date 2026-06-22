@@ -1,9 +1,9 @@
-import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import type { Account, Transaction } from "../lib/store";
 import AccountCard from "./AccountCard";
 import EmptyState from "./ui/EmptyState";
 import { PlusIcon } from "./ui/icons";
-import type { Account, Transaction } from "../lib/store";
 
 function isConnected(acc: Account) {
   return acc.sources.some((s) => s.type === "enableBanking");
@@ -28,6 +28,10 @@ function groupAndSort(accounts: Account[]): { bankKey: string; accs: Account[] }
     .map(([bankKey, accs]) => ({ bankKey, accs }))
     .sort((a, b) => {
       const connDiff = b.accs.filter(isConnected).length - a.accs.filter(isConnected).length;
+
+      if (b.accs.filter(isConnected).length !== 0 && a.accs.filter(isConnected).length !== 0)
+        return a.bankKey.localeCompare(b.bankKey);
+
       return connDiff !== 0 ? connDiff : a.bankKey.localeCompare(b.bankKey);
     });
 }
@@ -42,7 +46,15 @@ interface Props {
   connectTarget: string;
 }
 
-export default function AccountsTab({ accounts, txByAccount, syncingAccountUids, failedAccounts, sessionExpiredUids, isDemo, connectTarget }: Props) {
+export default function AccountsTab({
+  accounts,
+  txByAccount,
+  syncingAccountUids,
+  failedAccounts,
+  sessionExpiredUids,
+  isDemo,
+  connectTarget,
+}: Props) {
   const { t } = useTranslation("dashboard");
 
   if (accounts.length === 0) {
