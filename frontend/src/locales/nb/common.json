@@ -16,7 +16,7 @@
     "close": "Lukk",
     "saving": "Lagrer…",
     "loading": "Laster…",
-    "fetching": "Henter transaksjoner"
+    "syncing": "Synkroniserer"
   },
   "sync": {
     "syncing": "Henter data fra Google Drive",

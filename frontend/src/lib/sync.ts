@@ -32,6 +32,7 @@ export async function syncAccount(
   onProgress?: (msg: string) => void,
   forcedDateFrom?: string,
 ): Promise<number> {
+  const bankName = acc.bankName ?? ""
   const label = acc.name ?? acc.uid.slice(0, 8);
   const src = getEnableBankingSource(acc);
   if (!src) return 0; // Spiir-only account — nothing to sync via API
@@ -50,12 +51,12 @@ export async function syncAccount(
   }
 
   const apiUid = src.sourceId;
-  onProgress?.(`${t("actions.fetching")}: ${label}`);
+  onProgress?.(`${t("actions.syncing")}: ${bankName} (${label})`);
   const [txns, balance] = await Promise.all([
     fetchAllTransactions(
       apiUid,
       dateFrom,
-      (n) => onProgress?.(`${t("actions.fetching")}: ${label} (${n})`),
+      (n) => onProgress?.(`${t("actions.syncing")}: ${bankName} (${label}) (${n})`),
       acc.uid,
     ),
     fetchBalance(apiUid).catch(() => undefined),

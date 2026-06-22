@@ -16,7 +16,7 @@
     "close": "Close",
     "saving": "Saving…",
     "loading": "Loading…",
-    "fetching": "Fetching transactions"
+    "syncing": "Syncing"
   },
   "sync": {
     "syncing": "Loading data from Google Drive",
