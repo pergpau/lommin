@@ -34,8 +34,8 @@ export default function Settings() {
   if (isDemo === null || isDemo) return null;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-semibold text-text mb-6">{t("title")}</h1>
+    <div className="max-w-xl mx-auto px-4 py-8">
+      <h1 className="text-xl font-semibold mb-6">{t("title")}</h1>
       <KeySection highlightedHash={highlightedHash} />
       <ProxySection />
       <SyncSection />
