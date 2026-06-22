@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { Transaction } from "../../lib/store";
 import { PAGE_SIZE } from "../../constants";
+import type { Transaction } from "../../lib/store";
 import SearchInput from "../ui/SearchInput";
 import CategoryPicker from "./CategoryPicker";
 import TransactionDetail from "./TransactionDetail";
@@ -37,12 +37,12 @@ export default function TransactionTable({
 
   const filtered = search
     ? transactions.filter((tx) => {
-        const q = search.toLowerCase();
-        return (
-          (tx.description ?? "").toLowerCase().includes(q) ||
-          String(Math.abs(tx.amount)).includes(q)
-        );
-      })
+      const q = search.toLowerCase();
+      return (
+        (tx.description ?? "").toLowerCase().includes(q) ||
+        String(Math.abs(tx.amount)).includes(q)
+      );
+    })
     : transactions;
 
   const totalPages = Math.ceil(filtered.length / pageSize);
@@ -65,7 +65,7 @@ export default function TransactionTable({
       <div className="card overflow-hidden">
         <div className="px-4 py-2.5 border-b border-border flex items-center gap-3 min-h-[44px]">
           <div className="flex-1">
-            <h2 className="text-sm font-medium text-text">{t("table.title")}: {transactions.length}</h2>
+            <h2 className="text-sm font-medium text-text">{t("table.title")}: {filtered.length}</h2>
             {subtitle && <p className="text-xs text-muted leading-tight">{subtitle}</p>}
           </div>
           <SearchInput
@@ -123,8 +123,8 @@ export default function TransactionTable({
           onOpenCategoryPicker={
             onCategoryChange
               ? (tx) => {
-                  setPickerFor(tx);
-                }
+                setPickerFor(tx);
+              }
               : undefined
           }
           onMutated={onMutated}
