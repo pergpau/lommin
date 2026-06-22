@@ -5,7 +5,7 @@ import {
   fetchBalance,
   ProxyNetworkError,
 } from "./enableBanking";
-import { getSetting } from "./settings";
+import { getSetting, setSetting } from "./settings";
 import {
   getAllTransactions,
   getEnableBankingSource,
@@ -76,9 +76,11 @@ export async function syncAccount(
     categoryId: tx.categoryId ?? guessCategory(tx, creditorHistory, bbanHistory),
   }));
   const inserted = await upsertTransactions(categorized);
+  if (inserted > 0) void setSetting("lastDataModifiedAt", Date.now());
 
   if (balance !== undefined) {
     await saveAccount({ ...acc, balance, balanceFetchedAt: Date.now() });
+    void setSetting("lastDataModifiedAt", Date.now());
   }
 
   if (txns.length > 0) {

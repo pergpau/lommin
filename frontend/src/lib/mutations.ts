@@ -3,6 +3,7 @@
 // sync.ts is the exception — it batches many writes and triggers autosave via its callback.
 
 import { triggerAutosave } from "./autosave";
+import { setSetting } from "./settings";
 import * as store from "./store";
 
 export type { Account, Transaction } from "./store";
@@ -17,6 +18,7 @@ function scheduleAutosave(): void {
 function wrap<A extends unknown[], R>(fn: (...args: A) => Promise<R>) {
   return async (...args: A): Promise<R> => {
     const result = await fn(...args);
+    void setSetting("lastDataModifiedAt", Date.now());
     scheduleAutosave();
     return result;
   };

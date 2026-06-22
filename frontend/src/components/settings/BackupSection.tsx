@@ -81,7 +81,9 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
     try {
       const data = await exportAll();
       await saveEncryptedFile(data, passphrase);
-      void setSetting("lastLocalSavedAt", Date.now());
+      const now = Date.now();
+      void setSetting("lastLocalSavedAt", now);
+      void setSetting("lastDataModifiedAt", now);
       showSnackbar(t("settings:snackbar.savedToFile"), "ok");
     } catch (e) {
       if ((e as Error).name !== "AbortError")
@@ -137,7 +139,9 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
     try {
       const data = await exportAll();
       await saveBackupToDrive(driveToken, data, passphrase);
-      void setSetting("lastLocalSavedAt", Date.now());
+      const now = Date.now();
+      void setSetting("lastLocalSavedAt", now);
+      void setSetting("lastDataModifiedAt", now);
       showSnackbar(t("settings:snackbar.savedToDrive"), "ok");
     } catch (e) {
       if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
