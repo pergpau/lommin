@@ -48,7 +48,7 @@ export function detectDuplicatePairs(transactions: Transaction[]): [Transaction,
       for (let j = i + 1; j < group.length; j++) {
         const a = group[i], b = group[j];
         if (isExcludedCategory(a) || isExcludedCategory(b)) continue;
-        if (daysDiff(a.bookingDate, b.bookingDate) <= 1) {
+        if (daysDiff(a.transactionDate, b.transactionDate) <= 1) {
           pairs.push([a, b]);
         }
       }
