@@ -1,12 +1,22 @@
+import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { amountClass, effectiveDate, fmtAmount, fmtDate, statusLabel } from "../../lib/format";
-import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP, type MainCategory, type SubCategory } from "../../lib/categories";
+import {
+  MAIN_CATEGORY_MAP,
+  SUB_CATEGORY_MAP,
+  type MainCategory,
+  type SubCategory,
+} from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
+import { amountClass, effectiveDate, fmtAmount, fmtDate, statusLabel } from "../../lib/format";
+import {
+  deleteTransaction,
+  setComment,
+  setCustomDate,
+  setExcludeFromCalculations,
+} from "../../lib/mutations";
 import { getAccounts, type Account, type Transaction } from "../../lib/store";
-import { deleteTransaction, setComment, setCustomDate, setExcludeFromCalculations } from "../../lib/mutations";
 import DeleteConfirmModal from "../ui/DeleteConfirmModal";
 
 interface TransactionDetailProps {
@@ -55,7 +65,9 @@ export default function TransactionDetail({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-          <span className="font-semibold text-accent text-sm">{t("transactions:detail.title")}</span>
+          <span className="font-semibold text-accent text-sm">
+            {t("transactions:detail.title")}
+          </span>
           <button className="text-muted hover:text-text text-lg leading-none" onClick={onClose}>
             ✕
           </button>
@@ -86,7 +98,10 @@ export default function TransactionDetail({
           <div className="border-t border-border divide-y divide-border mx-0">
             {account?.name && (
               <DetailRow label={t("transactions:detail.account")}>
-                {account.name}{account.bban && ` (${account.bban})`}
+                <div>
+                  {account.bankName && ` ${account.bankName}`} {account.name && `(${account.name})`}
+                </div>
+                <div className="mono text-xs">{account.bban && ` ${account.bban}`}</div>
               </DetailRow>
             )}
 
@@ -102,7 +117,9 @@ export default function TransactionDetail({
                     <span className="text-muted text-xs line-through">
                       {fmtDate(tx.transactionDate, FULL_DATE)}
                     </span>
-                    <span className="text-text text-right">{fmtDate(tx.customDate, FULL_DATE)}</span>
+                    <span className="text-text text-right">
+                      {fmtDate(tx.customDate, FULL_DATE)}
+                    </span>
                     <button
                       className="text-muted hover:text-text text-xs leading-none"
                       title={t("transactions:detail.resetDate")}
@@ -124,7 +141,10 @@ export default function TransactionDetail({
                   onChange={(e) => {
                     const val = e.target.value;
                     const naturalDate = tx.transactionDate;
-                    void setCustomDate(tx.id, val === naturalDate ? undefined : val || undefined).then(() => onMutated?.());
+                    void setCustomDate(
+                      tx.id,
+                      val === naturalDate ? undefined : val || undefined,
+                    ).then(() => onMutated?.());
                   }}
                 />
                 <button
@@ -143,7 +163,9 @@ export default function TransactionDetail({
             )}
 
             <div className="flex items-center justify-between px-6 py-3">
-              <span className="text-muted text-xs shrink-0 mr-4">{t("transactions:detail.category")}</span>
+              <span className="text-muted text-xs shrink-0 mr-4">
+                {t("transactions:detail.category")}
+              </span>
               <CategoryPill
                 subCat={subCat}
                 mainCat={mainCat}
@@ -152,7 +174,9 @@ export default function TransactionDetail({
             </div>
 
             {tx.bankTransactionCode && (
-              <DetailRow label={t("transactions:detail.bankCode")}>{tx.bankTransactionCode}</DetailRow>
+              <DetailRow label={t("transactions:detail.bankCode")}>
+                {tx.bankTransactionCode}
+              </DetailRow>
             )}
 
             <DetailRow label={t("transactions:detail.reference")}>
@@ -160,71 +184,73 @@ export default function TransactionDetail({
             </DetailRow>
 
             <div className="px-6 py-3">
-                {editingComment ? (
-                  <>
-                    <span className="text-muted text-xs block mb-1.5">{t("transactions:detail.comment")}</span>
-                    <div className="flex flex-col gap-2">
-                      <textarea
-                        ref={commentRef}
-                        className="w-full text-sm text-text bg-surface-2 border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-accent"
-                        rows={3}
-                        value={commentDraft}
-                        onChange={(e) => setCommentDraft(e.target.value)}
-                        placeholder={t("transactions:detail.commentPlaceholder")}
-                      />
-                      <div className="flex gap-2 justify-end">
-                        <button
-                          className="text-xs text-muted hover:text-text flex items-center gap-1"
-                          onClick={() => setEditingComment(false)}
-                        >
-                          <FontAwesomeIcon icon={faXmark} className="w-3 h-3" />
-                          {t("transactions:detail.commentCancel")}
-                        </button>
-                        <button
-                          className="text-xs text-accent hover:opacity-80 flex items-center gap-1 font-medium"
-                          onClick={async () => {
-                            await setComment(tx.id, commentDraft || undefined);
-                            onMutated?.();
-                            setEditingComment(false);
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faCheck} className="w-3 h-3" />
-                          {t("transactions:detail.commentSave")}
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                ) : tx.comment ? (
-                  <>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-muted text-xs">{t("transactions:detail.comment")}</span>
+              {editingComment ? (
+                <>
+                  <span className="text-muted text-xs block mb-1.5">
+                    {t("transactions:detail.comment")}
+                  </span>
+                  <div className="flex flex-col gap-2">
+                    <textarea
+                      ref={commentRef}
+                      className="w-full text-sm text-text bg-surface-2 border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-accent"
+                      rows={3}
+                      value={commentDraft}
+                      onChange={(e) => setCommentDraft(e.target.value)}
+                      placeholder={t("transactions:detail.commentPlaceholder")}
+                    />
+                    <div className="flex gap-2 justify-end">
                       <button
-                        className="text-muted hover:text-text text-xs leading-none"
-                        title={t("transactions:detail.editComment")}
-                        onClick={() => {
-                          setCommentDraft(tx.comment ?? "");
-                          setEditingComment(true);
-                          setTimeout(() => commentRef.current?.focus(), 0);
+                        className="text-xs text-muted hover:text-text flex items-center gap-1"
+                        onClick={() => setEditingComment(false)}
+                      >
+                        <FontAwesomeIcon icon={faXmark} className="w-3 h-3" />
+                        {t("transactions:detail.commentCancel")}
+                      </button>
+                      <button
+                        className="text-xs text-accent hover:opacity-80 flex items-center gap-1 font-medium"
+                        onClick={async () => {
+                          await setComment(tx.id, commentDraft || undefined);
+                          onMutated?.();
+                          setEditingComment(false);
                         }}
                       >
-                        <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
+                        <FontAwesomeIcon icon={faCheck} className="w-3 h-3" />
+                        {t("transactions:detail.commentSave")}
                       </button>
                     </div>
-                    <p className="text-sm text-text whitespace-pre-wrap">{tx.comment}</p>
-                  </>
-                ) : (
-                  <button
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border border-border text-muted hover:text-text hover:border-text/30 transition-colors"
-                    onClick={() => {
-                      setCommentDraft("");
-                      setEditingComment(true);
-                      setTimeout(() => commentRef.current?.focus(), 0);
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
-                    {t("transactions:detail.addComment")}
-                  </button>
-                )}
+                  </div>
+                </>
+              ) : tx.comment ? (
+                <>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-muted text-xs">{t("transactions:detail.comment")}</span>
+                    <button
+                      className="text-muted hover:text-text text-xs leading-none"
+                      title={t("transactions:detail.editComment")}
+                      onClick={() => {
+                        setCommentDraft(tx.comment ?? "");
+                        setEditingComment(true);
+                        setTimeout(() => commentRef.current?.focus(), 0);
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <p className="text-sm text-text whitespace-pre-wrap">{tx.comment}</p>
+                </>
+              ) : (
+                <button
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border border-border text-muted hover:text-text hover:border-text/30 transition-colors"
+                  onClick={() => {
+                    setCommentDraft("");
+                    setEditingComment(true);
+                    setTimeout(() => commentRef.current?.focus(), 0);
+                  }}
+                >
+                  <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
+                  {t("transactions:detail.addComment")}
+                </button>
+              )}
             </div>
           </div>
 
@@ -255,7 +281,9 @@ export default function TransactionDetail({
               type="checkbox"
               className="w-4 h-4 rounded accent-accent cursor-pointer"
               checked={tx.excludeFromCalculations}
-              onChange={(e) => void setExcludeFromCalculations(tx.id, e.target.checked).then(() => onMutated?.())}
+              onChange={(e) =>
+                void setExcludeFromCalculations(tx.id, e.target.checked).then(() => onMutated?.())
+              }
             />
           </label>
         </div>
@@ -266,7 +294,10 @@ export default function TransactionDetail({
         onCancel={() => setConfirmingDelete(false)}
         onConfirm={() => {
           setConfirmingDelete(false);
-          void deleteTransaction(tx.id).then(() => { onMutated?.(); onClose(); });
+          void deleteTransaction(tx.id).then(() => {
+            onMutated?.();
+            onClose();
+          });
         }}
       />
     </div>
@@ -283,7 +314,8 @@ function CategoryPill({
   onClick?: () => void;
 }) {
   const { t } = useTranslation(["transactions", "categories"]);
-  const base = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border";
+  const base =
+    "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border";
   const hoverClass = onClick ? " transition-opacity hover:opacity-70" : "";
 
   if (subCat && mainCat) {
@@ -306,7 +338,10 @@ function CategoryPill({
 
   const uncategorized = t("categories:uncategorized");
   return onClick ? (
-    <button className={`${base} bg-surface-2 border-border text-muted${hoverClass}`} onClick={onClick}>
+    <button
+      className={`${base} bg-surface-2 border-border text-muted${hoverClass}`}
+      onClick={onClick}
+    >
       {uncategorized}
     </button>
   ) : (
@@ -314,13 +349,7 @@ function CategoryPill({
   );
 }
 
-function DetailRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between px-6 py-3 text-sm">
       <span className="text-muted text-xs shrink-0 mr-4">{label}</span>
