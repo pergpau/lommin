@@ -29,8 +29,9 @@ export default function AccountPage() {
   const navigate = useNavigate();
   const { accounts, loading: accountsLoading, reload } = useAccounts();
   const { transactions: all, loading: txLoading, refresh } = useTransactions(uid);
-  const { syncing, syncProgress, syncMsg, error: syncError, failedAccounts, run: runSync } = useSyncState();
+  const { syncing, syncProgress, syncMsg, error: syncError, failedAccounts, sessionExpiredUids, run: runSync } = useSyncState();
   const accountError = failedAccounts.get(uid ?? "");
+  const isSessionExpired = sessionExpiredUids.has(uid ?? "");
   const { showSnackbar } = useSnackbar();
   const [selectedMonth, setSelectedMonth] = useState("");
   const [chartMode, setChartMode] = useState<ChartMode>("month");
@@ -164,7 +165,22 @@ export default function AccountPage() {
         </div>
         {/* Sync / Connect button — always visible */}
         <div className="flex items-center gap-2">
-          {isConnected ? (
+          {isConnected && isSessionExpired ? (
+            <Button
+              size="sm"
+              variant="danger"
+              disabled={!account}
+              onClick={() => {
+                if (!account) return;
+                const p = new URLSearchParams({ uid: account.uid });
+                if (account.bankName) p.set("reauth", account.bankName);
+                if (account.bankCountry) p.set("country", account.bankCountry);
+                navigate(`/connect?${p}`);
+              }}
+            >
+              {t("reconnect")}
+            </Button>
+          ) : isConnected ? (
             <Button
               size="sm"
               loading={syncing}

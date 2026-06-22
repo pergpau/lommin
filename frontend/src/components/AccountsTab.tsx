@@ -37,11 +37,12 @@ interface Props {
   txByAccount: Map<string, Transaction[]>;
   syncingAccountUids: Set<string>;
   failedAccounts: Map<string, string>;
+  sessionExpiredUids: Set<string>;
   isDemo: boolean;
   connectTarget: string;
 }
 
-export default function AccountsTab({ accounts, txByAccount, syncingAccountUids, failedAccounts, isDemo, connectTarget }: Props) {
+export default function AccountsTab({ accounts, txByAccount, syncingAccountUids, failedAccounts, sessionExpiredUids, isDemo, connectTarget }: Props) {
   const { t } = useTranslation("dashboard");
 
   if (accounts.length === 0) {
@@ -83,6 +84,7 @@ export default function AccountsTab({ accounts, txByAccount, syncingAccountUids,
                   balance={balance}
                   isSyncing={syncingAccountUids.has(acc.uid) && isConnected(acc)}
                   errorMsg={failedAccounts.get(acc.uid)}
+                  isSessionExpired={sessionExpiredUids.has(acc.uid)}
                 />
               );
             })}

@@ -12,6 +12,7 @@ export function useSyncState() {
   const [failedAccounts, setFailedAccounts] = useState<Map<string, string>>(
     new Map(),
   );
+  const [sessionExpiredUids, setSessionExpiredUids] = useState<Set<string>>(new Set());
   const [syncingAccountUids, setSyncingAccountUids] = useState<Set<string>>(
     new Set(),
   );
@@ -23,6 +24,7 @@ export function useSyncState() {
       setSyncMsg("");
       setError("");
       setFailedAccounts(new Map());
+      setSessionExpiredUids(new Set());
       setSyncingAccountUids(new Set(accounts.map((a) => a.uid)));
       try {
         const { inserted, errors } = await syncAccounts(accounts, setSyncProgress, forcedDateFrom);
@@ -38,9 +40,14 @@ export function useSyncState() {
                 e.uid,
                 e.isNetworkError
                   ? i18n.t("dashboard:snackbar.proxyUnreachable")
-                  : e.message,
+                  : e.isSessionExpired
+                    ? i18n.t("dashboard:snackbar.sessionExpired")
+                    : e.message,
               ]),
             ),
+          );
+          setSessionExpiredUids(
+            new Set(errors.filter((e) => e.isSessionExpired).map((e) => e.uid)),
           );
         }
         onSuccess?.(errors.length > 0);
@@ -60,5 +67,5 @@ export function useSyncState() {
     [],
   );
 
-  return { syncing, syncProgress, syncMsg, error, failedAccounts, syncingAccountUids, run };
+  return { syncing, syncProgress, syncMsg, error, failedAccounts, sessionExpiredUids, syncingAccountUids, run };
 }

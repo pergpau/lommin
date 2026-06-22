@@ -2,6 +2,7 @@
   "fallbackTitle": "Konto",
   "connectedBadge": "Tilkoblet",
   "sync": "Synkroniser",
+  "reconnect": "Koble til på nytt",
   "connectBank": "Koble til bank",
   "forcedResync": "Tving synkronisering",
   "disconnectAccount": "Koble fra konto",

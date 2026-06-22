@@ -2,6 +2,7 @@
   "fallbackTitle": "Account",
   "connectedBadge": "Connected",
   "sync": "Sync",
+  "reconnect": "Reconnect",
   "connectBank": "Connect bank",
   "forcedResync": "Force resync",
   "disconnectAccount": "Disconnect account",

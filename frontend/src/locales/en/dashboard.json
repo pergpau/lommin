@@ -49,6 +49,7 @@
     "syncResult_one": "Synced — {{count}} new transaction",
     "syncResult_other": "Synced — {{count}} new transactions",
     "syncFailed": "Sync failed",
-    "proxyUnreachable": "Cannot reach the proxy"
+    "proxyUnreachable": "Cannot reach the proxy",
+    "sessionExpired": "Bank connection has expired – reconnect to resume syncing"
   }
 }

@@ -10,6 +10,13 @@ export class ProxyNetworkError extends Error {
   }
 }
 
+export class SessionExpiredError extends Error {
+  constructor() {
+    super("SessionExpiredError");
+    this.name = "SessionExpiredError";
+  }
+}
+
 async function authHeader(): Promise<string> {
   const kv = await loadKey();
   if (!kv) throw new Error("No signing key loaded. Go to Setup first.");
@@ -36,12 +43,15 @@ async function proxyFetch(path: string, init: RequestInit = {}): Promise<Respons
   }
   if (!res.ok) {
     let msg = res.statusText;
+    let errorCode: string | undefined;
     try {
       const body = await res.json();
       msg = body.error_description ?? body.message ?? msg;
+      errorCode = body.error;
     } catch {
       /* ignore */
     }
+    if (errorCode === "EXPIRED_SESSION") throw new SessionExpiredError();
     throw new Error(`${res.status}: ${msg}`);
   }
   return res;

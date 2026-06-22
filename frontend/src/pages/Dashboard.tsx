@@ -41,6 +41,7 @@ export default function Dashboard() {
     syncMsg,
     error,
     failedAccounts,
+    sessionExpiredUids,
     syncingAccountUids,
     run: runSync,
   } = useSyncState();
@@ -377,6 +378,7 @@ export default function Dashboard() {
             txByAccount={txByAccount}
             syncingAccountUids={syncingAccountUids}
             failedAccounts={failedAccounts}
+            sessionExpiredUids={sessionExpiredUids}
             isDemo={isDemo}
             connectTarget={connectTarget}
           />

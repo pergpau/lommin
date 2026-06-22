@@ -49,6 +49,7 @@
     "syncResult_one": "Synkronisert — {{count}} ny transaksjon",
     "syncResult_other": "Synkronisert — {{count}} nye transaksjoner",
     "syncFailed": "Synkronisering feilet",
-    "proxyUnreachable": "Kan ikke nå proxyen"
+    "proxyUnreachable": "Kan ikke nå proxyen",
+    "sessionExpired": "Tilkoblingen til banken har utløpt – koble til på nytt"
   }
 }

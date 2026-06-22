@@ -5,6 +5,7 @@
     "fetching": "Henter transaksjoner…",
     "syncing": "Synkroniserer…",
     "reconnect": "Koble til på nytt",
+    "sessionExpired": "Tilkoblingen til banken har utløpt",
     "rateLimit": "For mange forespørsler. Prøv igjen senere.",
     "connected": "Tilkoblet",
     "importedFromSpiir": "Importert fra Spiir",

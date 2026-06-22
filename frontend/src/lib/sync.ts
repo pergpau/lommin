@@ -4,6 +4,7 @@ import {
   fetchAllTransactions,
   fetchBalance,
   ProxyNetworkError,
+  SessionExpiredError,
 } from "./enableBanking";
 import { getSetting, setSetting } from "./settings";
 import {
@@ -97,7 +98,7 @@ export async function syncAccount(
 
 export interface SyncResult {
   inserted: number;
-  errors: Array<{ uid: string; label: string; message: string; isNetworkError: boolean }>;
+  errors: Array<{ uid: string; label: string; message: string; isNetworkError: boolean; isSessionExpired: boolean }>;
 }
 
 // Sync many accounts in parallel. Continues on per-account errors.
@@ -128,6 +129,7 @@ export async function syncAccounts(
         label: acc.name ?? acc.uid.slice(0, 8),
         message: error instanceof Error ? error.message : String(error),
         isNetworkError: error instanceof ProxyNetworkError,
+        isSessionExpired: error instanceof SessionExpiredError,
       });
     }
   }

@@ -13,6 +13,7 @@ interface Props {
   balance: number;
   isSyncing: boolean;
   errorMsg?: string;
+  isSessionExpired?: boolean;
 }
 
 function fmtSyncTime(ts?: number): string {
@@ -25,7 +26,7 @@ function fmtSyncTime(ts?: number): string {
   });
 }
 
-export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg }: Props) {
+export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg, isSessionExpired }: Props) {
   const navigate = useNavigate();
   const { t } = useTranslation("components");
 
@@ -62,7 +63,9 @@ export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg }:
           <div className="text-xs text-muted">{t("accountCard.rateLimit")}</div>
         ) : (
           <>
-            <div className="text-xs text-negative mb-3 line-clamp-2">{errorMsg}</div>
+            <div className="text-xs text-negative mb-3 line-clamp-2">
+            {isSessionExpired ? t("accountCard.sessionExpired") : errorMsg}
+          </div>
             <Button
               variant="danger"
               size="sm"

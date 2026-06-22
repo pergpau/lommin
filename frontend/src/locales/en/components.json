@@ -5,6 +5,7 @@
     "fetching": "Fetching transactions…",
     "syncing": "Syncing…",
     "reconnect": "Reconnect",
+    "sessionExpired": "Bank connection has expired",
     "rateLimit": "Too many requests. Please try again later.",
     "connected": "Connected",
     "importedFromSpiir": "Imported from Spiir",
