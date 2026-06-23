@@ -127,7 +127,7 @@ export default function AccountPage() {
   const removeAccount = useCallback(async () => {
     if (!uid || !confirm(t("confirm.removeAccount"))) return;
     await deleteAccount(uid);
-    navigate("/dashboard");
+    navigate("/dashboard", { state: { tab: "accounts" } });
   }, [uid, navigate, t]);
 
   const resetSync = useCallback(async () => {
