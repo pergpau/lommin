@@ -430,15 +430,23 @@ export async function importAll(
   const d = await db();
 
   if (options?.overwrite) {
-    // Remote is authoritative: atomically replace all local data so deleted records don't survive.
-    const tx = d.transaction(["accounts", "transactions", "syncCursors"], "readwrite");
-    await tx.objectStore("accounts").clear();
-    await tx.objectStore("transactions").clear();
-    await tx.objectStore("syncCursors").clear();
-    for (const a of accounts) await tx.objectStore("accounts").put(a);
-    for (const t of transactions) await tx.objectStore("transactions").put(t);
-    for (const c of cursors) await tx.objectStore("syncCursors").put(c);
-    await tx.done;
+    // Remote is authoritative: clear each store then repopulate in separate single-store
+    // transactions to avoid IDB auto-committing a multi-store transaction between awaits.
+    const atx = d.transaction("accounts", "readwrite");
+    await atx.store.clear();
+    for (const a of accounts) await atx.store.put(a);
+    await atx.done;
+
+    const ttx = d.transaction("transactions", "readwrite");
+    await ttx.store.clear();
+    for (const t of transactions) await ttx.store.put(t);
+    await ttx.done;
+
+    const ctx = d.transaction("syncCursors", "readwrite");
+    await ctx.store.clear();
+    for (const c of cursors) await ctx.store.put(c);
+    await ctx.done;
+
     if (settings) await applySyncedSettings(settings);
     return { inserted: transactions.length, skipped: 0 };
   }
