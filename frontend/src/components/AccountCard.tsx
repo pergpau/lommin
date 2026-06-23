@@ -135,7 +135,7 @@ export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg, i
       {(acc.bban || acc.iban) && (
         <div className="mono text-xs text-muted mb-2 truncate">{acc.bban ?? acc.iban}</div>
       )}
-      {!isImported && (
+      {isConnected && (
         <div
           className={`mono text-base font-semibold tabular-nums ${balance >= 0 ? "amount-positive" : "amount-negative"}`}
         >
@@ -156,7 +156,7 @@ export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg, i
             {t("accountCard.importedFromSpiir")}
           </span>
         )}
-        {!isImported && (
+        {isConnected && (
           <span className="text-xs text-muted">
             {syncTime
               ? t("accountCard.lastSynced", { time: syncTime })
