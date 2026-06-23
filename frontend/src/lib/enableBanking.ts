@@ -173,6 +173,7 @@ function parseBban(account: RawAccountRef | null | undefined): string | undefine
 // debit (money out) is negative and credit (money in) is positive.
 function parseAmount(raw: RawTransaction): number {
   const n = Math.abs(parseFloat(raw.transaction_amount?.amount ?? "0"));
+  if (!Number.isFinite(n)) return 0;
   return raw.credit_debit_indicator === "DBIT" ? -n : n;
 }
 
