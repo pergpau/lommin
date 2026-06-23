@@ -12,6 +12,7 @@ import {
 } from "../lib/spiirImport";
 import { getAccounts, type Account } from "../lib/store";
 import { importAll } from "../lib/mutations";
+import { MAX_IMPORT_BYTES } from "../constants";
 
 type Props = { onSuccess?: () => void };
 
@@ -32,6 +33,10 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
+      if (file.size > MAX_IMPORT_BYTES) {
+        showSnackbar(t("spiirImport.fileTooLarge"), "error");
+        return;
+      }
       const text = await file.text();
       const parsed = parseSpiirCsvAccounts(text);
       if (parsed.length === 0) {
@@ -56,6 +61,10 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
+      if (file.size > MAX_IMPORT_BYTES) {
+        showSnackbar(t("spiirImport.fileTooLarge"), "error");
+        return;
+      }
       try {
         const buf = await file.arrayBuffer();
         const parsed = await parseSpiirZipAccounts(buf);

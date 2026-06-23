@@ -54,7 +54,8 @@
     "noAccounts": "Fant ingen kontoer i filen. Sjekk at filen er en gyldig Spiir-eksport.",
     "noAccountsZip": "Fant ingen kontoer i ZIP-filen. Sjekk at filen er en gyldig Spiir dataeksport.",
     "unreadableZip": "Kunne ikke lese ZIP-filen.",
-    "importFailed": "Import feilet"
+    "importFailed": "Import feilet",
+    "fileTooLarge": "Filen er for stor (maks 50 MB)."
   },
   "csvImport": {
     "description": "Importer transaksjoner fra en egendefinert CSV-fil med følgende kolonner:",
@@ -77,7 +78,8 @@
     "cancel": "Avbryt",
     "success": "Importerte {{count}} transaksjoner{{skipNote}}.",
     "skipNote": " ({{skipped}} hoppet over – fantes allerede)",
-    "importFailed": "Import feilet"
+    "importFailed": "Import feilet",
+    "fileTooLarge": "Filen er for stor (maks 50 MB)."
   },
   "pemSafety": {
     "label": "Er dette trygt?",

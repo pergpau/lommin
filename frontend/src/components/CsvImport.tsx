@@ -14,6 +14,7 @@ import {
 } from "../lib/csvImport";
 import { importAll, saveAccount } from "../lib/mutations";
 import { getAccounts, type Account } from "../lib/store";
+import { MAX_IMPORT_BYTES } from "../constants";
 
 type Step = "idle" | "preview" | "importing";
 
@@ -46,6 +47,10 @@ export default function CsvImportPanel() {
       const file = e.target.files?.[0];
       if (!file) return;
       if (fileRef.current) fileRef.current.value = "";
+      if (file.size > MAX_IMPORT_BYTES) {
+        showSnackbar(t("csvImport.fileTooLarge"), "error");
+        return;
+      }
 
       const text = await file.text();
       const { drafts: parsed, errors } = parseCsvImport(text);

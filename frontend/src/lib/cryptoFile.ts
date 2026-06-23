@@ -1,3 +1,5 @@
+import { MAX_IMPORT_BYTES } from "../constants";
+
 const SALT_LEN = 16;
 const IV_LEN = 12;
 const ITER = 200_000;
@@ -98,6 +100,7 @@ export async function loadEncryptedFile(passphrase: string): Promise<object> {
       ],
     });
     const file = await handle.getFile();
+    if (file.size > MAX_IMPORT_BYTES) throw new Error("File too large");
     fileBuffer = await file.arrayBuffer();
   } else {
     fileBuffer = await new Promise((resolve, reject) => {
@@ -107,6 +110,7 @@ export async function loadEncryptedFile(passphrase: string): Promise<object> {
       input.onchange = () => {
         const file = input.files?.[0];
         if (!file) return reject(new Error("No file selected"));
+        if (file.size > MAX_IMPORT_BYTES) return reject(new Error("File too large"));
         file.arrayBuffer().then(resolve).catch(reject);
       };
       input.click();

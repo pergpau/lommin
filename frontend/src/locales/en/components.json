@@ -54,7 +54,8 @@
     "noAccounts": "No accounts found in the file. Check that the file is a valid Spiir export.",
     "noAccountsZip": "No accounts found in the ZIP file. Check that the file is a valid Spiir data export.",
     "unreadableZip": "Could not read ZIP file.",
-    "importFailed": "Import failed"
+    "importFailed": "Import failed",
+    "fileTooLarge": "File is too large (max 50 MB)."
   },
   "csvImport": {
     "description": "Import transactions from your own CSV file with the following columns:",
@@ -77,7 +78,8 @@
     "cancel": "Cancel",
     "success": "Imported {{count}} transactions{{skipNote}}.",
     "skipNote": " ({{skipped}} skipped — already existed)",
-    "importFailed": "Import failed"
+    "importFailed": "Import failed",
+    "fileTooLarge": "File is too large (max 50 MB)."
   },
   "pemSafety": {
     "label": "Is this safe?",
