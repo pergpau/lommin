@@ -123,7 +123,7 @@ export async function getDriveToken(): Promise<{ token: string; expiry: number }
     r1.onsuccess = () => { token = r1.result?.v as string | undefined; };
     r2.onsuccess = () => { expiry = r2.result?.v as number | undefined; };
     tx.oncomplete = () => {
-      if (!token || !expiry || Date.now() >= expiry) resolve(null);
+      if (!token || !expiry || Date.now() >= expiry - 60_000) resolve(null);
       else resolve({ token, expiry });
     };
     tx.onerror = () => reject(tx.error);
