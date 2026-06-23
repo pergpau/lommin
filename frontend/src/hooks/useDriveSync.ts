@@ -12,6 +12,7 @@ export function useDriveSync() {
   const inFlight = useRef(false);
 
   const attemptSync = useCallback(async () => {
+    if (window.opener) return;
     if (inFlight.current) return;
     inFlight.current = true;
 

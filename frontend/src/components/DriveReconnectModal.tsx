@@ -31,6 +31,7 @@ export default function DriveReconnectModal() {
     try {
       const { token, expiresIn } = await signInWithGoogle(GOOGLE_CLIENT_ID);
       await persistDriveToken(token, expiresIn);
+      window.dispatchEvent(new Event("lommin:drive-token-updated"));
       setOpen(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("driveReconnect.error"));

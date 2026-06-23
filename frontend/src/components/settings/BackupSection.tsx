@@ -58,6 +58,12 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
       setDriveAutosave(autosave);
       if (stored) setDriveToken(stored.token);
     });
+
+    const handleTokenUpdated = () => {
+      void getDriveToken().then((stored) => setDriveToken(stored?.token ?? null));
+    };
+    window.addEventListener("lommin:drive-token-updated", handleTokenUpdated);
+    return () => window.removeEventListener("lommin:drive-token-updated", handleTokenUpdated);
   }, []);
 
   const openDialog = useCallback((mode: "save" | "load" | "drive-save" | "drive-load") => {

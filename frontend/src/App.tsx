@@ -55,7 +55,7 @@ function AppContent() {
   useDriveSync();
   return (
     <>
-    <DriveReconnectModal />
+    {!window.opener && <DriveReconnectModal />}
     <Layout>
       <ErrorBoundary>
         <Routes>
