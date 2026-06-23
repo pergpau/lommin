@@ -428,6 +428,21 @@ export async function importAll(
 ): Promise<{ inserted: number; skipped: number }> {
   const { accounts, transactions, cursors, settings } = validateImportData(data);
   const d = await db();
+
+  if (options?.overwrite) {
+    // Remote is authoritative: atomically replace all local data so deleted records don't survive.
+    const tx = d.transaction(["accounts", "transactions", "syncCursors"], "readwrite");
+    await tx.objectStore("accounts").clear();
+    await tx.objectStore("transactions").clear();
+    await tx.objectStore("syncCursors").clear();
+    for (const a of accounts) await tx.objectStore("accounts").put(a);
+    for (const t of transactions) await tx.objectStore("transactions").put(t);
+    for (const c of cursors) await tx.objectStore("syncCursors").put(c);
+    await tx.done;
+    if (settings) await applySyncedSettings(settings);
+    return { inserted: transactions.length, skipped: 0 };
+  }
+
   const atx = d.transaction("accounts", "readwrite");
   for (const a of accounts) await atx.store.put(a);
   await atx.done;
@@ -440,8 +455,6 @@ export async function importAll(
     if (!existing) {
       await ttx.store.put(t);
       inserted++;
-    } else if (options?.overwrite) {
-      await ttx.store.put(t);
     } else {
       skipped++;
     }
@@ -456,6 +469,5 @@ export async function importAll(
   await ctx.done;
 
   if (settings) await applySyncedSettings(settings);
-
   return { inserted, skipped };
 }
