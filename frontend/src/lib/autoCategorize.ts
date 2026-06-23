@@ -1,3 +1,4 @@
+import { SUB_CATEGORY_MAP } from "./categories";
 import type { Transaction } from "./store";
 
 const BTC_RULES: Array<[string | RegExp, number]> = [
@@ -106,7 +107,7 @@ function bbanKey(tx: Transaction): string | undefined {
   return `${tx.from_bban ?? ""}→${tx.to_bban ?? ""}`;
 }
 
-export function guessCategory(
+function resolveCategory(
   tx: Transaction,
   creditorHistory?: Map<string, number>,
   bbanHistory?: Map<string, number>,
@@ -166,4 +167,13 @@ export function guessCategory(
   }
 
   return undefined;
+}
+
+export function guessCategory(
+  tx: Transaction,
+  creditorHistory?: Map<string, number>,
+  bbanHistory?: Map<string, number>,
+): number | undefined {
+  const id = resolveCategory(tx, creditorHistory, bbanHistory);
+  return id !== undefined && SUB_CATEGORY_MAP[id]?.type === "exclude" ? undefined : id;
 }
