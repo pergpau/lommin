@@ -35,9 +35,8 @@ export function useDriveSync() {
       showSnackbar(t("sync.syncing"), "info", null);
       const data = await loadBackupFromDrive(stored.token, "");
       await importAll(data);
-      const now = Date.now();
       await setSetting("lastLocalSavedAt", driveModifiedAt);
-      await setSetting("lastDataModifiedAt", now);
+      await setSetting("lastDataModifiedAt", driveModifiedAt);
       window.dispatchEvent(new Event("lommin:data-reload"));
       showSnackbar(t("sync.done"), "ok");
     } catch (e) {
