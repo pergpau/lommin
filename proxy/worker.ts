@@ -134,9 +134,10 @@ export default {
       });
     }
 
+    let postBody: ArrayBuffer | undefined;
     if (req.method === "POST") {
-      const len = parseInt(req.headers.get("Content-Length") ?? "", 10);
-      if (Number.isFinite(len) && len > MAX_BODY_BYTES) {
+      postBody = await req.arrayBuffer();
+      if (postBody.byteLength > MAX_BODY_BYTES) {
         return new Response("Payload too large", {
           status: 413,
           headers: corsHeaders(allowedOrigin),
@@ -165,7 +166,7 @@ export default {
       upstream = await fetch(TARGET + url.pathname + url.search, {
         method: req.method,
         headers: upstreamHeaders,
-        body: req.method === "POST" ? req.body : undefined,
+        body: postBody,
         signal: controller.signal,
       });
     } catch {
