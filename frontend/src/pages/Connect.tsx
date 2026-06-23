@@ -159,9 +159,7 @@ export default function Connect() {
           const ebSource: AccountSource = { type: "enableBanking", sourceId: acc.uid, sessionId };
           let record: Account;
           if (match) {
-            const otherSources = match.sources.filter(
-              (s) => !(s.type === "enableBanking" && s.sourceId === acc.uid),
-            );
+            const otherSources = match.sources.filter((s) => s.type !== "enableBanking");
             record = {
               ...match,
               name: acc.name ?? match.name,
