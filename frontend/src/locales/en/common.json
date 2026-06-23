@@ -23,6 +23,12 @@
     "done": "Google Drive data loaded",
     "error": "Google Drive data load failed"
   },
+  "driveReconnect": {
+    "title": "Google Drive connection expired",
+    "body": "Your Google Drive access token has expired. Would you like to reconnect to continue syncing?",
+    "reconnect": "Reconnect",
+    "error": "Connection failed"
+  },
   "dialog": {
     "passwordLabel": "Password (optional)",
     "passwordPlaceholder": "Leave blank for no encryption",

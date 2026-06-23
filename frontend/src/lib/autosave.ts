@@ -29,6 +29,7 @@ export async function triggerAutosave(): Promise<void> {
   } catch (e) {
     if (e instanceof DriveAuthError) {
       void clearDriveToken();
+      window.dispatchEvent(new Event("lommin:drive-auth-expired"));
     }
     console.warn("Autosave to Drive failed:", e);
   }

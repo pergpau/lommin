@@ -23,6 +23,12 @@
     "done": "Google Drive-data lastet inn",
     "error": "Datahenting fra Google Drive feilet"
   },
+  "driveReconnect": {
+    "title": "Google Drive-tilkobling utløpt",
+    "body": "Tilgangstokenet ditt til Google Drive er utløpt. Vil du koble til på nytt for å fortsette synkroniseringen?",
+    "reconnect": "Koble til igjen",
+    "error": "Tilkoblingen mislyktes"
+  },
   "dialog": {
     "passwordLabel": "Passord (valgfritt)",
     "passwordPlaceholder": "La stå tomt for ingen kryptering",

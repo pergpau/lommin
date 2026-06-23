@@ -16,6 +16,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import OAuthCallback from "./pages/OAuthCallback";
 import { useDriveSync } from "./hooks/useDriveSync";
+import DriveReconnectModal from "./components/DriveReconnectModal";
 
 function RequireKey({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<"loading" | "ok" | "missing">("loading");
@@ -53,6 +54,8 @@ function RootRedirect() {
 function AppContent() {
   useDriveSync();
   return (
+    <>
+    <DriveReconnectModal />
     <Layout>
       <ErrorBoundary>
         <Routes>
@@ -98,6 +101,7 @@ function AppContent() {
           </Routes>
         </ErrorBoundary>
       </Layout>
+    </>
   );
 }
 

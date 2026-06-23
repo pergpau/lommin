@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useSnackbar } from "../components/ui/Snackbar";
 import { triggerAutosave } from "../lib/autosave";
 import { DriveAuthError, getDriveBackupModifiedTime, loadBackupFromDrive } from "../lib/googleDrive";
-import { clearDriveToken, getAllSettings, getDriveToken, setSetting } from "../lib/settings";
+import { clearDriveToken, getAllSettings, getDriveToken, hasDriveTokenStored, setSetting } from "../lib/settings";
 import { importAll } from "../lib/store";
 
 export function useDriveSync() {
@@ -18,7 +18,11 @@ export function useDriveSync() {
     try {
       const [settings, stored] = await Promise.all([getAllSettings(), getDriveToken()]);
       if (!settings.driveAutosave || settings.backupMethod !== "drive" || settings.usePassphrase) return;
-      if (!stored) return;
+      if (!stored) {
+        const hadToken = await hasDriveTokenStored();
+        if (hadToken) window.dispatchEvent(new Event("lommin:drive-auth-expired"));
+        return;
+      }
 
       const hasUnsavedLocalChanges = settings.lastDataModifiedAt !== null
         && (settings.lastLocalSavedAt === null || settings.lastDataModifiedAt > settings.lastLocalSavedAt);
@@ -42,6 +46,7 @@ export function useDriveSync() {
     } catch (e) {
       if (e instanceof DriveAuthError) {
         void clearDriveToken();
+        window.dispatchEvent(new Event("lommin:drive-auth-expired"));
       } else {
         showSnackbar(t("sync.error"), "error");
       }

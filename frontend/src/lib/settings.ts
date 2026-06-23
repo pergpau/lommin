@@ -209,6 +209,16 @@ export async function applySyncedSettings(s: SyncedSettings): Promise<void> {
   ]);
 }
 
+export async function hasDriveTokenStored(): Promise<boolean> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const req = tx.objectStore(STORE).count("driveAccessToken");
+    req.onsuccess = () => resolve(req.result > 0);
+    req.onerror = () => reject(req.error);
+  });
+}
+
 export async function clearDriveToken(): Promise<void> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
