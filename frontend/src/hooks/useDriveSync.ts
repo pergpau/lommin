@@ -63,6 +63,10 @@ export function useDriveSync() {
       if (document.visibilityState === "visible") void attemptSync();
     };
     document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("lommin:drive-token-updated", attemptSync);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("lommin:drive-token-updated", attemptSync);
+    };
   }, [attemptSync]);
 }
