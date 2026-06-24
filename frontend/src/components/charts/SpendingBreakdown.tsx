@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -25,6 +25,7 @@ interface Props {
   subtitle?: string;
   onCategoryChange?: (txId: string, catId: number | undefined) => Promise<void>;
   onMutated?: () => void;
+  goBackRef?: React.MutableRefObject<(() => boolean) | null>;
 }
 
 function isEligible(t: Transaction): boolean {
@@ -100,10 +101,27 @@ function buildSubRows(
 }
 
 
-export default function SpendingBreakdown({ transactions, subtitle, onCategoryChange, onMutated }: Props) {
+export default function SpendingBreakdown({ transactions, subtitle, onCategoryChange, onMutated, goBackRef }: Props) {
   const { t } = useTranslation(["charts", "categories"]);
   const [view, setView] = useState<View>({ level: "main" });
   const [showAll, setShowAll] = useState(false);
+
+  const goBack = useCallback((): boolean => {
+    if (view.level === "txns") {
+      setView({ level: "sub", mainId: view.mainId, ...(view.excluded ? { excluded: true } : {}) });
+      return true;
+    }
+    if (view.level === "sub") {
+      setView({ level: "main" });
+      return true;
+    }
+    return false;
+  }, [view]);
+
+  useEffect(() => {
+    if (goBackRef) goBackRef.current = goBack;
+    return () => { if (goBackRef) goBackRef.current = null; };
+  }, [goBackRef, goBack]);
 
   const eligible = useMemo(() => transactions.filter(isEligible), [transactions]);
 

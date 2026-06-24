@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import AccountsTab from "../components/AccountsTab";
 import TransactionsTab from "../components/TransactionsTab";
@@ -11,6 +11,7 @@ import { GoogleDriveIcon, HardDriveIcon, MenuIcon, RefreshCwIcon, XIcon } from "
 import Input from "../components/ui/Input";
 import Spinner from "../components/ui/Spinner";
 import { useAccounts } from "../hooks/useAccounts";
+import { useSwipe } from "../hooks/useSwipe";
 import { useSyncState } from "../hooks/useSyncState";
 import { useTransactions } from "../hooks/useTransactions";
 import { saveEncryptedFile } from "../lib/cryptoFile";
@@ -28,6 +29,7 @@ import { clearAccounts, clearTransactions, exportAll, getAllTransactions, getEna
 import { setCategoryId } from "../lib/mutations";
 
 type Tab = "categories" | "accounts" | "transactions";
+const TABS: Tab[] = ["categories", "transactions", "accounts"];
 
 export default function Dashboard() {
   const { t } = useTranslation(["dashboard", "common"]);
@@ -151,16 +153,32 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [chartMode, setChartMode] = useState<ChartMode>("month");
   const loading = accountsLoading || txLoading;
-  const [tab, setTab] = useState<Tab>("categories");
-  const tabInitialized = useRef(false);
-  useEffect(() => {
-    if (!loading && !tabInitialized.current) {
-      tabInitialized.current = true;
-      const stateTab = (location.state as { tab?: Tab } | null)?.tab;
-      if (stateTab) setTab(stateTab);
-      else if (accounts.length === 0) setTab("accounts");
-    }
-  }, [loading, accounts.length, location.state]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const paramTab = searchParams.get("tab") as Tab | null;
+  const stateTab = (location.state as { tab?: Tab } | null)?.tab;
+  const defaultTab = !loading && accounts.length === 0 ? "accounts" : "categories";
+  const tab: Tab = paramTab && TABS.includes(paramTab) ? paramTab
+    : stateTab && TABS.includes(stateTab) ? stateTab
+    : defaultTab;
+  const setTab = useCallback((t: Tab) => setSearchParams({ tab: t }), [setSearchParams]);
+  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
+  const categoryGoBackRef = useRef<(() => boolean) | null>(null);
+  const swipeRef = useSwipe<HTMLDivElement>({
+    onSwipe: (direction) => {
+      if (direction === "right" && tab === "categories" && categoryGoBackRef.current?.()) {
+        setSwipeDirection("right");
+        return;
+      }
+      const i = TABS.indexOf(tab);
+      if (direction === "left" && i < TABS.length - 1) {
+        setSwipeDirection("left");
+        setTab(TABS[i + 1]);
+      } else if (direction === "right" && i > 0) {
+        setSwipeDirection("right");
+        setTab(TABS[i - 1]);
+      }
+    },
+  });
   const [actionsOpen, setActionsOpen] = useState(false);
   const [showDuplicatesBanner, setShowDuplicatesBanner] = useState(false);
 
@@ -218,8 +236,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  const TABS: Tab[] = ["categories", "transactions", "accounts"];
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-8">
@@ -342,7 +358,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="flex gap-1 mb-6 border-b border-border">
+        <div className="flex justify-center sm:justify-start gap-1 mb-6 border-b border-border">
           {TABS.map((tabKey) => (
             <button
               key={tabKey}
@@ -357,46 +373,54 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {tab === "categories" && (
-          <SpendingBreakdown
-            transactions={recent}
-            subtitle={
-              selectedMonthBar
-                ? chartMode === "year"
-                  ? selectedMonthBar.key
-                  : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
-                : undefined
-            }
-            onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
-            onMutated={refresh}
-          />
-        )}
+        <div
+          ref={swipeRef}
+          className={swipeDirection === "left" ? "animate-slide-in-left" : swipeDirection === "right" ? "animate-slide-in-right" : undefined}
+          style={{ touchAction: "pan-y" }}
+          onAnimationEnd={() => setSwipeDirection(null)}
+        >
+          {tab === "categories" && (
+            <SpendingBreakdown
+              transactions={recent}
+              subtitle={
+                selectedMonthBar
+                  ? chartMode === "year"
+                    ? selectedMonthBar.key
+                    : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
+                  : undefined
+              }
+              onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
+              onMutated={refresh}
+              goBackRef={categoryGoBackRef}
+            />
+          )}
 
-        {tab === "accounts" && (
-          <AccountsTab
-            accounts={accounts}
-            txByAccount={txByAccount}
-            syncingAccountUids={syncingAccountUids}
-            failedAccounts={failedAccounts}
-            sessionExpiredUids={sessionExpiredUids}
-            isDemo={isDemo}
-            connectTarget={connectTarget}
-          />
-        )}
+          {tab === "accounts" && (
+            <AccountsTab
+              accounts={accounts}
+              txByAccount={txByAccount}
+              syncingAccountUids={syncingAccountUids}
+              failedAccounts={failedAccounts}
+              sessionExpiredUids={sessionExpiredUids}
+              isDemo={isDemo}
+              connectTarget={connectTarget}
+            />
+          )}
 
-        {tab === "transactions" && (
-          <TransactionsTab
-            transactions={recent}
-            subtitle={
-              selectedMonthBar
-                ? chartMode === "year"
-                  ? selectedMonthBar.key
-                  : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
-                : undefined
-            }
-            refresh={refresh}
-          />
-        )}
+          {tab === "transactions" && (
+            <TransactionsTab
+              transactions={recent}
+              subtitle={
+                selectedMonthBar
+                  ? chartMode === "year"
+                    ? selectedMonthBar.key
+                    : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
+                  : undefined
+              }
+              refresh={refresh}
+            />
+          )}
+        </div>
 
         {dashDialog && (
           <div

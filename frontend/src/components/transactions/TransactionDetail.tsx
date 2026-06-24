@@ -1,6 +1,6 @@
 import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   MAIN_CATEGORY_MAP,
@@ -47,19 +47,100 @@ export default function TransactionDetail({
   const subCat = tx.categoryId != null ? SUB_CATEGORY_MAP[tx.categoryId] : undefined;
   const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
 
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
+  const [closing, setClosing] = useState(false);
+  const dismiss = useCallback(() => {
+    if (closing) return;
+    setClosing(true);
+  }, [closing]);
+
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const dragY = useRef(0);
+  const dragging = useRef(false);
+  const locked = useRef(false);
+  const startY = useRef(0);
+  const startX = useRef(0);
+  const dismissed = useRef(false);
+
+  useEffect(() => {
+    const el = sheetRef.current;
+    if (!el) return;
+
+    const onStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      startY.current = touch.clientY;
+      startX.current = touch.clientX;
+      dragY.current = 0;
+      dragging.current = false;
+      locked.current = false;
+      dismissed.current = false;
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (dismissed.current || locked.current) return;
+      const touch = e.touches[0];
+      const dy = touch.clientY - startY.current;
+      const dx = Math.abs(touch.clientX - startX.current);
+
+      if (!dragging.current) {
+        if (dy < 0 || dx > dy) { locked.current = true; return; }
+        const scrolled = scrollRef.current && scrollRef.current.scrollTop > 0;
+        if (scrolled) { locked.current = true; return; }
+        if (dy > 10 && dy > dx * 1.5) dragging.current = true;
+        else return;
+      }
+
+      e.preventDefault();
+      const offset = Math.max(0, dy);
+      dragY.current = offset;
+      el.style.transform = `translateY(${offset}px)`;
+      el.style.transition = "none";
+    };
+
+    const onEnd = () => {
+      if (!dragging.current) return;
+      dragging.current = false;
+      if (dragY.current > 120) {
+        dismissed.current = true;
+        el.style.transition = "transform 0.2s ease-in";
+        el.style.transform = "translateY(100%)";
+        el.addEventListener("transitionend", () => onClose(), { once: true });
+      } else {
+        el.style.transition = "transform 0.2s cubic-bezier(0.16,1,0.3,1)";
+        el.style.transform = "translateY(0)";
+      }
+    };
+
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+    };
+  }, [onClose]);
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm ${closing ? "animate-backdrop-out" : "animate-backdrop-in"}`}
       onClick={(e) => {
         e.stopPropagation();
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) dismiss();
       }}
       onKeyDown={(e) => {
-        if (e.key === "Escape") onClose();
+        if (e.key === "Escape") dismiss();
       }}
+      onAnimationEnd={() => { if (closing) onClose(); }}
     >
       <div
-        className="bg-surface border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] flex flex-col shadow-xl"
+        ref={sheetRef}
+        className={`bg-surface border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] flex flex-col shadow-xl ${closing ? "animate-sheet-out" : "animate-sheet-in"}`}
         role="dialog"
         aria-modal="true"
       >
@@ -68,13 +149,13 @@ export default function TransactionDetail({
           <span className="font-semibold text-accent text-sm">
             {t("transactions:detail.title")}
           </span>
-          <button className="text-muted hover:text-text text-lg leading-none" onClick={onClose}>
+          <button className="text-muted hover:text-text text-lg leading-none" onClick={dismiss}>
             ✕
           </button>
         </div>
 
         {/* Scrollable body */}
-        <div className="overflow-y-auto flex-1">
+        <div ref={scrollRef} className="overflow-y-auto flex-1">
           {/* Hero amount */}
           <div className="px-6 pt-6 pb-4 text-center">
             <div className={`mono text-3xl font-semibold tabular-nums ${amountClass(tx)}`}>
