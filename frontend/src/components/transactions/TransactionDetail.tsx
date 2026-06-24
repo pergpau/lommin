@@ -61,58 +61,92 @@ export default function TransactionDetail({
   const sheetRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragY = useRef(0);
+  const dragX = useRef(0);
   const dragging = useRef(false);
   const locked = useRef(false);
   const startY = useRef(0);
   const startX = useRef(0);
   const dismissed = useRef(false);
+  const gestureDir = useRef<"down" | "right" | null>(null);
 
   useEffect(() => {
     const el = sheetRef.current;
     if (!el) return;
 
     const onStart = (e: TouchEvent) => {
+      e.stopPropagation();
       const touch = e.touches[0];
       startY.current = touch.clientY;
       startX.current = touch.clientX;
       dragY.current = 0;
+      dragX.current = 0;
       dragging.current = false;
       locked.current = false;
       dismissed.current = false;
+      gestureDir.current = null;
     };
 
     const onMove = (e: TouchEvent) => {
       if (dismissed.current || locked.current) return;
       const touch = e.touches[0];
       const dy = touch.clientY - startY.current;
-      const dx = Math.abs(touch.clientX - startX.current);
+      const dx = touch.clientX - startX.current;
+      const adx = Math.abs(dx);
+      const ady = Math.abs(dy);
 
       if (!dragging.current) {
-        if (dy < 0 || dx > dy) { locked.current = true; return; }
-        const scrolled = scrollRef.current && scrollRef.current.scrollTop > 0;
-        if (scrolled) { locked.current = true; return; }
-        if (dy > 10 && dy > dx * 1.5) dragging.current = true;
-        else return;
+        if (dy < 0 && ady > adx) { locked.current = true; return; }
+        if (dx < 0 && adx > ady) { locked.current = true; return; }
+
+        if (dx > 0 && adx > ady * 1.5) {
+          e.preventDefault();
+          if (adx > 10) { gestureDir.current = "right"; dragging.current = true; }
+          return;
+        }
+
+        if (dy > 0 && ady >= adx) {
+          const scrolled = scrollRef.current && scrollRef.current.scrollTop > 0;
+          if (scrolled) { locked.current = true; return; }
+          e.preventDefault();
+          if (dy > 10 && ady > adx * 1.5) { gestureDir.current = "down"; dragging.current = true; }
+          return;
+        }
+
+        return;
       }
 
       e.preventDefault();
-      const offset = Math.max(0, dy);
-      dragY.current = offset;
-      el.style.transform = `translateY(${offset}px)`;
+      if (gestureDir.current === "down") {
+        const offset = Math.max(0, dy);
+        dragY.current = offset;
+        el.style.transform = `translateY(${offset}px)`;
+      } else if (gestureDir.current === "right") {
+        const offset = Math.max(0, dx);
+        dragX.current = offset;
+        el.style.transform = `translateX(${offset}px)`;
+      }
       el.style.transition = "none";
     };
 
-    const onEnd = () => {
-      if (!dragging.current) return;
+    const onEnd = (e: TouchEvent) => {
+      e.stopPropagation();
+      if (!dragging.current) { gestureDir.current = null; return; }
       dragging.current = false;
-      if (dragY.current > 120) {
+      const dir = gestureDir.current;
+      gestureDir.current = null;
+      if (dir === "down" && dragY.current > 120) {
         dismissed.current = true;
         el.style.transition = "transform 0.2s ease-in";
         el.style.transform = "translateY(100%)";
         el.addEventListener("transitionend", () => onClose(), { once: true });
+      } else if (dir === "right" && dragX.current > 120) {
+        dismissed.current = true;
+        el.style.transition = "transform 0.2s ease-in";
+        el.style.transform = "translateX(100%)";
+        el.addEventListener("transitionend", () => onClose(), { once: true });
       } else {
         el.style.transition = "transform 0.2s cubic-bezier(0.16,1,0.3,1)";
-        el.style.transform = "translateY(0)";
+        el.style.transform = "translate(0, 0)";
       }
     };
 
@@ -133,6 +167,8 @@ export default function TransactionDetail({
         e.stopPropagation();
         if (e.target === e.currentTarget) dismiss();
       }}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
       onKeyDown={(e) => {
         if (e.key === "Escape") dismiss();
       }}
