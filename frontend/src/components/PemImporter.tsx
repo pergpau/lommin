@@ -24,7 +24,7 @@ export default function PemImporter({ onImported }: Props) {
       setError("");
       try {
         const key = await importPemKey(pem);
-        const stem = filename.replace(/(\.(pem|crt|key))+$/i, "");
+        const stem = filename.replace(/(\.[a-zA-Z]{3,})+$/, "").replaceAll(".", "-");
         onImported(key, stem);
       } catch (e) {
         setError(e instanceof Error ? e.message : t("pemImporter.importFailed"));
