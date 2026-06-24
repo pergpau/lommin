@@ -131,7 +131,7 @@ export async function saveBackupToDrive(
   token: string,
   data: object,
   passphrase: string,
-): Promise<void> {
+): Promise<number> {
   const [encrypted, fileId] = await Promise.all([
     encryptStore(data, passphrase),
     findBackupFile(token),
@@ -143,13 +143,15 @@ export async function saveBackupToDrive(
     : JSON.stringify({ name: BACKUP_FILE_NAME, parents: ["appDataFolder"] });
   const body = buildMultipartBody(metadata, encrypted, boundary);
 
-  await driveRequest(
+  const res = await driveRequest(
     fileId ? "PATCH" : "POST",
-    `${DRIVE_UPLOAD_API}/files${fileId ? `/${fileId}` : ""}?uploadType=multipart`,
+    `${DRIVE_UPLOAD_API}/files${fileId ? `/${fileId}` : ""}?uploadType=multipart&fields=modifiedTime`,
     token,
     body.buffer as ArrayBuffer,
     `multipart/related; boundary=${boundary}`,
   );
+  const { modifiedTime } = (await res.json()) as { modifiedTime: string };
+  return new Date(modifiedTime).getTime();
 }
 
 export async function loadBackupFromDrive(

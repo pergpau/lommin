@@ -21,8 +21,8 @@ export async function triggerAutosave(): Promise<void> {
     _listeners.forEach((cb) => cb(true));
     try {
       const [data, settings] = await Promise.all([exportAll(), getSyncedSettings()]);
-      await saveBackupToDrive(stored.token, { ...data, settings }, "");
-      await setSetting("lastLocalSavedAt", Date.now());
+      const savedAt = await saveBackupToDrive(stored.token, { ...data, settings }, "");
+      await setSetting("lastLocalSavedAt", savedAt);
     } finally {
       _listeners.forEach((cb) => cb(false));
     }

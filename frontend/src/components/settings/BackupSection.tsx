@@ -144,10 +144,9 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
     setDriveSyncing("save");
     try {
       const data = await exportAll();
-      await saveBackupToDrive(driveToken, data, passphrase);
-      const now = Date.now();
-      void setSetting("lastLocalSavedAt", now);
-      void setSetting("lastDataModifiedAt", now);
+      const savedAt = await saveBackupToDrive(driveToken, data, passphrase);
+      void setSetting("lastLocalSavedAt", savedAt);
+      void setSetting("lastDataModifiedAt", savedAt);
       showSnackbar(t("settings:snackbar.savedToDrive"), "ok");
     } catch (e) {
       if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
