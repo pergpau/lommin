@@ -358,11 +358,11 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="flex justify-center sm:justify-start gap-1 mb-6 border-b border-border">
+        <div className="flex justify-between sm:justify-start gap-1 mb-6 border-b border-border">
           {TABS.map((tabKey) => (
             <button
               key={tabKey}
-              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${tab === tabKey
+              className={`flex-1 sm:flex-none text-center px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${tab === tabKey
                 ? "border-accent text-accent"
                 : "border-transparent text-muted hover:text-text"
                 }`}
