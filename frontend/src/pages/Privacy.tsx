@@ -180,22 +180,6 @@ export default function Privacy() {
               }}
             />
           </p>
-          <p className="text-sm text-muted leading-relaxed">
-            <Trans
-              i18nKey="privacy:sections.thirdParty.netlify"
-              components={{
-                strong: <strong className="text-text/80" />,
-                netlifyLink: (
-                  <a
-                    href="https://www.netlify.com/privacy/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-accent hover:underline"
-                  />
-                ),
-              }}
-            />
-          </p>
         </section>
 
         <section className="card p-5">

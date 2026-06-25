@@ -48,7 +48,7 @@ In `wrangler.toml`, set `ALLOWED_ORIGINS` to your deployed frontend URL:
 ALLOWED_ORIGINS = "https://your-app.app"
 ```
 
-Multiple origins are comma-separated: `"https://lommin.no,https://subdomain.lommin.no"`.
+Multiple origins are comma-separated: `"https://your-app.example.com,https://staging.your-app.example.com"`.
 
 ### 4. Deploy
 

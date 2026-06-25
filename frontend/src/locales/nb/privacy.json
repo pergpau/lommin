@@ -9,7 +9,7 @@
     },
     "noData": {
       "heading": "Vi drifter ingen servere som samler dataene dine",
-      "body": "Lommin har ingen backend, ingen informasjonskapsler og ingen brukerkontoer. Dataene dine ligger i nettleserens lokale lagring. Lommin bruker Cloudflare Web Analytics — en informasjonskapselsfri sidevisningsteller som ikke sporer enkeltbrukere. Avsnittene under beskriver nøyaktig hva som lagres, hva som eventuelt forlater enheten din, og hvilke tredjeparter som er involvert."
+      "body": "Lommin har ingen backend, ingen informasjonskapsler og ingen brukerkontoer. Dataene dine ligger i nettleserens lokale lagring. Avsnittene under beskriver nøyaktig hva som lagres, hva som eventuelt forlater enheten din, og hvilke tredjeparter som er involvert."
     },
     "localStorage": {
       "heading": "Nettleserlagring (ikke-sensitiv)",
@@ -27,7 +27,7 @@
     "proxy": {
       "heading": "Proxyen og tilgangstokenet ditt",
       "body1": "Enable Bankings API godtar ikke forespørsler direkte fra nettlesere, så de rutes gjennom en liten proxyserver. Denne proxyen ser <strong>det kortvarige tilgangstokenet</strong> som brukes til å autorisere hver forespørsel — ikke den private nøkkelen din.",
-      "body2": "Som standard bruker Lommin en delt proxy. Ønsker du full kontroll, kan du kjøre din egen proxy og peke Lommin mot den under <settingsLink>Innstillinger → CORS-proxy</settingsLink>. Selvhosting av proxyen betyr at ingen tredjepart ser noen del av økten din.",
+      "body2": "Du deployer din egen proxy. Du kan gjennomgå proxy-koden og sjekke URL-en under <settingsLink>Innstillinger → CORS-proxy</settingsLink>. Å kjøre din egen proxy betyr at ingen tredjepart ser noen del av økten din.",
       "body3": "Proxyen lagrer en <hash>SHA-256</hash>-hash av IP-adressen din for hastighetsbegrensning. Disse hashene utløper automatisk etter 120 sekunder. Ingen rå IP-adresser, forespørselskropper eller tokener lagres. Proxyen kjører på Cloudflare Workers — se <cfLink>Cloudflares personvernerklæring</cfLink>."
     },
     "googleDrive": {
@@ -40,13 +40,12 @@
       "heading": "Tredjepartstjenester",
       "enableBanking": "<strong>Enable Banking</strong> — Lommin kommuniserer med Enable Bankings API på dine vegne. API-et mottar et signert autorisasjonstoken og returnerer bank- og transaksjonsdata. Se <ebLink>Enable Bankings personvernerklæring</ebLink>.",
       "google": "<strong>Google</strong> — Bruker du Google Drive-sikkerhetskopi, lagres den krypterte sikkerhetskopien i Google Drive (se over). I tillegg laster Lommin inn Geist-fonten fra Google Fonts, noe som betyr at Google mottar IP-adressen din for fontforespørselen. Se <googleLink>Googles personvernerklæring</googleLink>.",
-      "cloudflare": "<strong>Cloudflare</strong> — CORS-proxyen kjører på Cloudflare Workers. Lommin bruker også Cloudflare Web Analytics for anonym sidevisningstelling — det er informasjonskapselsfritt og sporer ikke enkeltbrukere eller lagrer personopplysninger. Se <cfLink>Cloudflares personvernerklæring</cfLink>.",
-      "netlify": "<strong>Netlify</strong> — Appen hostes på Netlify, som leverer de statiske filene og behandler standard HTTP-tilkoblingsdata. Se <netlifyLink>Netlifys personvernerklæring</netlifyLink>."
+      "cloudflare": "<strong>Cloudflare</strong> — CORS-proxyen kjører på Cloudflare Workers. Se <cfLink>Cloudflares personvernerklæring</cfLink>."
     },
     "legalBasis": {
       "heading": "Rettslig grunnlag for behandling",
       "body1": "<strong>Samtykke</strong> — Google Drive-sikkerhetskopi og banktilkoblinger er valgfrie funksjoner du velger å aktivere. Du kan koble fra eller slette når som helst.",
-      "body2": "<strong>Berettiget interesse</strong> — Hastighetsbegrensning via hashet IP i proxyen er nødvendig for å forhindre misbruk. Lasting av fonter og levering av appen gjennom Netlify og Cloudflare er nødvendig for at den skal fungere. Cloudflare Web Analytics samler ikke inn personopplysninger og ingen individuell sporing skjer.",
+      "body2": "<strong>Berettiget interesse</strong> — Hastighetsbegrensning via hashet IP i proxyen er nødvendig for å forhindre misbruk. Lasting av fonter og levering av appen er nødvendig for at den skal fungere.",
       "body3": "Siden appen behandler finansdataene dine lokalt i nettleseren din, faller det meste utenfor GDPR. Proxyen ser kun forbigående forespørselsdata som beskrevet over."
     },
     "rights": {

@@ -7,7 +7,7 @@ compatibility_date = "2024-01-01"
 # Set the deployed SPA origin(s) here. For local tunnels (e.g. ngrok), put the
 # tunnel origin in proxy/.dev.vars (gitignored) — it overrides this for `wrangler dev`.
 [vars]
-ALLOWED_ORIGINS = "https://lommin.no"
+ALLOWED_ORIGINS = "https://your-app.example.com"
 
 # Smart placement routes the Worker to the edge location closest to the upstream origin.
 # api.enablebanking.com resolves to Google Cloud in Brussels (BE), so this naturally

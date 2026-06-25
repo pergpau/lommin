@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-**Lommin** — a privacy-first, frontend-only personal spending tracker that connects to [Enable Banking](https://enablebanking.com/). No shared backend; all sensitive data stays on-device. The app is deployed as a static SPA to Netlify; the only server-side component is a stateless CORS proxy (Cloudflare Worker).
+**Lommin** — a privacy-first, self-hosted personal spending tracker that connects to [Enable Banking](https://enablebanking.com/). No shared backend; all sensitive data stays on-device. The app is a static SPA deployed by the user to any static host; the only server-side component is a stateless CORS proxy (f.ex. Cloudflare Worker) also deployed by the user.
 
 ## Repository layout
 
@@ -139,6 +139,6 @@ Always use **Font Awesome** for icons (`@fortawesome/react-fontawesome` + `@fort
 
 ## Deployment
 
-- **Frontend**: `npm run build` → deploy `frontend/dist/` to Netlify. The `public/_redirects` catch-all (`/* /index.html 200`) handles SPA routing.
-- **Proxy**: `wrangler deploy` from `proxy/`. Add the new Worker URL to `ALLOWED_ORIGINS` in `wrangler.toml` and to CSP `connect-src` in `frontend/public/_headers`.
+- **Frontend**: `npm run build` → deploy `frontend/dist/` to any static host. Set `VITE_PROXY_URL` env var to your proxy Worker URL at build time. The `public/_redirects` catch-all (`/* /index.html 200`) handles SPA routing on Netlify.
+- **Proxy**: `wrangler deploy` from `proxy/`. Set `ALLOWED_ORIGINS` in `wrangler.toml` to your frontend URL.
 - The redirect URL registered in the Enable Banking control panel must match the deployed SPA URL exactly.

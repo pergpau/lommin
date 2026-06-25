@@ -17,9 +17,7 @@
   "proxy": {
     "title": "CORS Proxy",
     "description": "Alle Enable Banking API-kall rutes gjennom denne proxyen.",
-    "lommin": "Lommin proxy (standard)",
-    "custom": "Egendefinert",
-    "warning": "OBS! Lommins delte proxy videresender trafikken din til Enable Banking og kan i teorien lese transaksjonsdata og kortlivede tilgangstokens (men aldri signeringsnøkkelen). Lommin lagrer ingen av dataene dine, men du må stole på det. Hvis du ikke ønsker det, kan du registrere din egen proxy her.",
+    "warning": "OBS! Proxyen din videresender trafikk til Enable Banking og kan observere transaksjonsdata og kortlevde tilgangstokens i transitt. Den ser aldri signeringsnøkkelen din. Deploy og gjennomgå proxy-koden selv for full tillit.",
     "urlLabel": "Proxy-URL",
     "urlPlaceholder": "https://din-proxy.workers.dev"
   },
@@ -92,7 +90,7 @@
     "wipeAllBody": "Dette sletter signeringsnøkkelen, alle kontoer og alle transaksjoner permanent. Du sendes tilbake til innledende oppsett. Handlingen kan ikke angres."
   },
   "snackbar": {
-    "proxySet": "Proxy satt til Lommin standard.",
+    "proxySet": "Proxy-URL lagret.",
     "proxySaved": "Proxy-URL lagret.",
     "syncPeriodSaved": "Synkroniseringsperiode lagret.",
     "appIdUpdated": "App ID oppdatert.",

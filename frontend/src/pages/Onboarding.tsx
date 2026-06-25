@@ -22,7 +22,7 @@ import { loadEncryptedFile } from "../lib/cryptoFile";
 import { seedDemoData } from "../lib/demoData";
 import { DriveAuthError, loadBackupFromDrive, signInWithGoogle } from "../lib/googleDrive";
 import { loadKey, saveKey } from "../lib/auth";
-import { getSetting, HOSTED_PROXY_URL, persistDriveToken, setSetting } from "../lib/settings";
+import { DEFAULT_PROXY_URL, getSetting, persistDriveToken, setSetting } from "../lib/settings";
 import { getAccounts, importAll } from "../lib/store";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
@@ -131,7 +131,7 @@ function StepBankExplain({ onNext }: { onNext: GoTo }) {
       <div className="mb-8">
         <BankSetupGuide />
       </div>
-      <Button className="w-full justify-center" onClick={() => onNext({ kind: "bank-proxy" })}>
+      <Button className="w-full justify-center" onClick={() => onNext({ kind: DEFAULT_PROXY_URL ? "bank-pem" : "bank-proxy" })}>
         {t("bankExplain.next")}
       </Button>
     </div>
@@ -140,78 +140,49 @@ function StepBankExplain({ onNext }: { onNext: GoTo }) {
 
 function StepBankProxy({ onNext }: { onNext: GoTo }) {
   const { t } = useTranslation("onboarding");
-  const [proxyMode, setProxyMode] = useState<"lommin" | "custom">("lommin");
-  const [customUrl, setCustomUrl] = useState("");
+  const [proxyUrl, setProxyUrl] = useState(DEFAULT_PROXY_URL);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     getSetting("proxyUrl").then((url) => {
-      if (url === HOSTED_PROXY_URL) {
-        setProxyMode("lommin");
-      } else {
-        setProxyMode("custom");
-        setCustomUrl(url);
-      }
+      if (url) setProxyUrl(url);
     });
   }, []);
 
   const saveAndNext = useCallback(async () => {
+    const trimmed = proxyUrl.trim();
+    if (!trimmed) {
+      setError(t("bankProxy.urlRequired"));
+      return;
+    }
     setSaving(true);
     setError("");
     try {
-      const url = proxyMode === "lommin" ? HOSTED_PROXY_URL : customUrl.trim();
-      if (url) await setSetting("proxyUrl", url);
+      await setSetting("proxyUrl", trimmed);
       onNext({ kind: "bank-pem" });
     } catch (e) {
       setError(e instanceof Error ? e.message : t("bankProxy.saveFailed"));
     } finally {
       setSaving(false);
     }
-  }, [proxyMode, customUrl, onNext, t]);
+  }, [proxyUrl, onNext, t]);
 
   return (
     <div>
       <h2 className="text-xl font-semibold text-text mb-1">{t("bankProxy.title")}</h2>
       <p className="text-sm text-muted mb-4 leading-relaxed">{t("bankProxy.body")}</p>
 
-      <div className="flex gap-4 mb-4">
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="radio"
-            name="proxyMode"
-            value="lommin"
-            checked={proxyMode === "lommin"}
-            onChange={() => setProxyMode("lommin")}
-            className="w-4 h-4 accent-accent"
-          />
-          <span className="text-sm text-text">{t("bankProxy.lommin")}</span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="radio"
-            name="proxyMode"
-            value="custom"
-            checked={proxyMode === "custom"}
-            onChange={() => setProxyMode("custom")}
-            className="w-4 h-4 accent-accent"
-          />
-          <span className="text-sm text-text">{t("bankProxy.custom")}</span>
-        </label>
-      </div>
-
-      {proxyMode === "custom" && (
-        <Input
-          label={t("bankProxy.urlLabel")}
-          value={customUrl}
-          onChange={(e) => setCustomUrl(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") void saveAndNext();
-          }}
-          placeholder={t("bankProxy.urlPlaceholder")}
-          className="mb-4"
-        />
-      )}
+      <Input
+        label={t("bankProxy.urlLabel")}
+        value={proxyUrl}
+        onChange={(e) => setProxyUrl(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") void saveAndNext();
+        }}
+        placeholder={t("bankProxy.urlPlaceholder")}
+        className="mb-4"
+      />
 
       {error && <Alert type="error" message={error} className="mb-4" />}
       <div className="flex gap-2">

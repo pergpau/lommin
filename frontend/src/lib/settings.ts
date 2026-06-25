@@ -17,12 +17,10 @@ export interface AppSettings {
   lastDataModifiedAt: number | null;
 }
 
-// Hosted HTTPS proxy. Override per deployment to match your own Worker; must also
-// be reflected in the CSP connect-src (index.html / _headers).
-export const HOSTED_PROXY_URL = "https://proxy.lommin.workers.dev";
+export const DEFAULT_PROXY_URL = (import.meta.env.VITE_PROXY_URL as string) ?? "";
 
 const DEFAULTS: AppSettings = {
-  proxyUrl: HOSTED_PROXY_URL,
+  proxyUrl: DEFAULT_PROXY_URL,
   lookbackDays: SYNC_LOOKBACK_DAYS,
   usePassphrase: false,
   backupMethod: "file",
@@ -36,13 +34,16 @@ const DEFAULTS: AppSettings = {
 // instead of silently broken syncs later.
 function validateSetting<K extends keyof AppSettings>(key: K, value: AppSettings[K]): void {
   if (key === "proxyUrl") {
-    let u: URL;
-    try {
-      u = new URL(value as string);
-    } catch {
-      throw new Error("Ugyldig proxy-URL.");
+    const s = value as string;
+    if (s !== "") {
+      let u: URL;
+      try {
+        u = new URL(s);
+      } catch {
+        throw new Error("Ugyldig proxy-URL.");
+      }
+      if (u.protocol !== "https:") throw new Error("Proxy-URL må bruke https://.");
     }
-    if (u.protocol !== "https:") throw new Error("Proxy-URL må bruke https://.");
   }
   if (key === "lookbackDays") {
     const n = value as number;

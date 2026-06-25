@@ -2,9 +2,9 @@ import { useCallback, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { CheckIcon, CopyIcon, ExternalLinkIcon } from "./ui/icons";
 
-const REDIRECT_URL = "https://lommin.no/connect";
-const PRIVACY_URL = "https://lommin.no/privacy";
-const TERMS_URL = "https://lommin.no/terms";
+const REDIRECT_URL = `${window.location.origin}/connect`;
+const PRIVACY_URL = `${window.location.origin}/privacy`;
+const TERMS_URL = `${window.location.origin}/terms`;
 
 function useCopy() {
   const [copied, setCopied] = useState<string | null>(null);

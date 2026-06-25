@@ -26,6 +26,7 @@ async function authHeader(): Promise<string> {
 
 async function proxyFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const proxyUrl = await getSetting("proxyUrl");
+  if (!proxyUrl) throw new Error("No CORS proxy configured. Set a proxy URL in Settings.");
   const base = proxyUrl.replace(/\/$/, "");
   const auth = await authHeader();
   let res: Response;

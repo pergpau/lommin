@@ -34,9 +34,8 @@
   },
   "bankProxy": {
     "title": "CORS proxy",
-    "body": "To use Enable Banking, all API calls must be sent through a proxy. The default proxy is hosted by Lommin and could in theory see transaction data and access tokens in transit. For full control you can use your own proxy.",
-    "lommin": "Lommin proxy (default)",
-    "custom": "Custom",
+    "body": "All Enable Banking API calls must be routed through a CORS proxy. Deploy your own proxy and enter its URL below. See the project README for deployment instructions.",
+    "urlRequired": "Proxy URL is required.",
     "urlLabel": "Proxy URL",
     "urlPlaceholder": "https://your-proxy.workers.dev",
     "saveAndNext": "Save and continue",

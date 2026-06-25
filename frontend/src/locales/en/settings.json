@@ -17,9 +17,7 @@
   "proxy": {
     "title": "CORS Proxy",
     "description": "All Enable Banking API calls are routed through this proxy.",
-    "lommin": "Lommin proxy (default)",
-    "custom": "Custom",
-    "warning": "Note: Lommin's shared proxy forwards your traffic to Enable Banking and could in theory read your transaction data and short-lived access tokens (but never the signing key). Lommin stores none of your data. If that's a concern, you can run your own proxy here.",
+    "warning": "Note: Your proxy forwards traffic to Enable Banking and can observe transaction data and short-lived access tokens in transit. It never sees your signing key. Deploy and review the proxy code yourself for full trust.",
     "urlLabel": "Proxy URL",
     "urlPlaceholder": "https://your-proxy.workers.dev"
   },
@@ -92,7 +90,7 @@
     "wipeAllBody": "This permanently deletes the signing key, all accounts, and all transactions. You will be taken back to the initial setup. This action cannot be undone."
   },
   "snackbar": {
-    "proxySet": "Proxy set to Lommin default.",
+    "proxySet": "Proxy URL saved.",
     "proxySaved": "Proxy URL saved.",
     "syncPeriodSaved": "Sync period saved.",
     "appIdUpdated": "App ID updated.",

@@ -34,9 +34,8 @@
   },
   "bankProxy": {
     "title": "CORS-proxy",
-    "body": "For å bruke Enable Banking må alle API-kall sendes gjennom en proxy. Standardproxyen er hostet av Lommin og kan i teorien se transaksjonsdata og tilgangstokens i transitt. For full kontroll kan du bruke din egen proxy.",
-    "lommin": "Lommin proxy (standard)",
-    "custom": "Egendefinert",
+    "body": "Alle Enable Banking API-kall må rutes gjennom en CORS-proxy. Deploy din egen proxy og skriv inn URL-en under. Se prosjektets README for instruksjoner.",
+    "urlRequired": "Proxy-URL er påkrevd.",
     "urlLabel": "Proxy-URL",
     "urlPlaceholder": "https://din-proxy.workers.dev",
     "saveAndNext": "Lagre og fortsett",

@@ -5,7 +5,6 @@ import BackupSection from "../components/settings/BackupSection";
 import DangerZone from "../components/settings/DangerZone";
 import ImportSection from "../components/settings/ImportSection";
 import KeySection from "../components/settings/KeySection";
-import ProxySection from "../components/settings/ProxySection";
 import SyncSection from "../components/settings/SyncSection";
 import { isDemoMode } from "../lib/demoData";
 
@@ -37,7 +36,6 @@ export default function Settings() {
     <div className="max-w-xl mx-auto px-4 py-8">
       <h1 className="text-xl font-semibold mb-6">{t("title")}</h1>
       <KeySection highlightedHash={highlightedHash} />
-      <ProxySection />
       <SyncSection />
       <BackupSection highlightedHash={highlightedHash} />
       <ImportSection highlightedHash={highlightedHash} />
