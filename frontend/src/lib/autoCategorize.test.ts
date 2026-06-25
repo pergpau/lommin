@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { guessCategory } from "./autoCategorize";
-import type { Transaction } from "./store";
+import type { Transaction } from "./types";
 
 function tx(partial: Partial<Transaction>): Transaction {
   return {

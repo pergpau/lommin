@@ -4,9 +4,9 @@ import Button from "../components/ui/Button";
 import DuplicatesList from "../components/transactions/DuplicatesList";
 import Spinner from "../components/ui/Spinner";
 import { detectDuplicatePairs, filterVisiblePairs, pairKey } from "../lib/duplicates";
-import { deleteTransaction, setCategoryId } from "../lib/mutations";
+import { deleteTransaction, setCategoryId } from "../lib/data";
 import { addDismissedPair, dismissAllPairs, getDismissedPairs } from "../lib/settings";
-import { getAllTransactions, type Transaction } from "../lib/store";
+import { getAllTransactions, type Transaction } from "../lib/data";
 
 export default function Duplicates() {
   const { t } = useTranslation("dashboard");

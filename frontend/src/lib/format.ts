@@ -1,4 +1,4 @@
-import type { Account, Transaction } from "./store";
+import type { Account, Transaction } from "./types";
 import i18n, { getLocale } from "./i18n";
 
 export function fmtDate(s?: string, options?: Intl.DateTimeFormatOptions): string {

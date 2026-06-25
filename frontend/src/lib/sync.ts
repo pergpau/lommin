@@ -6,7 +6,7 @@ import {
   ProxyNetworkError,
   SessionExpiredError,
 } from "./enableBanking";
-import { getSetting, setSetting } from "./settings";
+import { getSetting } from "./settings";
 import {
   getAllTransactions,
   getEnableBankingSource,
@@ -16,7 +16,7 @@ import {
   tagTransferCategory,
   upsertTransactions,
   type Account,
-} from "./store";
+} from "./data";
 import { detectTransfers } from "./transfers";
 
 function dateFromDaysAgo(days: number): string {
@@ -78,11 +78,9 @@ export async function syncAccount(
     categoryId: tx.categoryId ?? guessCategory(tx, creditorHistory, bbanHistory),
   }));
   const inserted = await upsertTransactions(categorized);
-  if (inserted > 0) void setSetting("lastDataModifiedAt", Date.now());
 
   if (balance !== undefined) {
     await saveAccount({ ...acc, balance, balanceFetchedAt: Date.now() });
-    void setSetting("lastDataModifiedAt", Date.now());
   }
 
   if (txns.length > 0) {

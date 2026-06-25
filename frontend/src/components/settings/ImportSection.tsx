@@ -7,7 +7,7 @@ import Button from "../ui/Button";
 import Card from "../ui/Card";
 import { detectDuplicatePairs, filterVisiblePairs } from "../../lib/duplicates";
 import { getDismissedPairs } from "../../lib/settings";
-import { getAllTransactions, type Transaction } from "../../lib/store";
+import { getAllTransactions, type Transaction } from "../../lib/data";
 
 export default function ImportSection({ highlightedHash }: { highlightedHash: string | null }) {
   const { t } = useTranslation("settings");

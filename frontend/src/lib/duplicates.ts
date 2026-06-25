@@ -1,5 +1,5 @@
 import { SUB_CATEGORY_MAP } from "./categories";
-import type { Transaction } from "./store";
+import type { Transaction } from "./types";
 
 function daysDiff(a: string, b: string): number {
   return Math.round(Math.abs(new Date(a).getTime() - new Date(b).getTime()) / 86400000);

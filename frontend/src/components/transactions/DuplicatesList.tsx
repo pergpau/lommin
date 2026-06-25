@@ -7,7 +7,7 @@ import DeleteConfirmModal from "../ui/DeleteConfirmModal";
 import { amountClass, effectiveDate, fmtAmount, fmtDate } from "../../lib/format";
 import { SUB_CATEGORY_MAP } from "../../lib/categories";
 import { pairKey } from "../../lib/duplicates";
-import type { Transaction } from "../../lib/store";
+import type { Transaction } from "../../lib/data";
 import CategoryBadge from "./CategoryBadge";
 import CategoryPicker from "./CategoryPicker";
 import TransactionDetail from "./TransactionDetail";

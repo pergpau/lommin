@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { fmtAmount } from "../lib/format";
 import { getLocale } from "../lib/i18n";
-import { type Account, type Transaction } from "../lib/store";
+import type { Account, Transaction } from "../lib/data";
 import Button from "./ui/Button";
 import { AlertCircleIcon } from "./ui/icons";
 import Spinner from "./ui/Spinner";

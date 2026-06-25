@@ -12,8 +12,8 @@ import {
   type CsvTransactionDraft,
   type ParseError,
 } from "../lib/csvImport";
-import { importAll, saveAccount } from "../lib/mutations";
-import { getAccounts, type Account } from "../lib/store";
+import { importAll, saveAccount } from "../lib/data";
+import { getAccounts, type Account } from "../lib/data";
 import { MAX_IMPORT_BYTES } from "../constants";
 
 type Step = "idle" | "preview" | "importing";

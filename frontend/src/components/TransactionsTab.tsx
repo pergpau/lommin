@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import TransactionTable from "./transactions/TransactionTable";
-import type { Transaction } from "../lib/store";
-import { setCategoryId } from "../lib/mutations";
+import type { Transaction } from "../lib/data";
+import { setCategoryId } from "../lib/data";
 
 interface Props {
   transactions: Transaction[];

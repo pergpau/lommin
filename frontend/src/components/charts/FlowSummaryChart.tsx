@@ -1,6 +1,6 @@
 import { fmtAmount } from "../../lib/format";
 import { SUB_CATEGORY_MAP } from "../../lib/categories";
-import type { Transaction } from "../../lib/store";
+import type { Transaction } from "../../lib/data";
 
 type FlowSummaryChartProps = { transactions: Transaction[]; currency: string };
 

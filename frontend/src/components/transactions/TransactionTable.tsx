@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PAGE_SIZE } from "../../constants";
-import type { Transaction } from "../../lib/store";
+import type { Transaction } from "../../lib/data";
 import SearchInput from "../ui/SearchInput";
 import CategoryPicker from "./CategoryPicker";
 import TransactionDetail from "./TransactionDetail";

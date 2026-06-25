@@ -1,4 +1,4 @@
-import type { Transaction } from "./store";
+import type { Transaction } from "./types";
 
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 

@@ -39,7 +39,7 @@ wrangler deploy   # deploy to Cloudflare Workers
 
 The app is a React 19 SPA with React Router v7, Tailwind CSS, and no state management library. All persistence is client-side via two separate IndexedDB databases:
 
-- **`lommin-data`** (`src/lib/store.ts`) — accounts, transactions, sync cursors. Transactions are keyed by `${accountUid}::${entryReference}`; upserts ignore duplicates.
+- **`lommin-data`** (`src/lib/store.ts`, accessed via `data.ts`) — accounts, transactions, sync cursors. Transactions are keyed by `${accountUid}::${entryReference}`; upserts ignore duplicates.
 - **`lommin-settings`** (`src/lib/settings.ts`) — `proxyUrl`, `lookbackDays`, `usePassphrase`, `backupMethod` (`"file" | "drive"`), `driveAutosave`, `lastLocalSavedAt`. Also stores Google Drive access token/expiry.
 - **`lommin-keystore`** (`src/lib/auth.ts`) — stores the non-extractable `CryptoKey` + `appId`.
 
@@ -49,8 +49,9 @@ The app is a React 19 SPA with React Router v7, Tailwind CSS, and no state manag
 | -------------------- | -------------------------------------------------------------------------------------------------- |
 | `auth.ts`            | PEM parsing, RS256 JWT minting, CryptoKey import + IndexedDB persistence (keystore)               |
 | `enableBanking.ts`   | Enable Banking API client; routes all calls through the proxy                                      |
-| `store.ts`           | IndexedDB CRUD for accounts, transactions, sync cursors                                            |
-| `mutations.ts`       | Re-exports store write functions wrapped to trigger autosave — **use this instead of `store.ts`** |
+| `types.ts`           | Data type definitions (`Account`, `Transaction`, `SyncCursor`) and pure helpers                   |
+| `store.ts`           | IndexedDB CRUD for accounts, transactions, sync cursors — **do not import directly**              |
+| `data.ts`       | Public data interface: all writes (with autosave), reads, and type re-exports                     |
 | `settings.ts`        | IndexedDB CRUD for app settings (proxy URL, lookback days, backup method, Drive token, etc.)      |
 | `cryptoFile.ts`      | AES-GCM encrypted file export/import via File System Access API (PBKDF2 key derivation)           |
 | `sync.ts`            | Orchestrates a full sync: paginated transaction fetch → upsert → cursor update                    |
@@ -86,9 +87,9 @@ Additional routes: `/oauth/google` (Google Drive OAuth callback), `/privacy`, `/
 
 All user-facing strings are in `src/locales/{nb,en}/*.json`. Use `useTranslation()` from `react-i18next`; namespace matches the JSON file name (e.g. `t('key', { ns: 'dashboard' })`).
 
-### Mutations vs. store
+### Data access: data.ts is the public interface
 
-For any write that modifies user data, import from `src/lib/mutations.ts` (not `store.ts`). `mutations.ts` wraps each write to debounce-trigger autosave. Exception: `sync.ts`, which batches writes and triggers autosave itself via its callback.
+Import all data operations from `src/lib/data.ts` — never import `store.ts` directly. `data.ts` wraps every write with debounced autosave (3 s) and re-exports all reads and types. For type-only imports in `src/lib/` files, import from `src/lib/types.ts` to avoid depending on the persistence layer. The only file that may import `store.ts` directly (besides `data.ts`) is `autosave.ts`, to avoid a circular dependency.
 
 ### Account and Transaction models
 

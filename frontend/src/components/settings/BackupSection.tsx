@@ -21,7 +21,7 @@ import {
   persistDriveToken,
   setSetting,
 } from "../../lib/settings";
-import { exportAll, getAllTransactions, importAll } from "../../lib/store";
+import { exportAll, getAllTransactions, importAll } from "../../lib/data";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 

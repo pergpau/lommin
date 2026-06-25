@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { detectTransfers } from "./transfers";
-import type { Transaction } from "./store";
+import type { Transaction } from "./types";
 
 function tx(overrides: Partial<Transaction>): Transaction {
   return {

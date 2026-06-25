@@ -1,4 +1,4 @@
-import { getAllTransactions, getTransactionsForAccount, type Transaction } from "../lib/store";
+import { getAllTransactions, getTransactionsForAccount, type Transaction } from "../lib/data";
 import { useAsyncData } from "./useAsyncData";
 
 export function useTransactions(accountUid?: string) {

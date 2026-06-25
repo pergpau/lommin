@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeForMatch } from "./store";
+import { normalizeForMatch } from "./types";
 
 describe("normalizeForMatch", () => {
   it("strips leading timestamp and normalizes whitespace", () => {

@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { type Account, type Transaction, normalizeForMatch } from "./store";
+import { normalizeForMatch, type Account, type Transaction } from "./types";
 import { guessCategory } from "./autoCategorize";
 
 // Maps Spiir subcategory IDs (from CategoryId / SubcategoryId columns) to own category IDs.

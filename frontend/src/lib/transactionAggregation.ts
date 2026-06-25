@@ -2,7 +2,7 @@ import type { MonthBar } from "../components/charts/MonthlyChart";
 import { SUB_CATEGORY_MAP } from "./categories";
 import { effectiveDate } from "./format";
 import { getLocale } from "./i18n";
-import type { Transaction } from "./store";
+import type { Transaction } from "./types";
 
 type TxLike = Pick<Transaction, "excludeFromCalculations" | "categoryId" | "amount" | "customDate" | "transactionDate">;
 

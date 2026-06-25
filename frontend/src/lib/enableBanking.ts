@@ -1,6 +1,6 @@
 import { loadKey, mintJwt } from "./auth";
 import { getSetting } from "./settings";
-import { type Transaction, makeTransactionId, normalizeForMatch } from "./store";
+import { makeTransactionId, normalizeForMatch, type Transaction } from "./types";
 import { asArray, asRecord, isRecord, optString, reqString } from "./validate";
 
 export class ProxyNetworkError extends Error {

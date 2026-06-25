@@ -6,7 +6,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faQuestion } from "@fortawesome/free-solid-svg-icons";
 import { MAIN_CATEGORIES, MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
-import type { Transaction } from "../../lib/store";
+import type { Transaction } from "../../lib/data";
 import { fmtAmount } from "../../lib/format";
 import TransactionTable from "../transactions/TransactionTable";
 

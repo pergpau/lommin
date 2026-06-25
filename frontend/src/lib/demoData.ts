@@ -1,4 +1,5 @@
-import { getAccounts, saveAccount, upsertTransactions, normalizeForMatch, type Account, type Transaction } from "./store";
+import { getAccounts, saveAccount, upsertTransactions } from "./data";
+import { normalizeForMatch, type Account, type Transaction } from "./types";
 
 const BRUKSKONTO_UID = "demo-brukskonto";
 const KREDITTKORT_UID = "demo-kredittkort";

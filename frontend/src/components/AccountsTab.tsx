@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import type { Account, Transaction } from "../lib/store";
+import type { Account, Transaction } from "../lib/data";
 import AccountCard from "./AccountCard";
 import EmptyState from "./ui/EmptyState";
 import { PlusIcon } from "./ui/icons";

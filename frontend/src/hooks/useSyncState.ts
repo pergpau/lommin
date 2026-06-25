@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { ProxyNetworkError } from "../lib/enableBanking";
 import i18n from "../lib/i18n";
-import { type Account } from "../lib/store";
+import type { Account } from "../lib/data";
 import { syncAccounts } from "../lib/sync";
 
 export function useSyncState() {

@@ -25,8 +25,8 @@ import { clearDriveToken, getAllSettings, getDismissedPairs, getDriveToken, hasS
 import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
 import { addSaveListener, triggerAutosave } from "../lib/autosave";
 import { useSuccessFlash } from "../hooks/useSuccessFlash";
-import { clearAccounts, clearTransactions, exportAll, getAllTransactions, getEnableBankingSource } from "../lib/store";
-import { setCategoryId } from "../lib/mutations";
+import { clearAccounts, clearTransactions, exportAll, getAllTransactions, getEnableBankingSource } from "../lib/data";
+import { setCategoryId } from "../lib/data";
 
 type Tab = "categories" | "accounts" | "transactions";
 const TABS: Tab[] = ["categories", "transactions", "accounts"];

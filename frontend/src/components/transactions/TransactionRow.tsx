@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { amountClass, effectiveDate, fmtAmount, fmtDate } from "../../lib/format";
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
-import type { Transaction } from "../../lib/store";
+import type { Transaction } from "../../lib/data";
 import CategoryBadge from "./CategoryBadge";
 
 type TransactionRowProps = {

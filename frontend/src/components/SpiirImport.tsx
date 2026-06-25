@@ -10,8 +10,8 @@ import {
   parseSpiirZipAccounts,
   type SpiirAccount,
 } from "../lib/spiirImport";
-import { getAccounts, type Account } from "../lib/store";
-import { importAll } from "../lib/mutations";
+import { getAccounts, type Account } from "../lib/data";
+import { importAll } from "../lib/data";
 import { MAX_IMPORT_BYTES } from "../constants";
 
 type Props = { onSuccess?: () => void };

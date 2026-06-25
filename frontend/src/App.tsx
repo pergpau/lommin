@@ -9,7 +9,7 @@ import Account from "./pages/Account";
 import Settings from "./pages/Settings";
 import Duplicates from "./pages/Duplicates";
 import { loadKey } from "./lib/auth";
-import { getAccounts } from "./lib/store";
+import { getAccounts } from "./lib/data";
 import Spinner from "./components/ui/Spinner";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Privacy from "./pages/Privacy";

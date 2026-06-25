@@ -9,7 +9,7 @@ import Spinner from "../components/ui/Spinner";
 import { useSnackbar } from "../components/ui/Snackbar";
 import { SESSION_VALID_DAYS } from "../constants";
 import { createSession, initiateAuth, listBanks, ProxyNetworkError, type BankEntry } from "../lib/enableBanking";
-import { getAccounts, saveAccount, type Account, type AccountSource } from "../lib/store";
+import { getAccounts, saveAccount, type Account, type AccountSource } from "../lib/data";
 import { syncAccounts } from "../lib/sync";
 
 const COUNTRY_CODES = ["NO", "SE", "FI", "DK", "GB", "DE", "FR", "NL"] as const;

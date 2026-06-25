@@ -1,5 +1,5 @@
 import { SUB_CATEGORY_MAP } from "./categories";
-import type { Transaction } from "./store";
+import type { Transaction } from "./types";
 
 const BTC_RULES: Array<[string | RegExp, number]> = [
   // Food & drink — specific first

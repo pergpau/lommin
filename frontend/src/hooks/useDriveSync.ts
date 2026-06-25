@@ -4,7 +4,7 @@ import { useSnackbar } from "../components/ui/Snackbar";
 import { triggerAutosave } from "../lib/autosave";
 import { DriveAuthError, getDriveBackupModifiedTime, loadBackupFromDrive } from "../lib/googleDrive";
 import { clearDriveToken, getAllSettings, getDriveToken, hasDriveTokenStored, setSetting } from "../lib/settings";
-import { importAll } from "../lib/store";
+import { importAll } from "../lib/data";
 
 export function useDriveSync() {
   const { showSnackbar } = useSnackbar();

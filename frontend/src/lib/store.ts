@@ -1,71 +1,10 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import { APP_NAME } from "../constants";
-import {
-  asArray,
-  asRecord,
-  isRecord,
-  optNumber,
-  optString,
-  reqString,
-  type SyncedSettings,
-  validateSyncedSettings,
-  ValidationError,
-} from "./validate";
+import { normalizeForMatch, type Account, type SyncCursor, type Transaction } from "./types";
+import { validateImportData } from "./validate";
 import { applySyncedSettings } from "./settings";
 
-export interface AccountSource {
-  type: "enableBanking" | "spiir" | "demo" | "manual";
-  sourceId: string; // Enable Banking account UID or Spiir accountId
-  sessionId?: string; // Enable Banking session ID
-}
-
-export interface Account {
-  uid: string; // Internal UUID — never an external API ID
-  name?: string;
-  bankName?: string;
-  bankCountry?: string;
-  currency?: string;
-  iban?: string;
-  bban?: string;
-  identificationHash?: string;
-  identificationHashes?: string[];
-  addedAt: number;
-  balance?: number;
-  balanceFetchedAt?: number;
-  sources: AccountSource[];
-}
-
-export function getEnableBankingSource(acc: Account): AccountSource | undefined {
-  return acc.sources.find((s) => s.type === "enableBanking");
-}
-
-export interface Transaction {
-  id: string; // composite: `${account_uid}::${entry_reference}`
-  accountUid: string;
-  entryReference: string;
-  bookingDate: string;
-  transactionDate: string;
-  customDate?: string;
-  amount: number;
-  currency: string;
-  creditDebit?: "CRDT" | "DBIT";
-  description: string;
-  bankTransactionCode?: string;
-  status: string;
-  categoryId?: number;
-  excludeFromCalculations: boolean;
-  comment?: string;
-  to_bban?: string;
-  from_bban?: string;
-  matchDescription?: string;
-  raw: Record<string, unknown>;
-}
-
-export interface SyncCursor {
-  accountUid: string;
-  lastBookingDate: string;
-  updatedAt: number;
-}
+export type { Account, AccountSource, SyncCursor, Transaction } from "./types";
 
 interface LomminDB extends DBSchema {
   accounts: { key: string; value: Account };
@@ -133,18 +72,6 @@ export async function clearAccounts(): Promise<void> {
 }
 
 // Transactions
-export function makeTransactionId(accountUid: string, entryReference: string): string {
-  return `${accountUid}::${entryReference}`;
-}
-
-export function normalizeForMatch(text: string): string {
-  return text
-    .replace(/^\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s*/, "")
-    .replace(/\s+/g, " ")
-    .toLowerCase()
-    .trim();
-}
-
 function txSoftKey(t: Transaction): string {
   const desc = t.matchDescription ?? normalizeForMatch(t.description);
   return `${t.accountUid}|${t.transactionDate}|${t.amount.toFixed(2)}|${desc}`;
@@ -328,96 +255,6 @@ export async function exportAll(): Promise<object> {
     d.getAll("syncCursors"),
   ]);
   return { accounts, transactions, cursors, exportedAt: Date.now() };
-}
-
-interface ImportData {
-  accounts: Account[];
-  transactions: Transaction[];
-  cursors: SyncCursor[];
-  settings?: SyncedSettings;
-}
-
-function validateAccountSource(v: unknown, where: string): AccountSource {
-  const s = asRecord(v, where);
-  if (s.type !== "enableBanking" && s.type !== "spiir" && s.type !== "demo" && s.type !== "manual") {
-    throw new ValidationError(`Ugyldig data: ukjent kildetype i ${where}.`);
-  }
-  return {
-    type: s.type,
-    sourceId: reqString(s.sourceId, `${where}.sourceId`),
-    sessionId: optString(s.sessionId),
-  };
-}
-
-function validateAccount(v: unknown, i: number): Account {
-  const a = asRecord(v, `account[${i}]`);
-  return {
-    uid: reqString(a.uid, `account[${i}].uid`),
-    name: optString(a.name),
-    bankName: optString(a.bankName),
-    bankCountry: optString(a.bankCountry),
-    currency: optString(a.currency),
-    iban: optString(a.iban),
-    bban: optString(a.bban),
-    identificationHash: optString(a.identificationHash),
-    identificationHashes: Array.isArray(a.identificationHashes)
-      ? a.identificationHashes.filter((h): h is string => typeof h === "string")
-      : undefined,
-    addedAt: optNumber(a.addedAt) ?? Date.now(),
-    balance: optNumber(a.balance),
-    balanceFetchedAt: optNumber(a.balanceFetchedAt),
-    sources: asArray(a.sources ?? [], `account[${i}].sources`).map((s, j) =>
-      validateAccountSource(s, `account[${i}].sources[${j}]`),
-    ),
-  };
-}
-
-function validateTransaction(v: unknown, i: number): Transaction {
-  const t = asRecord(v, `transaction[${i}]`);
-  const amount = optNumber(t.amount);
-  if (amount === undefined)
-    throw new ValidationError(`Ugyldig data: transaction[${i}] mangler gyldig beløp.`);
-  return {
-    id: reqString(t.id, `transaction[${i}].id`),
-    accountUid: reqString(t.accountUid, `transaction[${i}].accountUid`),
-    entryReference: optString(t.entryReference) ?? "",
-    bookingDate: optString(t.bookingDate) ?? "",
-    transactionDate: optString(t.transactionDate) ?? optString(t.bookingDate) ?? "",
-    customDate: optString(t.customDate),
-    amount,
-    currency: optString(t.currency) ?? "",
-    creditDebit: t.creditDebit === "CRDT" || t.creditDebit === "DBIT" ? t.creditDebit : undefined,
-    description: optString(t.description) ?? "",
-    status: optString(t.status) ?? "",
-    categoryId: optNumber(t.categoryId),
-    excludeFromCalculations: t.excludeFromCalculations === true,
-    comment: optString(t.comment),
-    to_bban: optString(t.to_bban),
-    from_bban: optString(t.from_bban),
-    raw: isRecord(t.raw) ? t.raw : {},
-  };
-}
-
-function validateCursor(v: unknown, i: number): SyncCursor {
-  const c = asRecord(v, `cursor[${i}]`);
-  return {
-    accountUid: reqString(c.accountUid, `cursor[${i}].accountUid`),
-    lastBookingDate: optString(c.lastBookingDate) ?? "",
-    updatedAt: optNumber(c.updatedAt) ?? 0,
-  };
-}
-
-// Validate untrusted import data (decrypted backup file or built Spiir payload)
-// before it touches IndexedDB. Throws ValidationError on malformed input rather
-// than persisting corrupt records.
-export function validateImportData(data: unknown): ImportData {
-  const root = asRecord(data, "sikkerhetskopi");
-  return {
-    accounts: asArray(root.accounts ?? [], "accounts").map(validateAccount),
-    transactions: asArray(root.transactions ?? [], "transactions").map(validateTransaction),
-    cursors: asArray(root.cursors ?? [], "cursors").map(validateCursor),
-    settings: root.settings !== undefined ? validateSyncedSettings(root.settings) : undefined,
-  };
 }
 
 // Import (merge) from encrypted file or Spiir parser. Input is validated first.

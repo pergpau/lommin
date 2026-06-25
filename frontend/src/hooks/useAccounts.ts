@@ -1,4 +1,4 @@
-import { getAccounts, type Account } from "../lib/store";
+import { getAccounts, type Account } from "../lib/data";
 import { useAsyncData } from "./useAsyncData";
 
 export function useAccounts() {

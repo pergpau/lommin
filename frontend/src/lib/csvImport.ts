@@ -1,4 +1,4 @@
-import { makeTransactionId, type Transaction } from "./store";
+import { makeTransactionId, type Transaction } from "./types";
 import { guessCategory } from "./autoCategorize";
 
 export interface CsvTransactionDraft {

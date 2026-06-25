@@ -23,7 +23,7 @@ import { seedDemoData } from "../lib/demoData";
 import { DriveAuthError, loadBackupFromDrive, signInWithGoogle } from "../lib/googleDrive";
 import { loadKey, saveKey } from "../lib/auth";
 import { DEFAULT_PROXY_URL, getSetting, persistDriveToken, setSetting } from "../lib/settings";
-import { getAccounts, importAll } from "../lib/store";
+import { getAccounts, importAll } from "../lib/data";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 

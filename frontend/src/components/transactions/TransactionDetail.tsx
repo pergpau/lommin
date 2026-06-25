@@ -15,8 +15,8 @@ import {
   setComment,
   setCustomDate,
   setExcludeFromCalculations,
-} from "../../lib/mutations";
-import { getAccounts, type Account, type Transaction } from "../../lib/store";
+} from "../../lib/data";
+import { getAccounts, type Account, type Transaction } from "../../lib/data";
 import DeleteConfirmModal from "../ui/DeleteConfirmModal";
 
 interface TransactionDetailProps {
