@@ -18,6 +18,7 @@ export interface Account {
   balance?: number;
   balanceFetchedAt?: number;
   sources: AccountSource[];
+  ownershipShare?: number;
 }
 
 export function getEnableBankingSource(acc: Account): AccountSource | undefined {

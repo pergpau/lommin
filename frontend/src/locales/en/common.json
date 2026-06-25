@@ -29,6 +29,7 @@
     "reconnect": "Reconnect",
     "error": "Connection failed"
   },
+  "shared": "Shared {{pct}}%",
   "dialog": {
     "passwordLabel": "Password (optional)",
     "passwordPlaceholder": "Leave blank for no encryption",

@@ -29,6 +29,7 @@
     "reconnect": "Koble til igjen",
     "error": "Tilkoblingen mislyktes"
   },
+  "shared": "Delt {{pct}}%",
   "dialog": {
     "passwordLabel": "Passord (valgfritt)",
     "passwordPlaceholder": "La stå tomt for ingen kryptering",

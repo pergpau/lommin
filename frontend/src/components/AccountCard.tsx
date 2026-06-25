@@ -28,10 +28,11 @@ function fmtSyncTime(ts?: number): string {
 
 export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg, isSessionExpired }: Props) {
   const navigate = useNavigate();
-  const { t } = useTranslation("components");
+  const { t } = useTranslation(["components", "common"]);
 
   const isConnected = acc.sources.some((s) => s.type === "enableBanking");
   const isImported = acc.sources.some((s) => s.type === "spiir");
+  const isShared = acc.ownershipShare != null;
   const label = acc.name?.trim() ?? acc.bankName?.trim() ?? "Account";
 
   if (errorMsg) {
@@ -115,6 +116,11 @@ export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg, i
               {t("accountCard.importedFromSpiir")}
             </span>
           )}
+          {isShared && (
+            <span className="inline-flex items-center text-xs text-warning/80 bg-warning/8 border border-warning/20 rounded px-1.5 py-0.5 leading-none">
+              {t("common:shared", { pct: Math.round(acc.ownershipShare! * 100) })}
+            </span>
+          )}
         </div>
       </div>
     );
@@ -154,6 +160,11 @@ export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg, i
         {isImported && (
           <span className="inline-flex items-center text-xs text-accent/80 bg-accent/8 border border-accent/20 rounded px-1.5 py-0.5 leading-none">
             {t("accountCard.importedFromSpiir")}
+          </span>
+        )}
+        {isShared && (
+          <span className="inline-flex items-center text-xs text-warning/80 bg-warning/8 border border-warning/20 rounded px-1.5 py-0.5 leading-none">
+            {t("common:shared", { pct: Math.round(acc.ownershipShare! * 100) })}
           </span>
         )}
         {isConnected && (

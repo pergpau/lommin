@@ -194,8 +194,25 @@ export default function Dashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const monthlyData = useMemo<MonthBar[]>(() => buildMonthlyData(transactions), [transactions]);
-  const yearlyData = useMemo<MonthBar[]>(() => buildYearlyData(transactions), [transactions]);
+  const shareMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const acc of accounts) {
+      if (acc.ownershipShare != null) map.set(acc.uid, acc.ownershipShare);
+    }
+    return map;
+  }, [accounts]);
+
+  const scaledTransactions = useMemo(() => {
+    if (shareMap.size === 0) return transactions;
+    return transactions.map((tx) => {
+      const share = shareMap.get(tx.accountUid);
+      if (share == null) return tx;
+      return { ...tx, amount: tx.amount * share };
+    });
+  }, [transactions, shareMap]);
+
+  const monthlyData = useMemo<MonthBar[]>(() => buildMonthlyData(scaledTransactions), [scaledTransactions]);
+  const yearlyData = useMemo<MonthBar[]>(() => buildYearlyData(scaledTransactions), [scaledTransactions]);
 
   const chartData = chartMode === "month" ? monthlyData : yearlyData;
   const activeMonth =
@@ -392,6 +409,7 @@ export default function Dashboard() {
               onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
               onMutated={refresh}
               goBackRef={categoryGoBackRef}
+              shareMap={shareMap}
             />
           )}
 
@@ -418,6 +436,7 @@ export default function Dashboard() {
                   : undefined
               }
               refresh={refresh}
+              shareMap={shareMap}
             />
           )}
         </div>

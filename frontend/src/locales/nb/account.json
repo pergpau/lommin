@@ -7,6 +7,8 @@
   "forcedResync": "Tving synkronisering",
   "disconnectAccount": "Koble fra konto",
   "deleteTransactions": "Slett transaksjoner",
+  "sharedAccount": "Delt konto",
+  "ownershipShare": "eierandel",
   "removeAccount": "Fjern konto",
   "transactionsLabel": "Transaksjoner",
   "confirm": {

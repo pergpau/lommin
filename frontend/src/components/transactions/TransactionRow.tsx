@@ -8,10 +8,11 @@ type TransactionRowProps = {
   transaction: Transaction;
   onClick: () => void;
   onCategoryClick?: () => void;
+  ownershipShare?: number;
 };
 
-export default function TransactionRow({ transaction: tx, onClick, onCategoryClick }: TransactionRowProps) {
-  const { t } = useTranslation("transactions");
+export default function TransactionRow({ transaction: tx, onClick, onCategoryClick, ownershipShare }: TransactionRowProps) {
+  const { t } = useTranslation(["transactions", "common"]);
   const subCat = tx.categoryId != null ? SUB_CATEGORY_MAP[tx.categoryId] : undefined;
   const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
 
@@ -53,9 +54,16 @@ export default function TransactionRow({ transaction: tx, onClick, onCategoryCli
         )}
       </div>
       <div className="flex flex-col items-end shrink-0">
-        <div className={`mono text-sm font-medium tabular-nums ${amountClass(tx)}`}>
-          {tx.amount >= 0 ? "+" : ""}
-          {fmtAmount(tx.amount, tx.currency)}
+        <div className="flex items-center gap-1.5">
+          {ownershipShare != null && (
+            <span className="text-[10px] font-medium px-1 py-0.5 rounded bg-warning/10 text-warning border border-warning/20 leading-none tabular-nums">
+              {t("common:shared", { pct: Math.round(ownershipShare * 100) })}
+            </span>
+          )}
+          <span className={`mono text-sm font-medium tabular-nums ${amountClass(tx)}`}>
+            {tx.amount >= 0 ? "+" : ""}
+            {fmtAmount(tx.amount, tx.currency)}
+          </span>
         </div>
         <div className="text-xs text-muted mt-0.5">
           {fmtDate(effectiveDate(tx))}

@@ -7,6 +7,8 @@
   "forcedResync": "Force resync",
   "disconnectAccount": "Disconnect account",
   "deleteTransactions": "Delete transactions",
+  "sharedAccount": "Shared account",
+  "ownershipShare": "ownership share",
   "removeAccount": "Remove account",
   "transactionsLabel": "Transactions",
   "confirm": {

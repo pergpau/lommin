@@ -7,9 +7,10 @@ interface Props {
   transactions: Transaction[];
   subtitle?: string;
   refresh: () => void;
+  shareMap?: Map<string, number>;
 }
 
-export default function TransactionsTab({ transactions, subtitle, refresh }: Props) {
+export default function TransactionsTab({ transactions, subtitle, refresh, shareMap }: Props) {
   const { t } = useTranslation("dashboard");
 
   if (transactions.length === 0) {
@@ -26,6 +27,7 @@ export default function TransactionsTab({ transactions, subtitle, refresh }: Pro
       subtitle={subtitle}
       onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
       onMutated={refresh}
+      shareMap={shareMap}
     />
   );
 }

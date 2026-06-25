@@ -26,6 +26,7 @@ interface Props {
   onCategoryChange?: (txId: string, catId: number | undefined) => Promise<void>;
   onMutated?: () => void;
   goBackRef?: React.MutableRefObject<(() => boolean) | null>;
+  shareMap?: Map<string, number>;
 }
 
 function isEligible(t: Transaction): boolean {
@@ -80,12 +81,13 @@ function buildSubRows(
   pool: Transaction[],
   mainId: number,
   sign: 1 | -1,
+  amountOf: (tx: Transaction) => number = (tx) => tx.amount,
 ): SubRow[] {
   const subMap = new Map<number, number>();
   const subCountMap = new Map<number, number>();
   for (const tx of pool) {
     if (mainIdOf(tx) === mainId && tx.categoryId != null) {
-      subMap.set(tx.categoryId, (subMap.get(tx.categoryId) ?? 0) + sign * tx.amount);
+      subMap.set(tx.categoryId, (subMap.get(tx.categoryId) ?? 0) + sign * amountOf(tx));
       subCountMap.set(tx.categoryId, (subCountMap.get(tx.categoryId) ?? 0) + 1);
     }
   }
@@ -101,10 +103,18 @@ function buildSubRows(
 }
 
 
-export default function SpendingBreakdown({ transactions, subtitle, onCategoryChange, onMutated, goBackRef }: Props) {
+export default function SpendingBreakdown({ transactions, subtitle, onCategoryChange, onMutated, goBackRef, shareMap }: Props) {
   const { t } = useTranslation(["charts", "categories"]);
   const [view, setView] = useState<View>({ level: "main" });
   const [showAll, setShowAll] = useState(false);
+
+  const amountOf = useCallback(
+    (tx: Transaction) => {
+      const share = shareMap?.get(tx.accountUid);
+      return share != null ? tx.amount * share : tx.amount;
+    },
+    [shareMap],
+  );
 
   const goBack = useCallback((): boolean => {
     if (view.level === "txns") {
@@ -145,7 +155,8 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
     const countMap = new Map<MainId, number>();
     for (const tx of eligible) {
       const id = mainIdOf(tx);
-      const delta = mainType(id) === "income" ? tx.amount : -tx.amount;
+      const amt = amountOf(tx);
+      const delta = mainType(id) === "income" ? amt : -amt;
       map.set(id, (map.get(id) ?? 0) + delta);
       countMap.set(id, (countMap.get(id) ?? 0) + 1);
     }
@@ -157,25 +168,25 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
     if (countMap.has("uncategorized-income"))
       rows.push({ mainId: "uncategorized-income", total: map.get("uncategorized-income")!, count: countMap.get("uncategorized-income")! });
     return rows;
-  }, [eligible]);
+  }, [eligible, amountOf]);
 
   const inntektSubRows = useMemo(() => {
-    const rows = buildSubRows(eligible, 11, 1);
+    const rows = buildSubRows(eligible, 11, 1, amountOf);
     const uncatTxns = eligible.filter((tx) => mainIdOf(tx) === "uncategorized-income");
-    const uncatTotal = uncatTxns.reduce((sum, tx) => sum + tx.amount, 0);
+    const uncatTotal = uncatTxns.reduce((sum, tx) => sum + amountOf(tx), 0);
     if (uncatTxns.length > 0)
       rows.push({ subId: "uncategorized", total: uncatTotal, count: uncatTxns.length, mainId: "uncategorized-income", isUncat: true });
     return rows.sort((a, b) => b.total - a.total);
-  }, [eligible]);
+  }, [eligible, amountOf]);
 
   const sparingSubRows = useMemo(
-    () => buildSubRows(eligible, 20, -1).sort((a, b) => b.total - a.total),
-    [eligible],
+    () => buildSubRows(eligible, 20, -1, amountOf).sort((a, b) => b.total - a.total),
+    [eligible, amountOf],
   );
 
   const excludedSubRows = useMemo(
-    () => buildSubRows(excludedPool, 10, -1).sort((a, b) => b.total - a.total),
-    [excludedPool],
+    () => buildSubRows(excludedPool, 10, -1, amountOf).sort((a, b) => b.total - a.total),
+    [excludedPool, amountOf],
   );
 
   if (eligible.length === 0 && excludedPool.length === 0) {
@@ -196,7 +207,7 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
       subId === "uncategorized" ? !tx.categoryId : tx.categoryId === (subId as number),
     );
     const subType = subId !== "uncategorized" ? SUB_CATEGORY_MAP[subId as number]?.type : undefined;
-    const filteredTotal = filtered.reduce((sum, tx) => sum + (subType === "income" ? tx.amount : -tx.amount), 0);
+    const filteredTotal = filtered.reduce((sum, tx) => sum + (subType === "income" ? amountOf(tx) : -amountOf(tx)), 0);
     return (
       <div>
         <button
@@ -212,7 +223,7 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
           <span className="text-sm font-medium text-text flex-1">{getSubName(subId, t)}</span>
           <span className="text-sm font-medium text-text tabular-nums mono">{fmtAmount(filteredTotal, undefined, 0)} kr</span>
         </div>
-        <TransactionTable transactions={filtered} subtitle={subtitle} onCategoryChange={onCategoryChange} onMutated={onMutated} />
+        <TransactionTable transactions={filtered} subtitle={subtitle} onCategoryChange={onCategoryChange} onMutated={onMutated} shareMap={shareMap} />
       </div>
     );
   }
@@ -237,7 +248,7 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
             <span className="text-muted">?</span>
             <span className="text-sm font-medium text-text">{t("charts:breakdown.uncategorized")}</span>
           </div>
-          <TransactionTable transactions={filtered} subtitle={subtitle} onCategoryChange={onCategoryChange} onMutated={onMutated} />
+          <TransactionTable transactions={filtered} subtitle={subtitle} onCategoryChange={onCategoryChange} onMutated={onMutated} shareMap={shareMap} />
         </div>
       );
     }
@@ -247,7 +258,8 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
     for (const tx of subTxns) {
       if (tx.categoryId != null) {
         const subType = SUB_CATEGORY_MAP[tx.categoryId]?.type;
-        const delta = subType === "income" ? tx.amount : -tx.amount;
+        const amt = amountOf(tx);
+        const delta = subType === "income" ? amt : -amt;
         subMap.set(tx.categoryId, (subMap.get(tx.categoryId) ?? 0) + delta);
       }
     }
@@ -305,7 +317,7 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
               })}
             </div>
         </div>
-        <TransactionTable transactions={subTxns} subtitle={subtitle} onCategoryChange={onCategoryChange} onMutated={onMutated} />
+        <TransactionTable transactions={subTxns} subtitle={subtitle} onCategoryChange={onCategoryChange} onMutated={onMutated} shareMap={shareMap} />
       </div>
     );
   }

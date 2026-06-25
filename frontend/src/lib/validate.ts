@@ -93,6 +93,7 @@ function validateAccount(v: unknown, i: number): Account {
     sources: asArray(a.sources ?? [], `account[${i}].sources`).map((s, j) =>
       validateAccountSource(s, `account[${i}].sources[${j}]`),
     ),
+    ownershipShare: optNumber(a.ownershipShare),
   };
 }
 

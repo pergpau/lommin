@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { triggerAutosave } from "../lib/autosave";
-import { deleteAccount, disconnectAccount, resetAccountSync, setCategoryId } from "../lib/data";
+import { deleteAccount, disconnectAccount, resetAccountSync, saveAccount, setCategoryId, type Account } from "../lib/data";
 import { getSetting } from "../lib/settings";
 import { accountLabel, effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
@@ -23,8 +23,55 @@ import { ArrowLeftIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
 import { isDemoMode } from "../lib/demoData";
 import { loadKey } from "../lib/auth";
 
-export default function AccountPage() {
+function ShareSlider({ account, onSave }: { account: Account | null | undefined; onSave: (acc: Account) => void }) {
   const { t } = useTranslation("account");
+  const [draft, setDraft] = useState<number | null>(null);
+  const share = draft ?? (account?.ownershipShare != null ? Math.round(account.ownershipShare * 100) : null);
+
+  const commit = () => {
+    if (!account || draft == null) return;
+    onSave({ ...account, ownershipShare: draft / 100 });
+    setDraft(null);
+  };
+
+  return (
+    <div className="px-4 py-2">
+      <label className="flex items-center gap-2 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={account?.ownershipShare != null}
+          onChange={(e) => {
+            if (!account) return;
+            onSave({ ...account, ownershipShare: e.target.checked ? 0.5 : undefined });
+          }}
+          className="w-4 h-4 accent-accent"
+        />
+        <span className="text-sm text-text">{t("sharedAccount")}</span>
+      </label>
+      {share != null && (
+        <div className="mt-2 px-0">
+          <div className="text-xs text-muted mb-1">
+            {share}% {t("ownershipShare")}
+          </div>
+          <input
+            type="range"
+            min={5}
+            max={95}
+            step={5}
+            value={share}
+            onChange={(e) => setDraft(Number(e.target.value))}
+            onPointerUp={commit}
+            onTouchEnd={commit}
+            className="w-full accent-accent h-1.5"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function AccountPage() {
+  const { t } = useTranslation(["account", "common"]);
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
   const { accounts, loading: accountsLoading, reload } = useAccounts();
@@ -157,11 +204,18 @@ export default function AccountPage() {
           {(account?.bban || account?.iban) && (
             <div className="mono text-xs text-muted">{account?.bban ?? account?.iban}</div>
           )}
-          {isConnected && (
-            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-positive/10 text-positive border border-positive/20 leading-none">
-              {t("connectedBadge")}
-            </span>
-          )}
+          <div className="flex items-center gap-1.5 mt-0.5">
+            {isConnected && (
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-positive/10 text-positive border border-positive/20 leading-none">
+                {t("connectedBadge")}
+              </span>
+            )}
+            {account?.ownershipShare != null && (
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-warning/10 text-warning border border-warning/20 leading-none">
+                {t("common:shared", { pct: Math.round(account.ownershipShare * 100) })}
+              </span>
+            )}
+          </div>
         </div>
         {/* Sync / Connect button — always visible */}
         <div className="flex items-center gap-2">
@@ -218,6 +272,8 @@ export default function AccountPage() {
             </button>
             {actionsOpen && (
               <div className="absolute right-0 top-full mt-1 w-52 card py-1 z-30 shadow-lg">
+                <ShareSlider account={account} onSave={(updated) => void saveAccount(updated).then(reload)} />
+                <div className="border-t border-border my-1" />
                 {isConnected && (
                   <button
                     className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"

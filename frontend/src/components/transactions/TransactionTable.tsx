@@ -13,6 +13,7 @@ type TransactionTableProps = {
   subtitle?: string;
   onCategoryChange?: (transactionId: string, categoryId: number | undefined) => Promise<void>;
   onMutated?: () => void;
+  shareMap?: Map<string, number>;
 };
 
 export default function TransactionTable({
@@ -21,6 +22,7 @@ export default function TransactionTable({
   subtitle,
   onCategoryChange,
   onMutated,
+  shareMap,
 }: TransactionTableProps) {
   const { t } = useTranslation("transactions");
   const [page, setPage] = useState(0);
@@ -83,6 +85,7 @@ export default function TransactionTable({
               transaction={tx}
               onClick={() => setDetailForId(tx.id)}
               onCategoryClick={onCategoryChange ? () => setPickerFor(tx) : undefined}
+              ownershipShare={shareMap?.get(tx.accountUid)}
             />
           ))}
         </div>
