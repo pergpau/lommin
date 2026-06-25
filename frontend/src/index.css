@@ -71,8 +71,8 @@ html.dark {
 
   .grid-bg {
     background-image:
-      linear-gradient(rgb(var(--c-border) / 0.6) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(var(--c-border) / 0.6) 1px, transparent 1px);
+      linear-gradient(rgb(var(--c-border) / 0.3) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--c-border) / 0.3) 1px, transparent 1px);
     background-size: 32px 32px;
   }
 
