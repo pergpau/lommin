@@ -5,6 +5,7 @@ import Button from "../ui/Button";
 import Card from "../ui/Card";
 import { DownloadIcon, UploadIcon } from "../ui/icons";
 import Input from "../ui/Input";
+import Spinner from "../ui/Spinner";
 import { useSnackbar } from "../ui/Snackbar";
 import { loadEncryptedFile, saveEncryptedFile } from "../../lib/cryptoFile";
 import {
@@ -34,11 +35,12 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
   const [driveAutosave, setDriveAutosave] = useState(true);
   const [dialog, setDialog] = useState<"save" | "load" | "drive-save" | "drive-load" | null>(null);
   const [restorePreview, setRestorePreview] = useState<{
-    data: object;
-    fileCount: number;
-    localCount: number;
-    remoteSavedAt: number | null;
-    localSavedAt: number | null;
+    loading: boolean;
+    data?: object;
+    fileCount?: number;
+    localCount?: number;
+    remoteSavedAt?: number | null;
+    localSavedAt?: number | null;
   } | null>(null);
   const [driveToken, setDriveToken] = useState<string | null>(null);
   const [driveSyncing, setDriveSyncing] = useState<"connect" | "save" | "load" | null>(null);
@@ -160,8 +162,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
   const loadDrive = useCallback(async (passphrase: string) => {
     if (!driveToken) return;
     setDialog(null);
-    setDriveSyncing("load");
-    showSnackbar(t("common:sync.syncing"), "info", null);
+    setRestorePreview({ loading: true });
     try {
       const data = await loadBackupFromDrive(driveToken, passphrase);
       const [localTxs, localSavedAt] = await Promise.all([
@@ -170,8 +171,9 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
       ]);
       const raw = data as { transactions?: unknown[]; exportedAt?: number };
       const fileCount = Array.isArray(raw.transactions) ? raw.transactions.length : 0;
-      setRestorePreview({ data, fileCount, localCount: localTxs.length, remoteSavedAt: raw.exportedAt ?? null, localSavedAt });
+      setRestorePreview({ loading: false, data, fileCount, localCount: localTxs.length, remoteSavedAt: raw.exportedAt ?? null, localSavedAt });
     } catch (e) {
+      setRestorePreview(null);
       if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
       const isDecryptErr = e instanceof DOMException && e.name === "OperationError";
       const text = isDecryptErr
@@ -181,13 +183,12 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
         : e instanceof Error ? e.message : t("settings:snackbar.loadFailed");
       showSnackbar(text, "error");
     } finally {
-      setDriveSyncing(null);
       setDialogPassphrase("");
     }
   }, [driveToken, showSnackbar, t]);
 
   const confirmDriveRestore = useCallback(async () => {
-    if (!restorePreview) return;
+    if (!restorePreview?.data) return;
     const { data } = restorePreview;
     setRestorePreview(null);
     setDriveSyncing("load");
@@ -303,7 +304,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                     <Button
                       className="flex-1 justify-center"
                       loading={driveSyncing === "save"}
-                      disabled={!!driveSyncing}
+                      disabled={!!driveSyncing || !!restorePreview}
                       onClick={() => usePassphrase ? openDialog("drive-save") : void saveDrive("")}
                     >
                       <DownloadIcon size={13} />
@@ -313,7 +314,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                       variant="ghost"
                       className="flex-1 justify-center"
                       loading={driveSyncing === "load"}
-                      disabled={!!driveSyncing}
+                      disabled={!!driveSyncing || !!restorePreview}
                       onClick={() => usePassphrase ? openDialog("drive-load") : void loadDrive("")}
                     >
                       <UploadIcon size={13} />
@@ -321,7 +322,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                     </Button>
                     <Button
                       variant="ghost"
-                      disabled={!!driveSyncing}
+                      disabled={!!driveSyncing || !!restorePreview}
                       onClick={() => { setDriveToken(null); void clearDriveToken(); }}
                     >
                       {t("common:actions.disconnect")}
@@ -416,56 +417,78 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
       {restorePreview && (
         <div
           className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-          onClick={() => setRestorePreview(null)}
+          onClick={() => !restorePreview.loading && setRestorePreview(null)}
         >
           <div
             className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-sm font-semibold text-text mb-3">{t("settings:backup.restorePreviewTitle")}</h3>
-            <div className="space-y-2 mb-4">
-              <div className="flex justify-between text-xs">
-                <span className="text-muted">{t("settings:backup.restorePreviewLocalLabel")}</span>
-                <span className="font-medium text-text">
-                  {restorePreview.localSavedAt
-                    ? new Date(restorePreview.localSavedAt).toLocaleString("nb-NO", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
-                    : t("settings:backup.restorePreviewNever")}
-                </span>
+            {restorePreview.loading ? (
+              <div className="flex justify-center py-6">
+                <Spinner size={24} />
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-muted">{t("settings:backup.restorePreviewRemoteLabel")}</span>
-                <span className="font-medium text-text">
-                  {restorePreview.remoteSavedAt
-                    ? new Date(restorePreview.remoteSavedAt).toLocaleString("nb-NO", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
-                    : "—"}
-                </span>
-              </div>
-              <div className="border-t border-border pt-2 mt-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted">{t("settings:backup.restorePreviewFileCount")}</span>
-                  <span className="font-medium text-text">{restorePreview.fileCount}</span>
+            ) : (
+              <>
+                {(() => {
+                  const local = restorePreview.localSavedAt ?? 0;
+                  const remote = restorePreview.remoteSavedAt ?? 0;
+                  const same = local > 0 && remote > 0 && local === remote;
+                  const localNewer = same || (local > 0 && local > remote);
+                  const remoteNewer = same || (remote > 0 && remote > local);
+                  const fmt = (ts: number) => new Date(ts).toLocaleString("nb-NO", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                  return (
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted">{t("settings:backup.restorePreviewLocalLabel")}</span>
+                        {restorePreview.localSavedAt ? (
+                          <span className={`font-medium ${localNewer ? "text-green-500" : remoteNewer ? "text-red-500" : "text-text"}`}>
+                            {fmt(restorePreview.localSavedAt)}
+                          </span>
+                        ) : (
+                          <span className="italic text-muted">{t("settings:backup.restorePreviewNever")}</span>
+                        )}
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted">{t("settings:backup.restorePreviewRemoteLabel")}</span>
+                        {restorePreview.remoteSavedAt ? (
+                          <span className={`font-medium ${remoteNewer ? "text-green-500" : localNewer ? "text-red-500" : "text-text"}`}>
+                            {fmt(restorePreview.remoteSavedAt)}
+                          </span>
+                        ) : (
+                          <span className="italic text-muted">{t("settings:backup.restorePreviewNever")}</span>
+                        )}
+                      </div>
+                      <div className="border-t border-border pt-2 mt-2">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted">{t("settings:backup.restorePreviewFileCount")}</span>
+                          <span className="font-medium text-text">{restorePreview.fileCount}</span>
+                        </div>
+                        <div className="flex justify-between text-xs mt-1">
+                          <span className="text-muted">{t("settings:backup.restorePreviewLocalCount")}</span>
+                          <span className="font-medium text-text">{restorePreview.localCount}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+                {(restorePreview.fileCount ?? 0) > (restorePreview.localCount ?? 0) && (
+                  <div className="border border-warning/20 bg-warning/5 rounded-lg p-3 mb-4">
+                    <p className="text-xs text-warning leading-relaxed">
+                      {t("settings:backup.restorePreviewWarning")}
+                    </p>
+                  </div>
+                )}
+                <div className="flex gap-2 justify-end">
+                  <Button variant="ghost" onClick={() => setRestorePreview(null)}>
+                    {t("common:actions.cancel")}
+                  </Button>
+                  <Button onClick={() => void confirmDriveRestore()}>
+                    {t("settings:backup.restorePreviewProceed")}
+                  </Button>
                 </div>
-                <div className="flex justify-between text-xs mt-1">
-                  <span className="text-muted">{t("settings:backup.restorePreviewLocalCount")}</span>
-                  <span className="font-medium text-text">{restorePreview.localCount}</span>
-                </div>
-              </div>
-            </div>
-            {restorePreview.fileCount > restorePreview.localCount && (
-              <div className="border border-warning/20 bg-warning/5 rounded-lg p-3 mb-4">
-                <p className="text-xs text-warning leading-relaxed">
-                  {t("settings:backup.restorePreviewWarning")}
-                </p>
-              </div>
+              </>
             )}
-            <div className="flex gap-2 justify-end">
-              <Button variant="ghost" onClick={() => setRestorePreview(null)}>
-                {t("common:actions.cancel")}
-              </Button>
-              <Button onClick={() => void confirmDriveRestore()}>
-                {t("settings:backup.restorePreviewProceed")}
-              </Button>
-            </div>
           </div>
         </div>
       )}
