@@ -3,6 +3,7 @@ import { MAX_IMPORT_BYTES } from "../constants";
 const SALT_LEN = 16;
 const IV_LEN = 12;
 const ITER = 200_000;
+const VERSION_COMPRESSED = 0x01;
 
 async function deriveKey(passphrase: string, salt: Uint8Array<ArrayBuffer>): Promise<CryptoKey> {
   const base = await crypto.subtle.importKey(
@@ -21,27 +22,48 @@ async function deriveKey(passphrase: string, salt: Uint8Array<ArrayBuffer>): Pro
   );
 }
 
+async function compress(data: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
+  const cs = new CompressionStream("gzip");
+  const writer = cs.writable.getWriter();
+  writer.write(data);
+  writer.close();
+  return new Uint8Array(await new Response(cs.readable).arrayBuffer()) as Uint8Array<ArrayBuffer>;
+}
+
+async function decompress(data: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
+  const ds = new DecompressionStream("gzip");
+  const writer = ds.writable.getWriter();
+  writer.write(data);
+  writer.close();
+  return new Uint8Array(await new Response(ds.readable).arrayBuffer()) as Uint8Array<ArrayBuffer>;
+}
+
 export async function encryptStore(data: object, passphrase: string): Promise<Uint8Array> {
   const salt = crypto.getRandomValues(new Uint8Array(SALT_LEN)) as Uint8Array<ArrayBuffer>;
   const iv = crypto.getRandomValues(new Uint8Array(IV_LEN)) as Uint8Array<ArrayBuffer>;
   const key = await deriveKey(passphrase, salt);
-  const plaintext = new TextEncoder().encode(JSON.stringify(data));
+  const plaintext = await compress(new TextEncoder().encode(JSON.stringify(data)));
   const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext);
 
-  const out = new Uint8Array(SALT_LEN + IV_LEN + ciphertext.byteLength);
-  out.set(salt, 0);
-  out.set(iv, SALT_LEN);
-  out.set(new Uint8Array(ciphertext), SALT_LEN + IV_LEN);
+  const out = new Uint8Array(1 + SALT_LEN + IV_LEN + ciphertext.byteLength);
+  out[0] = VERSION_COMPRESSED;
+  out.set(salt, 1);
+  out.set(iv, 1 + SALT_LEN);
+  out.set(new Uint8Array(ciphertext), 1 + SALT_LEN + IV_LEN);
   return out as Uint8Array<ArrayBuffer>;
 }
 
 export async function decryptStore(blob: Uint8Array, passphrase: string): Promise<object> {
-  const salt = blob.slice(0, SALT_LEN);
-  const iv = blob.slice(SALT_LEN, SALT_LEN + IV_LEN);
-  const ciphertext = blob.slice(SALT_LEN + IV_LEN);
+  const isCompressed = blob[0] === VERSION_COMPRESSED;
+  const payload = isCompressed ? blob.slice(1) : blob;
+  const salt = payload.slice(0, SALT_LEN);
+  const iv = payload.slice(SALT_LEN, SALT_LEN + IV_LEN);
+  const ciphertext = payload.slice(SALT_LEN + IV_LEN);
   const key = await deriveKey(passphrase, salt);
   const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
-  return JSON.parse(new TextDecoder().decode(plain));
+  const raw = new Uint8Array(plain) as Uint8Array<ArrayBuffer>;
+  const bytes = isCompressed ? await decompress(raw) : raw;
+  return JSON.parse(new TextDecoder().decode(bytes));
 }
 
 function hasFileSystemAccess(): boolean {
