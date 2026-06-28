@@ -186,8 +186,15 @@ function parseCreditDebit(raw: RawTransaction): "CRDT" | "DBIT" | undefined {
 }
 
 function parseDescription(raw: RawTransaction): string {
-  if (raw.remittance_information?.length) return raw.remittance_information.join(" ");
-  return raw.creditor?.name ?? "";
+  const ri = raw.remittance_information ?? [];
+
+  if (raw.creditor?.name) return raw.creditor.name;
+
+  if (raw.bank_transaction_code?.code === "ICDT" && ri.length > 1) return ri[ri.length - 1];
+
+  if (ri.length) return ri.join(" ");
+
+  return "";
 }
 
 // Some transactions arrive without entry_reference/transaction_id. Derive a
@@ -224,7 +231,7 @@ export async function fetchTransactions(
     isRecord,
   ) as RawTransaction[]).filter((r) => r.status !== "PDNG");
   const transactions: Transaction[] = raws.map((r) => {
-    const ref = r.entry_reference ?? (r.transaction_id ?? deriveStableRef(r));
+    const ref = r.transaction_id ?? r.entry_reference ?? deriveStableRef(r);
     return {
       id: makeTransactionId(txAccountUid, ref),
       accountUid: txAccountUid,
@@ -235,8 +242,10 @@ export async function fetchTransactions(
       currency: r.transaction_amount?.currency ?? "",
       creditDebit: parseCreditDebit(r),
       description: parseDescription(r),
+      creditorName: r.creditor?.name || undefined,
       matchDescription: normalizeForMatch(r.remittance_information?.[0] ?? r.creditor?.name ?? ""),
       bankTransactionCode: r.bank_transaction_code?.description || undefined,
+      btcCode: r.bank_transaction_code?.code || undefined,
       status: r.status ?? "",
       excludeFromCalculations: false,
       to_bban: parseBban(r.creditor_account),

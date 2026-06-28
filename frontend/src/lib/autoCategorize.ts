@@ -112,9 +112,7 @@ function resolveCategory(
   creditorHistory?: Map<string, number>,
   bbanHistory?: Map<string, number>,
 ): number | undefined {
-  const creditorName = (tx.raw.creditor as Record<string, unknown> | undefined)?.name as
-    | string
-    | undefined;
+  const creditorName = tx.creditorName;
 
   // --- CRDT short-circuit ---
   if (tx.creditDebit === "CRDT") {
@@ -135,8 +133,7 @@ function resolveCategory(
   }
 
   // --- Step 1: BTC description ---
-  const btcDesc = (tx.raw.bank_transaction_code as Record<string, unknown> | undefined)
-    ?.description as string | undefined;
+  const btcDesc = tx.bankTransactionCode;
 
   if (btcDesc) {
     const normalized = btcDesc.toUpperCase();

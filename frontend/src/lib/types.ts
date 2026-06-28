@@ -36,7 +36,9 @@ export interface Transaction {
   currency: string;
   creditDebit?: "CRDT" | "DBIT";
   description: string;
+  creditorName?: string;
   bankTransactionCode?: string;
+  btcCode?: string;
   status: string;
   categoryId?: number;
   excludeFromCalculations: boolean;

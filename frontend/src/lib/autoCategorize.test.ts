@@ -13,6 +13,9 @@ function tx(partial: Partial<Transaction>): Transaction {
     description: "",
     status: "BOOK",
     raw: {},
+    excludeFromCalculations: false,
+    bookingDate: "",
+    transactionDate: "",
     ...partial,
   };
 }
@@ -23,18 +26,18 @@ describe("guessCategory", () => {
   });
 
   it("matches a creditor-name rule", () => {
-    expect(guessCategory(tx({ raw: { creditor: { name: "RUTER AS" } } }))).toBe(128);
+    expect(guessCategory(tx({ creditorName: "RUTER AS" }))).toBe(128);
   });
 
   it("matches a BTC code", () => {
     expect(
-      guessCategory(tx({ raw: { bank_transaction_code: { description: "GROCERY STORES" } } })),
+      guessCategory(tx({ bankTransactionCode: "GROCERY STORES" })),
     ).toBe(133);
   });
 
   it("lets the user history override the rules", () => {
     const history = new Map([["FOOBAR", 999]]);
-    expect(guessCategory(tx({ raw: { creditor: { name: "FOOBAR" } } }), history)).toBe(999);
+    expect(guessCategory(tx({ creditorName: "FOOBAR" }), history)).toBe(999);
   });
 
   it('returns "other income" for incoming payments labelled innbetaling', () => {
@@ -49,7 +52,7 @@ describe("guessCategory", () => {
 
   it("ignores ambiguous FINANCIAL INST codes", () => {
     expect(
-      guessCategory(tx({ raw: { bank_transaction_code: { description: "FINANCIAL INST" } } })),
+      guessCategory(tx({ bankTransactionCode: "FINANCIAL INST" })),
     ).toBeUndefined();
   });
 });

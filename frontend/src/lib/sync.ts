@@ -66,9 +66,7 @@ export async function syncAccount(
   const creditorHistory = new Map<string, number>();
   const bbanHistory = new Map<string, number>();
   for (const t of existing) {
-    const name = t.raw.creditor as Record<string, unknown> | undefined;
-    const creditorName = name?.name as string | undefined;
-    if (creditorName && t.categoryId !== undefined) creditorHistory.set(creditorName, t.categoryId);
+    if (t.creditorName && t.categoryId !== undefined) creditorHistory.set(t.creditorName, t.categoryId);
     if (t.categoryId !== undefined && (t.to_bban || t.from_bban)) {
       bbanHistory.set(`${t.from_bban ?? ""}→${t.to_bban ?? ""}`, t.categoryId);
     }
