@@ -311,52 +311,51 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Mobile hamburger */}
-          <div className="sm:hidden relative">
-            <button
-              className="p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 transition-colors"
-              onClick={() => setActionsOpen((o) => !o)}
-              aria-label={t("actions.mobile")}
-            >
-              {actionsOpen ? <XIcon size={18} /> : <MenuIcon size={18} />}
-            </button>
-            {actionsOpen && (
-              <div className="absolute right-0 top-full mt-1 w-48 card py-1 z-30 shadow-lg">
-                {!isDemo && (
-                  <Link
-                    to={connectTarget}
-                    className="flex items-center px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors"
-                    onClick={() => setActionsOpen(false)}
-                  >
-                    {t("actions.addAccount")}
-                  </Link>
-                )}
-                <button
-                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
-                  disabled={isDemo || dashBackupSaving || autoSaving}
-                  onClick={() => {
-                    setActionsOpen(false);
-                    handleQuickSaveClick();
-                  }}
-                >
-                  <BackupIcon size={13} />
-                  {dashBackupSaving ? t("actions.saving") : t("actions.save")}
-                </button>
-                {hasLiveAccounts && (
+          {/* Mobile actions */}
+          <div className="sm:hidden flex items-center gap-1">
+            {hasLiveAccounts && (
+              <button
+                className="p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 disabled:opacity-40 transition-colors"
+                disabled={syncing}
+                onClick={() => runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); void checkAndShowDuplicatesBanner(); } })}
+                aria-label={syncing ? t("actions.syncing") : t("actions.sync")}
+              >
+                {syncing ? <Spinner size={18} /> : <RefreshCwIcon size={18} />}
+              </button>
+            )}
+            <div className="relative">
+              <button
+                className="p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 transition-colors"
+                onClick={() => setActionsOpen((o) => !o)}
+                aria-label={t("actions.mobile")}
+              >
+                {actionsOpen ? <XIcon size={18} /> : <MenuIcon size={18} />}
+              </button>
+              {actionsOpen && (
+                <div className="absolute right-0 top-full mt-1 w-48 card py-1 z-30 shadow-lg">
+                  {!isDemo && (
+                    <Link
+                      to={connectTarget}
+                      className="flex items-center px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors"
+                      onClick={() => setActionsOpen(false)}
+                    >
+                      {t("actions.addAccount")}
+                    </Link>
+                  )}
                   <button
                     className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
-                    disabled={syncing}
+                    disabled={isDemo || dashBackupSaving || autoSaving}
                     onClick={() => {
                       setActionsOpen(false);
-                      runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); void checkAndShowDuplicatesBanner(); } });
+                      handleQuickSaveClick();
                     }}
                   >
-                    <RefreshCwIcon size={13} />
-                    {syncing ? t("actions.syncing") : t("actions.sync")}
+                    <BackupIcon size={13} />
+                    {dashBackupSaving ? t("actions.saving") : t("actions.save")}
                   </button>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
