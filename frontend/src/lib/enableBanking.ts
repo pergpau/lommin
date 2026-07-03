@@ -231,7 +231,7 @@ export async function fetchTransactions(
     isRecord,
   ) as RawTransaction[]).filter((r) => r.status !== "PDNG");
   const transactions: Transaction[] = raws.map((r) => {
-    const ref = r.transaction_id ?? r.entry_reference ?? deriveStableRef(r);
+    const ref = r.entry_reference ?? r.transaction_id ?? deriveStableRef(r);
     return {
       id: makeTransactionId(txAccountUid, ref),
       accountUid: txAccountUid,
