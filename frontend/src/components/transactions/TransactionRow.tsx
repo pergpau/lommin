@@ -42,11 +42,11 @@ export default function TransactionRow({ transaction: tx, onClick, onCategoryCli
           )}
         </div>
         {subCat && mainCat ? (
-          <div className="text-[11px] mt-0.5 truncate" style={{ color: mainCat.color }}>
+          <div className="text-[11px] mt-0.5 truncate h-4 flex items-center" style={{ color: mainCat.color }}>
             {t("categories:sub." + subCat.id)}
           </div>
         ) : (
-          <div className="mt-0.5">
+          <div className="mt-0.5 h-4 flex items-center">
             <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-orange-400/12 text-orange-500 border border-orange-400/35 leading-none dark:text-orange-400">
               {t("row.uncategorized")}
             </span>
