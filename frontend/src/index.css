@@ -127,6 +127,12 @@ html.dark {
 ::-webkit-scrollbar-thumb:hover {
   background: rgb(var(--c-border-2));
 }
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
 /* ── Theme switch: suppress transitions for one frame ─────── */
 html.theme-switching * {

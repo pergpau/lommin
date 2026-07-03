@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { useDragScrollStrip } from "../../hooks/useDragScrollStrip";
 import { fmtAmount } from "../../lib/format";
 import { ArrowLeftIcon, ArrowRightIcon } from "../ui/icons";
 
@@ -73,8 +74,20 @@ function StatsRow({ children, modeToggle }: StatsRowProps) {
 }
 
 const BAR_MAX = 80;
-const PAGE_SIZE = 6;
-const PAGE_SIZE_MOBILE = 3;
+const VISIBLE_BARS = 6;
+const VISIBLE_BARS_MOBILE = 3;
+// Width reserved at the strip edges so the neighboring bars peek in under the fade.
+const PEEK_PX = 40;
+
+function barStyle(height: number, color: string): CSSProperties {
+  return {
+    height: `${height}px`,
+    width: "14px",
+    borderRadius: "3px 3px 0 0",
+    backgroundColor: color,
+    transition: "background-color 0.15s, height 0.25s ease",
+  };
+}
 
 export default function MonthlyChart({
   bars,
@@ -85,47 +98,28 @@ export default function MonthlyChart({
 }: MonthlyChartProps) {
   const { t } = useTranslation("charts");
   const isMobile = useIsMobile();
-  const pageSize = isMobile ? PAGE_SIZE_MOBILE : PAGE_SIZE;
-  const [windowStart, setWindowStart] = useState(() => Math.max(0, bars.length - pageSize));
-  const navDirection = useRef<"back" | "forward" | null>(null);
+  const visibleCount = isMobile ? VISIBLE_BARS_MOBILE : VISIBLE_BARS;
+  const { scrollView, scrollByPage, stripProps } = useDragScrollStrip(bars.length, {
+    anchorKey: `${mode}:${visibleCount}`,
+    peekPx: PEEK_PX,
+  });
 
-  useEffect(() => {
-    navDirection.current = null;
-    setWindowStart(Math.max(0, bars.length - pageSize));
-  }, [bars.length, pageSize]);
+  const barBasis = (n = 1) => `calc((100% - ${PEEK_PX}px) / ${visibleCount} * ${n})`;
 
-  const goTo = (start: number, dir: "back" | "forward") => {
-    navDirection.current = dir;
-    setWindowStart(Math.max(0, Math.min(bars.length - pageSize, start)));
-  };
-
-  const paged = mode === "month" || isMobile;
-  const visibleBars = paged ? bars.slice(windowStart, windowStart + pageSize) : bars;
-  const canGoBack = windowStart > 0;
-  const canGoForward = windowStart + pageSize < bars.length;
-  const prevPeek = paged && canGoBack ? bars[windowStart - 1] : null;
-  const nextPeek = paged && canGoForward ? bars[windowStart + pageSize] : null;
   const selected = bars.find((b) => b.key === activeKey) ?? bars[bars.length - 1];
   const avgIncome = bars.length > 0 ? bars.reduce((s, b) => s + b.income, 0) / bars.length : 0;
   const avgExpenses = bars.length > 0 ? bars.reduce((s, b) => s + b.expenses, 0) / bars.length : 0;
   const avgSaving =
     bars.length > 0 ? bars.reduce((s, b) => s + (b.saving ?? 0), 0) / bars.length : 0;
-  const scaleBars = [prevPeek, ...visibleBars, nextPeek].filter((b) => b !== null);
+  const scaleBars = bars.slice(scrollView.first, scrollView.last + 1);
   const maxBarVal = Math.max(
     ...scaleBars.map((b) => Math.max(b.income, b.expenses, b.saving ?? 0)),
     1,
   );
 
-  const animClass =
-    navDirection.current === "forward"
-      ? "animate-slide-in-left"
-      : navDirection.current === "back"
-        ? "animate-slide-in-right"
-        : "";
-
   const yearGroups: { year: string; months: MonthBar[] }[] = [];
   if (mode === "month") {
-    for (const bar of visibleBars) {
+    for (const bar of bars) {
       const year = bar.key.slice(0, 4);
       const last = yearGroups[yearGroups.length - 1];
       if (last && last.year === year) last.months.push(bar);
@@ -142,33 +136,19 @@ export default function MonthlyChart({
       <>
         <div className="flex items-end gap-1 justify-center" style={{ height: `${BAR_MAX}px` }}>
           <div
-            style={{
-              height: `${incomeH}px`,
-              width: "14px",
-              borderRadius: "3px 3px 0 0",
-              backgroundColor: isActive ? "rgb(var(--c-positive))" : "rgb(var(--c-positive) / 0.18)",
-              transition: "background-color 0.15s",
-            }}
+            style={barStyle(
+              incomeH,
+              isActive ? "rgb(var(--c-positive))" : "rgb(var(--c-positive) / 0.18)",
+            )}
           />
           {savingH > 0 && (
-            <div
-              style={{
-                height: `${savingH}px`,
-                width: "14px",
-                borderRadius: "3px 3px 0 0",
-                backgroundColor: isActive ? "#8b3eb8" : "rgba(139,62,184,0.18)",
-                transition: "background-color 0.15s",
-              }}
-            />
+            <div style={barStyle(savingH, isActive ? "#8b3eb8" : "rgba(139,62,184,0.18)")} />
           )}
           <div
-            style={{
-              height: `${expenseH}px`,
-              width: "14px",
-              borderRadius: "3px 3px 0 0",
-              backgroundColor: isActive ? "rgb(var(--c-negative))" : "rgb(var(--c-negative) / 0.18)",
-              transition: "background-color 0.15s",
-            }}
+            style={barStyle(
+              expenseH,
+              isActive ? "rgb(var(--c-negative))" : "rgb(var(--c-negative) / 0.18)",
+            )}
           />
         </div>
         <div
@@ -180,59 +160,28 @@ export default function MonthlyChart({
     );
   };
 
-  const renderBar = (b: MonthBar) => (
+  const renderBar = (b: MonthBar, style?: CSSProperties) => (
     <button
       key={b.key}
       className="flex-1 flex flex-col items-center focus:outline-none cursor-pointer min-w-0"
+      style={style}
       onClick={() => onSelect(b.key)}
     >
       {renderBarGraphic(b, b.key === activeKey)}
     </button>
   );
 
-  const renderPeekBar = (b: MonthBar, side: "left" | "right") => {
-    const fade =
-      side === "left"
-        ? "linear-gradient(to right, transparent, black)"
-        : "linear-gradient(to left, transparent, black)";
-    return (
-      <button
-        key={b.key}
-        className={`w-5 shrink-0 flex flex-col ${side === "left" ? "items-end" : "items-start"} focus:outline-none cursor-pointer opacity-60`}
-        style={{
-          maskImage: fade,
-          WebkitMaskImage: fade,
-          maskRepeat: "no-repeat",
-          WebkitMaskRepeat: "no-repeat",
-        }}
-        onClick={() => goTo(side === "left" ? windowStart - 1 : windowStart + 1, side === "left" ? "back" : "forward")}
-        aria-label={b.label}
-      >
-        {renderBarGraphic(b, b.key === activeKey)}
-        {mode === "month" && (
-          <div className="invisible text-[10px] font-medium mt-2 border-t pt-1">0</div>
-        )}
-      </button>
-    );
-  };
-
   const modeToggle = (
     <div className="flex rounded-lg overflow-hidden border border-border text-xs font-medium shrink-0">
       <button
         className={`px-3 py-1 transition-colors ${mode === "month" ? "bg-accent text-white" : "text-muted hover:text-text"}`}
-        onClick={() => {
-          navDirection.current = null;
-          onModeChange("month");
-        }}
+        onClick={() => onModeChange("month")}
       >
         {t("monthly.months")}
       </button>
       <button
         className={`px-3 py-1 transition-colors ${mode === "year" ? "bg-accent text-white" : "text-muted hover:text-text"}`}
-        onClick={() => {
-          navDirection.current = null;
-          onModeChange("year");
-        }}
+        onClick={() => onModeChange("year")}
       >
         {t("monthly.years")}
       </button>
@@ -251,45 +200,48 @@ export default function MonthlyChart({
         </StatsRow>
 
       <div className="flex items-center gap-1">
-        {(mode === "month" || isMobile) && (
+        {!isMobile && (
           <button
             className="shrink-0 p-2 rounded-lg text-muted hover:text-text hover:bg-surface disabled:opacity-20 disabled:cursor-default transition-colors"
-            onClick={() => goTo(windowStart - pageSize, "back")}
-            disabled={!canGoBack}
+            onClick={() => scrollByPage(-1)}
+            disabled={scrollView.atStart}
             aria-label={t("monthly.prevAria")}
           >
             <ArrowLeftIcon size={22} />
           </button>
         )}
 
-        <div className="flex-1 overflow-hidden">
+        <div
+          {...stripProps}
+          className="flex-1 overflow-x-auto no-scrollbar overscroll-x-contain select-none cursor-grab active:cursor-grabbing"
+        >
           {mode === "month" ? (
-            <div key={windowStart} className={`flex gap-3 w-full ${animClass}`}>
-              {prevPeek && renderPeekBar(prevPeek, "left")}
+            <div className="flex gap-3">
               {yearGroups.map(({ year, months }) => (
-                <div key={year} className="flex flex-col min-w-0" style={{ flex: months.length }}>
+                <div
+                  key={year}
+                  className="flex flex-col min-w-0"
+                  style={{ flex: `${months.length} 0 ${barBasis(months.length)}` }}
+                >
                   <div className="flex items-end w-full">{months.map((b) => renderBar(b))}</div>
                   <div className="text-[10px] text-muted font-medium mt-2 text-center border-t border-border pt-1 w-full">
                     {year}
                   </div>
                 </div>
               ))}
-              {nextPeek && renderPeekBar(nextPeek, "right")}
             </div>
           ) : (
-            <div key={windowStart} className={`flex items-end w-full ${animClass}`}>
-              {prevPeek && renderPeekBar(prevPeek, "left")}
-              {visibleBars.map((b) => renderBar(b))}
-              {nextPeek && renderPeekBar(nextPeek, "right")}
+            <div className="flex items-end">
+              {bars.map((b) => renderBar(b, { flex: `1 0 ${barBasis()}` }))}
             </div>
           )}
         </div>
 
-        {(mode === "month" || isMobile) && (
+        {!isMobile && (
           <button
             className="shrink-0 p-2 rounded-lg text-muted hover:text-text hover:bg-surface disabled:opacity-20 disabled:cursor-default transition-colors"
-            onClick={() => goTo(windowStart + pageSize, "forward")}
-            disabled={!canGoForward}
+            onClick={() => scrollByPage(1)}
+            disabled={scrollView.atEnd}
             aria-label={t("monthly.nextAria")}
           >
             <ArrowRightIcon size={22} />
