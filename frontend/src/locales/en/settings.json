@@ -54,7 +54,7 @@
     "restorePreviewNever": "Never",
     "restorePreviewFileCount": "Transactions in backup",
     "restorePreviewLocalCount": "Transactions locally",
-    "restorePreviewWarning": "The backup contains more transactions than your local database. You may overwrite data that is not included in the backup.",
+    "restorePreviewWarning": "The backup contains fewer transactions than your local database. Continuing will replace your local data with the backup, and transactions not in the backup will be lost.",
     "restorePreviewProceed": "Load"
   },
   "import": {

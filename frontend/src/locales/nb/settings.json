@@ -54,7 +54,7 @@
     "restorePreviewNever": "Aldri",
     "restorePreviewFileCount": "Transaksjoner i sikkerhetskopi",
     "restorePreviewLocalCount": "Transaksjoner lokalt",
-    "restorePreviewWarning": "Sikkerhetskopien inneholder flere transaksjoner enn din lokale database. Du kan overskrive viktige data som ikke er inkludert i sikkerhetskopien.",
+    "restorePreviewWarning": "Sikkerhetskopien inneholder færre transaksjoner enn din lokale database. Fortsetter du, erstattes lokale data med sikkerhetskopien, og transaksjoner som ikke finnes i den, går tapt.",
     "restorePreviewProceed": "Last inn"
   },
   "import": {

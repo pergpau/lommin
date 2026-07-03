@@ -10,6 +10,7 @@ import { useSnackbar } from "../ui/Snackbar";
 import { loadEncryptedFile, saveEncryptedFile } from "../../lib/cryptoFile";
 import {
   DriveAuthError,
+  getDriveBackupModifiedTime,
   loadBackupFromDrive,
   saveBackupToDrive,
   signInWithGoogle,
@@ -41,6 +42,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
     localCount?: number;
     remoteSavedAt?: number | null;
     localSavedAt?: number | null;
+    driveModifiedAt?: number | null;
   } | null>(null);
   const [driveToken, setDriveToken] = useState<string | null>(null);
   const [driveSyncing, setDriveSyncing] = useState<"connect" | "save" | "load" | null>(null);
@@ -164,14 +166,17 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
     setDialog(null);
     setRestorePreview({ loading: true });
     try {
-      const data = await loadBackupFromDrive(driveToken, passphrase);
+      const [data, driveModifiedAt] = await Promise.all([
+        loadBackupFromDrive(driveToken, passphrase),
+        getDriveBackupModifiedTime(driveToken).catch(() => null),
+      ]);
       const [localTxs, localSavedAt] = await Promise.all([
         getAllTransactions(),
         getSetting("lastLocalSavedAt"),
       ]);
       const raw = data as { transactions?: unknown[]; exportedAt?: number };
       const fileCount = Array.isArray(raw.transactions) ? raw.transactions.length : 0;
-      setRestorePreview({ loading: false, data, fileCount, localCount: localTxs.length, remoteSavedAt: raw.exportedAt ?? null, localSavedAt });
+      setRestorePreview({ loading: false, data, fileCount, localCount: localTxs.length, remoteSavedAt: raw.exportedAt ?? null, localSavedAt, driveModifiedAt });
     } catch (e) {
       setRestorePreview(null);
       if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
@@ -189,12 +194,16 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
 
   const confirmDriveRestore = useCallback(async () => {
     if (!restorePreview?.data) return;
-    const { data } = restorePreview;
+    const { data, driveModifiedAt } = restorePreview;
     setRestorePreview(null);
     setDriveSyncing("load");
     showSnackbar(t("common:sync.syncing"), "info", null);
     try {
-      await importAll(data);
+      await importAll(data, { overwrite: true });
+      if (driveModifiedAt) {
+        await setSetting("lastLocalSavedAt", driveModifiedAt);
+        await setSetting("lastDataModifiedAt", driveModifiedAt);
+      }
       showSnackbar(t("settings:snackbar.driveRestoreSuccess"), "ok");
       navigate("/dashboard", { state: { checkDuplicates: true } });
     } catch (e) {
@@ -472,7 +481,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                     </div>
                   );
                 })()}
-                {(restorePreview.fileCount ?? 0) > (restorePreview.localCount ?? 0) && (
+                {(restorePreview.fileCount ?? 0) < (restorePreview.localCount ?? 0) && (
                   <div className="border border-warning/20 bg-warning/5 rounded-lg p-3 mb-4">
                     <p className="text-xs text-warning leading-relaxed">
                       {t("settings:backup.restorePreviewWarning")}

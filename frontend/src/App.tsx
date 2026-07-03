@@ -17,6 +17,7 @@ import Terms from "./pages/Terms";
 import OAuthCallback from "./pages/OAuthCallback";
 import { useDriveSync } from "./hooks/useDriveSync";
 import DriveReconnectModal from "./components/DriveReconnectModal";
+import DriveRestoreWarningModal from "./components/DriveRestoreWarningModal";
 
 function RequireKey({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<"loading" | "ok" | "missing">("loading");
@@ -52,10 +53,18 @@ function RootRedirect() {
 }
 
 function AppContent() {
-  useDriveSync();
+  const { pendingRestore, confirmRestore, dismissRestore } = useDriveSync();
   return (
     <>
     {!window.opener && <DriveReconnectModal />}
+    {pendingRestore && (
+      <DriveRestoreWarningModal
+        backupCount={pendingRestore.backupCount}
+        localCount={pendingRestore.localCount}
+        onConfirm={() => void confirmRestore()}
+        onCancel={dismissRestore}
+      />
+    )}
     <Layout>
       <ErrorBoundary>
         <Routes>

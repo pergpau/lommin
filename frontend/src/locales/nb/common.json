@@ -23,6 +23,13 @@
     "done": "Google Drive-data lastet inn",
     "error": "Datahenting fra Google Drive feilet"
   },
+  "restoreWarning": {
+    "title": "Gjenopprette fra Google Drive?",
+    "body": "Sikkerhetskopien i Google Drive inneholder {{backupCount}} transaksjoner, mens du har {{localCount}} lokalt.",
+    "consequence": "Fortsetter du, erstattes lokale data med sikkerhetskopien, og transaksjoner som ikke finnes i den, går tapt.",
+    "confirm": "Last inn likevel",
+    "keepLocal": "Behold lokale data"
+  },
   "driveReconnect": {
     "title": "Google Drive-tilkobling utløpt",
     "body": "Tilgangstokenet ditt til Google Drive er utløpt. Vil du koble til på nytt for å fortsette synkroniseringen?",

@@ -23,6 +23,13 @@
     "done": "Google Drive data loaded",
     "error": "Google Drive data load failed"
   },
+  "restoreWarning": {
+    "title": "Restore from Google Drive?",
+    "body": "The Google Drive backup contains {{backupCount}} transactions, but you have {{localCount}} locally.",
+    "consequence": "Continuing will replace your local data with the backup, and transactions not in the backup will be lost.",
+    "confirm": "Load anyway",
+    "keepLocal": "Keep local data"
+  },
   "driveReconnect": {
     "title": "Google Drive connection expired",
     "body": "Your Google Drive access token has expired. Would you like to reconnect to continue syncing?",

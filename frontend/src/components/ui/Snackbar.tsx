@@ -6,6 +6,7 @@ type SnackType = "ok" | "error" | "info";
 
 type SnackbarContextValue = {
   showSnackbar: (message: string, type: SnackType, duration?: number | null) => void;
+  hideSnackbar: () => void;
 };
 
 const SnackbarContext = createContext<SnackbarContextValue | null>(null);
@@ -37,7 +38,7 @@ export function SnackbarProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <SnackbarContext.Provider value={{ showSnackbar }}>
+    <SnackbarContext.Provider value={{ showSnackbar, hideSnackbar: dismiss }}>
       {children}
       <div
         aria-live="polite"
