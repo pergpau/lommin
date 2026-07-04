@@ -1,0 +1,11 @@
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+hooks = [{ id = "check-yaml" }, { id = "end-of-file-fixer" }, { id = "trailing-whitespace" }]
+
+[[repos]]
+repo = "local"
+hooks = [
+  { id = "oxlint", name = "Oxlint (Linter)", entry = "npx oxlint --deny-warnings", language = "system", files = "\\.(js|jsx|ts|tsx)$" },
+  { id = "oxfmt", name = "Oxfmt (Formatter)", entry = "npx oxfmt --no-error-on-unmatched-pattern", language = "system", files = "\\.(js|jsx|ts|tsx|json|jsonc|yaml|yml|md)$" },
+]
