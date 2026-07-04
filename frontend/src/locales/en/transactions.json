@@ -40,6 +40,14 @@
     "removeCategory": "Remove category",
     "cancel": "Cancel"
   },
+  "similarSuggestions": {
+    "title": "Apply to similar transactions?",
+    "description": "{{count}} other uncategorized transactions match this one.",
+    "selectAll": "Select all",
+    "apply": "Apply to {{count}}",
+    "skip": "Skip",
+    "andMore": "…and {{count}} more not shown"
+  },
   "row": {
     "pending": "(Pending)",
     "uncategorized": "Uncategorized"

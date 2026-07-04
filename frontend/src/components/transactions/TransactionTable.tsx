@@ -3,7 +3,9 @@ import { useTranslation } from "react-i18next";
 import { PAGE_SIZE } from "../../constants";
 import type { Transaction } from "../../lib/data";
 import SearchInput from "../ui/SearchInput";
+import { useSimilarSuggestions } from "../../hooks/useSimilarSuggestions";
 import CategoryPicker from "./CategoryPicker";
+import { SimilarSuggestions } from "./SimilarTransactionsModal";
 import TransactionDetail from "./TransactionDetail";
 import TransactionRow from "./TransactionRow";
 
@@ -30,6 +32,8 @@ export default function TransactionTable({
   const [search, setSearch] = useState("");
   const [pickerFor, setPickerFor] = useState<Transaction | null>(null);
   const [detailForId, setDetailForId] = useState<string | null>(null);
+  const { suggestions, checkForSimilar, applySuggestions, closeSuggestions } =
+    useSimilarSuggestions(onMutated);
   const detailFor = detailForId ? (transactions.find((tx) => tx.id === detailForId) ?? null) : null;
 
   if (prevTransactions !== transactions) {
@@ -52,8 +56,10 @@ export default function TransactionTable({
 
   async function handleCategorySelect(categoryId: number | undefined) {
     if (!pickerFor || !onCategoryChange) return;
-    await onCategoryChange(pickerFor.id, categoryId);
+    const tx = pickerFor;
+    await onCategoryChange(tx.id, categoryId);
     setPickerFor(null);
+    await checkForSimilar(tx, categoryId);
   }
 
   if (transactions.length === 0) {
@@ -146,6 +152,12 @@ export default function TransactionTable({
           onClose={() => setPickerFor(null)}
         />
       )}
+
+      <SimilarSuggestions
+        suggestions={suggestions}
+        onApply={applySuggestions}
+        onClose={closeSuggestions}
+      />
     </>
   );
 }

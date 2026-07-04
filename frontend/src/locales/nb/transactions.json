@@ -40,6 +40,14 @@
     "removeCategory": "Fjern kategori",
     "cancel": "Avbryt"
   },
+  "similarSuggestions": {
+    "title": "Bruk samme kategori på lignende transaksjoner?",
+    "description": "{{count}} andre ukategoriserte transaksjoner ligner på denne.",
+    "selectAll": "Velg alle",
+    "apply": "Bruk på {{count}}",
+    "skip": "Hopp over",
+    "andMore": "…og {{count}} til som ikke vises"
+  },
   "row": {
     "pending": "(Reservert)",
     "uncategorized": "Ukategorisert"

@@ -161,6 +161,20 @@ export async function setCategoryId(
   await tx.done;
 }
 
+export async function batchSetCategoryId(
+  transactionIds: string[],
+  categoryId: number | undefined,
+): Promise<void> {
+  if (transactionIds.length === 0) return;
+  const d = await db();
+  const tx = d.transaction("transactions", "readwrite");
+  for (const id of transactionIds) {
+    const t = await tx.store.get(id);
+    if (t) await tx.store.put({ ...t, categoryId });
+  }
+  await tx.done;
+}
+
 export async function setCustomDate(
   transactionId: string,
   date: string | undefined,

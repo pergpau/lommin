@@ -8,8 +8,10 @@ import { amountClass, effectiveDate, fmtAmount, fmtDate } from "../../lib/format
 import { SUB_CATEGORY_MAP } from "../../lib/categories";
 import { pairKey } from "../../lib/duplicates";
 import type { Transaction } from "../../lib/data";
+import { useSimilarSuggestions } from "../../hooks/useSimilarSuggestions";
 import CategoryBadge from "./CategoryBadge";
 import CategoryPicker from "./CategoryPicker";
+import { SimilarSuggestions } from "./SimilarTransactionsModal";
 import TransactionDetail from "./TransactionDetail";
 
 interface DuplicatesListProps {
@@ -30,6 +32,8 @@ export default function DuplicatesList({
   const { t } = useTranslation("dashboard");
   const [pickerFor, setPickerFor] = useState<Transaction | null>(null);
   const [detailForId, setDetailForId] = useState<string | null>(null);
+  const { suggestions, checkForSimilar, applySuggestions, closeSuggestions } =
+    useSimilarSuggestions(onMutated);
   const allTxs = pairs.flatMap(([a, b]) => [a, b]);
   const detailFor = detailForId ? (allTxs.find((tx) => tx.id === detailForId) ?? null) : null;
   const [deletingTx, setDeletingTx] = useState<Transaction | null>(null);
@@ -42,8 +46,10 @@ export default function DuplicatesList({
 
   async function handleCategorySelect(categoryId: number | undefined) {
     if (!pickerFor) return;
-    await onCategoryChange(pickerFor.id, categoryId);
+    const tx = pickerFor;
+    await onCategoryChange(tx.id, categoryId);
     setPickerFor(null);
+    await checkForSimilar(tx, categoryId);
   }
 
   function isResolved(tx: Transaction): boolean {
@@ -107,6 +113,12 @@ export default function DuplicatesList({
           onClose={() => setPickerFor(null)}
         />
       )}
+
+      <SimilarSuggestions
+        suggestions={suggestions}
+        onApply={applySuggestions}
+        onClose={closeSuggestions}
+      />
 
       {detailFor && (
         <TransactionDetail

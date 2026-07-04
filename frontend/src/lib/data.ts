@@ -24,6 +24,7 @@ function wrap<A extends unknown[], R>(fn: (...args: A) => Promise<R>) {
 
 // Writes
 export const setCategoryId = wrap(store.setCategoryId);
+export const batchSetCategoryId = wrap(store.batchSetCategoryId);
 export const setExcludeFromCalculations = wrap(store.setExcludeFromCalculations);
 export const setCustomDate = wrap(store.setCustomDate);
 export const setComment = wrap(store.setComment);

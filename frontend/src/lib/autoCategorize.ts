@@ -39,7 +39,6 @@ const BTC_RULES: Array<[string | RegExp, number]> = [
 
   // Digital goods — specific before generic (en-dash U+2013)
   ["DIGITAL GOODS – GAMES", 160],
-  ["DIGITAL GOODS – GAMES", 160],
   ["DIGITAL GOODS – MEDIA", 163],
   ["DIGITAL GOODS MEDIA", 163],
   ["DIGITAL GOODS", 168],
@@ -107,63 +106,77 @@ function bbanKey(tx: Transaction): string | undefined {
   return `${tx.from_bban ?? ""}→${tx.to_bban ?? ""}`;
 }
 
+interface RuleSet {
+  rules: ReadonlyArray<readonly [string | RegExp, number]>;
+  matches: (pattern: string | RegExp, tx: Transaction) => boolean;
+}
+
+interface RuleMatch {
+  ruleSet: RuleSet;
+  pattern: string | RegExp;
+  categoryId: number;
+}
+
+const RULE_SETS: readonly RuleSet[] = [
+  {
+    rules: BTC_RULES,
+    matches: (pattern, tx) => {
+      if (!tx.bankTransactionCode) return false;
+      return typeof pattern === "string"
+        ? tx.bankTransactionCode.toUpperCase().includes(pattern)
+        : pattern.test(tx.bankTransactionCode);
+    },
+  },
+  {
+    rules: CREDITOR_RULES,
+    matches: (pattern, tx) => !!tx.creditorName && (pattern as RegExp).test(tx.creditorName),
+  },
+  {
+    rules: DESCRIPTION_RULES,
+    matches: (pattern, tx) => !!tx.description && (pattern as RegExp).test(tx.description),
+  },
+];
+
+function matchRules(tx: Transaction): RuleMatch | null {
+  if (tx.bankTransactionCode?.toUpperCase().includes("FINANCIAL INST")) return null;
+
+  for (const ruleSet of RULE_SETS) {
+    for (const [pattern, categoryId] of ruleSet.rules) {
+      if (ruleSet.matches(pattern, tx)) return { ruleSet, pattern, categoryId };
+    }
+  }
+
+  return null;
+}
+
 function resolveCategory(
   tx: Transaction,
   creditorHistory?: Map<string, number>,
   bbanHistory?: Map<string, number>,
 ): number | undefined {
-  const creditorName = tx.creditorName;
-
-  // --- CRDT short-circuit ---
   if (tx.creditDebit === "CRDT") {
     const desc = tx.description.toLowerCase();
     if (desc.includes("cashback transfer") || desc.includes("innbetaling")) return 113;
     return undefined;
   }
 
-  // --- Step 0: user's own history for this creditor ---
-  if (creditorName && creditorHistory?.has(creditorName)) {
-    return creditorHistory.get(creditorName)!;
+  if (tx.creditorName && creditorHistory?.has(tx.creditorName)) {
+    return creditorHistory.get(tx.creditorName)!;
   }
 
-  // --- Step 0b: BBAN pair history ---
   const key = bbanKey(tx);
   if (key && bbanHistory?.has(key)) {
     return bbanHistory.get(key)!;
   }
 
-  // --- Step 1: BTC description ---
-  const btcDesc = tx.bankTransactionCode;
+  return matchRules(tx)?.categoryId;
+}
 
-  if (btcDesc) {
-    const normalized = btcDesc.toUpperCase();
-    // Skip ambiguous code — mostly Vipps private transfers
-    if (normalized.includes("FINANCIAL INST")) return undefined;
+export function findMatchingRulePredicate(tx: Transaction): ((t: Transaction) => boolean) | null {
+  const match = matchRules(tx);
+  if (!match) return null;
 
-    for (const [pattern, catId] of BTC_RULES) {
-      if (typeof pattern === "string") {
-        if (normalized.includes(pattern)) return catId;
-      } else {
-        if (pattern.test(btcDesc)) return catId;
-      }
-    }
-  }
-
-  // --- Step 2: creditor name patterns ---
-  if (creditorName) {
-    for (const [pattern, catId] of CREDITOR_RULES) {
-      if (pattern.test(creditorName)) return catId;
-    }
-  }
-
-  // --- Step 3: remittance/description fallback ---
-  if (tx.description) {
-    for (const [pattern, catId] of DESCRIPTION_RULES) {
-      if (pattern.test(tx.description)) return catId;
-    }
-  }
-
-  return undefined;
+  return (t) => match.ruleSet.matches(match.pattern, t);
 }
 
 export function guessCategory(
