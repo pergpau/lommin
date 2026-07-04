@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '(.tool_input.file_path // .tool_response.filePath) // empty' | { read -r f; [ -z \"$f\" ] && exit 0; case \"$f\" in *.js|*.jsx|*.ts|*.tsx|*.json|*.jsonc|*.yaml|*.yml|*.md) BIN=\"$CLAUDE_PROJECT_DIR/frontend/node_modules/.bin/oxfmt\"; [ -x \"$BIN\" ] && \"$BIN\" --no-error-on-unmatched-pattern \"$f\" >/dev/null 2>&1 ;; esac; } || true",
+            "statusMessage": "Formatting with oxfmt"
+          }
+        ]
+      }
+    ]
+  }
+}
