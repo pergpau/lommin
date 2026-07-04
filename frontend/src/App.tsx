@@ -56,18 +56,18 @@ function AppContent() {
   const { pendingRestore, confirmRestore, dismissRestore } = useDriveSync();
   return (
     <>
-    {!window.opener && <DriveReconnectModal />}
-    {pendingRestore && (
-      <DriveRestoreWarningModal
-        backupCount={pendingRestore.backupCount}
-        localCount={pendingRestore.localCount}
-        onConfirm={() => void confirmRestore()}
-        onCancel={dismissRestore}
-      />
-    )}
-    <Layout>
-      <ErrorBoundary>
-        <Routes>
+      {!window.opener && <DriveReconnectModal />}
+      {pendingRestore && (
+        <DriveRestoreWarningModal
+          backupCount={pendingRestore.backupCount}
+          localCount={pendingRestore.localCount}
+          onConfirm={() => void confirmRestore()}
+          onCancel={dismissRestore}
+        />
+      )}
+      <Layout>
+        <ErrorBoundary>
+          <Routes>
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/setup" element={<Navigate to="/onboarding" replace />} />
             <Route path="/connect" element={<Connect />} />
@@ -104,7 +104,7 @@ function AppContent() {
               }
             />
             <Route path="/oauth/google" element={<OAuthCallback />} />
-<Route path="/privacy" element={<Privacy />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="*" element={<RootRedirect />} />
           </Routes>

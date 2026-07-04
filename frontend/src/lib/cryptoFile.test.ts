@@ -32,8 +32,20 @@ describe("cryptoFile", () => {
     const IV_LEN = 12;
     const salt = crypto.getRandomValues(new Uint8Array(SALT_LEN)) as Uint8Array<ArrayBuffer>;
     const iv = crypto.getRandomValues(new Uint8Array(IV_LEN)) as Uint8Array<ArrayBuffer>;
-    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(passphrase), "PBKDF2", false, ["deriveKey"]);
-    const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 200_000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt"]);
+    const base = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(passphrase),
+      "PBKDF2",
+      false,
+      ["deriveKey"],
+    );
+    const key = await crypto.subtle.deriveKey(
+      { name: "PBKDF2", salt, iterations: 200_000, hash: "SHA-256" },
+      base,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt"],
+    );
     const plaintext = new TextEncoder().encode(JSON.stringify(data));
     const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext);
 

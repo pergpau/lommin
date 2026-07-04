@@ -145,9 +145,9 @@ export const CopyIcon = icon(
   1.5,
 );
 
-export const ChevronDownIcon = icon(
-  () => <polyline points="6 9 12 15 18 9" strokeLinecap="round" strokeLinejoin="round" />,
-);
+export const ChevronDownIcon = icon(() => (
+  <polyline points="6 9 12 15 18 9" strokeLinecap="round" strokeLinejoin="round" />
+));
 
 export const MenuIcon = icon(() => (
   <>

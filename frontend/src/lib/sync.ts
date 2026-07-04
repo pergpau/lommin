@@ -32,7 +32,7 @@ export async function syncAccount(
   onProgress?: (msg: string) => void,
   forcedDateFrom?: string,
 ): Promise<number> {
-  const bankName = acc.bankName ?? ""
+  const bankName = acc.bankName ?? "";
   const label = acc.name ?? acc.uid.slice(0, 8);
   const src = getEnableBankingSource(acc);
   if (!src) return 0; // Spiir-only account — nothing to sync via API
@@ -66,7 +66,8 @@ export async function syncAccount(
   const creditorHistory = new Map<string, number>();
   const bbanHistory = new Map<string, number>();
   for (const t of existing) {
-    if (t.creditorName && t.categoryId !== undefined) creditorHistory.set(t.creditorName, t.categoryId);
+    if (t.creditorName && t.categoryId !== undefined)
+      creditorHistory.set(t.creditorName, t.categoryId);
     if (t.categoryId !== undefined && (t.to_bban || t.from_bban)) {
       bbanHistory.set(`${t.from_bban ?? ""}→${t.to_bban ?? ""}`, t.categoryId);
     }
@@ -95,7 +96,13 @@ export async function syncAccount(
 
 export interface SyncResult {
   inserted: number;
-  errors: Array<{ uid: string; label: string; message: string; isNetworkError: boolean; isSessionExpired: boolean }>;
+  errors: Array<{
+    uid: string;
+    label: string;
+    message: string;
+    isNetworkError: boolean;
+    isSessionExpired: boolean;
+  }>;
 }
 
 // Sync many accounts in parallel. Continues on per-account errors.

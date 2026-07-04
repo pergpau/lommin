@@ -23,7 +23,9 @@ export default function DriveRestoreWarningModal({
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-sm font-semibold text-text mb-1">{t("restoreWarning.title")}</h3>
-        <p className="text-xs text-muted mb-3">{t("restoreWarning.body", { backupCount, localCount })}</p>
+        <p className="text-xs text-muted mb-3">
+          {t("restoreWarning.body", { backupCount, localCount })}
+        </p>
         <div className="border border-warning/20 bg-warning/5 rounded-lg p-3 mb-4">
           <p className="text-xs text-warning leading-relaxed">{t("restoreWarning.consequence")}</p>
         </div>

@@ -16,7 +16,9 @@ export default function Terms() {
 
       <div className="space-y-4">
         <section className="card p-5">
-          <h2 className="text-sm font-semibold text-text mb-2">{t("sections.noWarranty.heading")}</h2>
+          <h2 className="text-sm font-semibold text-text mb-2">
+            {t("sections.noWarranty.heading")}
+          </h2>
           <p className="text-sm text-muted leading-relaxed">{t("sections.noWarranty.body")}</p>
         </section>
 
@@ -33,12 +35,16 @@ export default function Terms() {
         </section>
 
         <section className="card p-5">
-          <h2 className="text-sm font-semibold text-text mb-2">{t("sections.dataPortability.heading")}</h2>
+          <h2 className="text-sm font-semibold text-text mb-2">
+            {t("sections.dataPortability.heading")}
+          </h2>
           <p className="text-sm text-muted leading-relaxed">{t("sections.dataPortability.body")}</p>
         </section>
 
         <section className="card p-5 border-l-2 border-accent/40">
-          <h2 className="text-sm font-semibold text-text mb-2">{t("sections.googleDriveBackup.heading")}</h2>
+          <h2 className="text-sm font-semibold text-text mb-2">
+            {t("sections.googleDriveBackup.heading")}
+          </h2>
           <p className="text-sm text-muted leading-relaxed mb-3">
             <Trans
               i18nKey="terms:sections.googleDriveBackup.body1"
@@ -84,8 +90,12 @@ export default function Terms() {
         </section>
 
         <section className="card p-5">
-          <h2 className="text-sm font-semibold text-text mb-2">{t("sections.enableBanking.heading")}</h2>
-          <p className="text-sm text-muted leading-relaxed mb-3">{t("sections.enableBanking.body1")}</p>
+          <h2 className="text-sm font-semibold text-text mb-2">
+            {t("sections.enableBanking.heading")}
+          </h2>
+          <p className="text-sm text-muted leading-relaxed mb-3">
+            {t("sections.enableBanking.body1")}
+          </p>
           <p className="text-sm text-muted leading-relaxed">
             <Trans
               i18nKey="terms:sections.enableBanking.body2"
@@ -104,7 +114,9 @@ export default function Terms() {
         </section>
 
         <section className="card p-5">
-          <h2 className="text-sm font-semibold text-text mb-2">{t("sections.openSource.heading")}</h2>
+          <h2 className="text-sm font-semibold text-text mb-2">
+            {t("sections.openSource.heading")}
+          </h2>
           <p className="text-sm text-muted leading-relaxed">
             <Trans
               i18nKey="terms:sections.openSource.body"

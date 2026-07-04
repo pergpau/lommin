@@ -25,7 +25,13 @@ export default function ResyncModal({ days, onDaysChange, onConfirm, onCancel }:
         <div className="mb-5">
           <div className="flex justify-between text-xs text-muted mb-2">
             <span>{t("resync.daysLabel", { count: days })}</span>
-            <span className="mono">{(() => { const d = new Date(); d.setDate(d.getDate() - days); return d.toLocaleDateString(getLocale()); })()}</span>
+            <span className="mono">
+              {(() => {
+                const d = new Date();
+                d.setDate(d.getDate() - days);
+                return d.toLocaleDateString(getLocale());
+              })()}
+            </span>
           </div>
           <input
             type="range"

@@ -204,7 +204,10 @@ export async function disconnectAccount(uid: string): Promise<void> {
   const d = await db();
   const acc = await d.get("accounts", uid);
   if (!acc) return;
-  await d.put("accounts", { ...acc, sources: acc.sources.filter((s) => s.type !== "enableBanking") });
+  await d.put("accounts", {
+    ...acc,
+    sources: acc.sources.filter((s) => s.type !== "enableBanking"),
+  });
   const ctx = d.transaction("syncCursors", "readwrite");
   await ctx.store.delete(uid);
   await ctx.done;

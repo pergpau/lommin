@@ -18,9 +18,7 @@ import { MAX_IMPORT_BYTES } from "../constants";
 
 type Step = "idle" | "preview" | "importing";
 
-type AccountChoice =
-  | { kind: "existing"; uid: string }
-  | { kind: "new"; name: string };
+type AccountChoice = { kind: "existing"; uid: string } | { kind: "new"; name: string };
 
 function dateRange(drafts: CsvTransactionDraft[]): string {
   if (drafts.length === 0) return "";
@@ -104,16 +102,12 @@ export default function CsvImportPanel() {
         cursors: [],
       });
 
-      const skipNote =
-        skipped > 0 ? t("csvImport.skipNote", { skipped }) : "";
+      const skipNote = skipped > 0 ? t("csvImport.skipNote", { skipped }) : "";
       showSnackbar(t("csvImport.success", { count: inserted, skipNote }), "ok");
       setStep("idle");
       navigate("/dashboard", { state: { checkDuplicates: true } });
     } catch (e) {
-      showSnackbar(
-        e instanceof Error ? e.message : t("csvImport.importFailed"),
-        "error",
-      );
+      showSnackbar(e instanceof Error ? e.message : t("csvImport.importFailed"), "error");
       setStep("preview");
     }
   }, [choice, drafts, existingAccounts, showSnackbar, navigate, t]);

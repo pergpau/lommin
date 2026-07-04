@@ -63,7 +63,12 @@ export interface ImportData {
 
 function validateAccountSource(v: unknown, where: string): AccountSource {
   const s = asRecord(v, where);
-  if (s.type !== "enableBanking" && s.type !== "spiir" && s.type !== "demo" && s.type !== "manual") {
+  if (
+    s.type !== "enableBanking" &&
+    s.type !== "spiir" &&
+    s.type !== "demo" &&
+    s.type !== "manual"
+  ) {
     throw new ValidationError(`Ugyldig data: ukjent kildetype i ${where}.`);
   }
   return {

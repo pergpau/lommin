@@ -102,8 +102,14 @@ function buildSubRows(
     : [];
 }
 
-
-export default function SpendingBreakdown({ transactions, subtitle, onCategoryChange, onMutated, goBackRef, shareMap }: Props) {
+export default function SpendingBreakdown({
+  transactions,
+  subtitle,
+  onCategoryChange,
+  onMutated,
+  goBackRef,
+  shareMap,
+}: Props) {
   const { t } = useTranslation(["charts", "categories"]);
   const [view, setView] = useState<View>({ level: "main" });
   const [showAll, setShowAll] = useState(false);
@@ -130,7 +136,9 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
 
   useEffect(() => {
     if (goBackRef) goBackRef.current = goBack;
-    return () => { if (goBackRef) goBackRef.current = null; };
+    return () => {
+      if (goBackRef) goBackRef.current = null;
+    };
   }, [goBackRef, goBack]);
 
   const eligible = useMemo(() => transactions.filter(isEligible), [transactions]);
@@ -138,7 +146,10 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
   // For transaction lists inside a category drill-down we want to show extraordinary
   // transactions too — they're excluded from totals/charts but still belong to a category.
   const nonExcluded = useMemo(
-    () => transactions.filter((t) => !(t.categoryId != null && SUB_CATEGORY_MAP[t.categoryId]?.type === "exclude")),
+    () =>
+      transactions.filter(
+        (t) => !(t.categoryId != null && SUB_CATEGORY_MAP[t.categoryId]?.type === "exclude"),
+      ),
     [transactions],
   );
 
@@ -162,11 +173,23 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
     }
     const rows: { mainId: MainId; total: number; count: number }[] = MAIN_CATEGORIES.filter((cat) =>
       cat.subCategories.some((s) => s.type !== "exclude"),
-    ).map((cat) => ({ mainId: cat.id as MainId, total: map.get(cat.id) ?? 0, count: countMap.get(cat.id) ?? 0 }));
+    ).map((cat) => ({
+      mainId: cat.id as MainId,
+      total: map.get(cat.id) ?? 0,
+      count: countMap.get(cat.id) ?? 0,
+    }));
     if (countMap.has("uncategorized"))
-      rows.push({ mainId: "uncategorized", total: map.get("uncategorized")!, count: countMap.get("uncategorized")! });
+      rows.push({
+        mainId: "uncategorized",
+        total: map.get("uncategorized")!,
+        count: countMap.get("uncategorized")!,
+      });
     if (countMap.has("uncategorized-income"))
-      rows.push({ mainId: "uncategorized-income", total: map.get("uncategorized-income")!, count: countMap.get("uncategorized-income")! });
+      rows.push({
+        mainId: "uncategorized-income",
+        total: map.get("uncategorized-income")!,
+        count: countMap.get("uncategorized-income")!,
+      });
     return rows;
   }, [eligible, amountOf]);
 
@@ -175,7 +198,13 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
     const uncatTxns = eligible.filter((tx) => mainIdOf(tx) === "uncategorized-income");
     const uncatTotal = uncatTxns.reduce((sum, tx) => sum + amountOf(tx), 0);
     if (uncatTxns.length > 0)
-      rows.push({ subId: "uncategorized", total: uncatTotal, count: uncatTxns.length, mainId: "uncategorized-income", isUncat: true });
+      rows.push({
+        subId: "uncategorized",
+        total: uncatTotal,
+        count: uncatTxns.length,
+        mainId: "uncategorized-income",
+        isUncat: true,
+      });
     return rows.sort((a, b) => b.total - a.total);
   }, [eligible, amountOf]);
 
@@ -207,23 +236,44 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
       subId === "uncategorized" ? !tx.categoryId : tx.categoryId === (subId as number),
     );
     const subType = subId !== "uncategorized" ? SUB_CATEGORY_MAP[subId as number]?.type : undefined;
-    const filteredTotal = filtered.reduce((sum, tx) => sum + (subType === "income" ? amountOf(tx) : -amountOf(tx)), 0);
+    const filteredTotal = filtered.reduce(
+      (sum, tx) => sum + (subType === "income" ? amountOf(tx) : -amountOf(tx)),
+      0,
+    );
     return (
       <div>
         <button
           className="flex items-center gap-1.5 text-sm text-muted hover:text-text mb-4 transition-colors"
           onClick={() => setView({ level: "sub", mainId, ...(excluded ? { excluded: true } : {}) })}
         >
-          ← <span style={{ color: m.color }}><FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" /></span> {getMainName(mainId, t)}
+          ←{" "}
+          <span style={{ color: m.color }}>
+            <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
+          </span>{" "}
+          {getMainName(mainId, t)}
         </button>
-        <div className="flex items-center gap-2 mb-4 px-4 py-3 rounded-xl" style={{ backgroundColor: m.color + "12" }}>
-          <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
+        <div
+          className="flex items-center gap-2 mb-4 px-4 py-3 rounded-xl"
+          style={{ backgroundColor: m.color + "12" }}
+        >
+          <span
+            className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
+            style={{ backgroundColor: m.color + "22", color: m.color }}
+          >
             <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
           </span>
           <span className="text-sm font-medium text-text flex-1">{getSubName(subId, t)}</span>
-          <span className="text-sm font-medium text-text tabular-nums mono">{fmtAmount(filteredTotal, undefined, 0)} kr</span>
+          <span className="text-sm font-medium text-text tabular-nums mono">
+            {fmtAmount(filteredTotal, undefined, 0)} kr
+          </span>
         </div>
-        <TransactionTable transactions={filtered} subtitle={subtitle} onCategoryChange={onCategoryChange} onMutated={onMutated} shareMap={shareMap} />
+        <TransactionTable
+          transactions={filtered}
+          subtitle={subtitle}
+          onCategoryChange={onCategoryChange}
+          onMutated={onMutated}
+          shareMap={shareMap}
+        />
       </div>
     );
   }
@@ -246,9 +296,17 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
           </button>
           <div className="flex items-center gap-2 mb-4">
             <span className="text-muted">?</span>
-            <span className="text-sm font-medium text-text">{t("charts:breakdown.uncategorized")}</span>
+            <span className="text-sm font-medium text-text">
+              {t("charts:breakdown.uncategorized")}
+            </span>
           </div>
-          <TransactionTable transactions={filtered} subtitle={subtitle} onCategoryChange={onCategoryChange} onMutated={onMutated} shareMap={shareMap} />
+          <TransactionTable
+            transactions={filtered}
+            subtitle={subtitle}
+            onCategoryChange={onCategoryChange}
+            onMutated={onMutated}
+            shareMap={shareMap}
+          />
         </div>
       );
     }
@@ -277,53 +335,74 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
           {t("charts:breakdown.back")}
         </button>
         <div className="card overflow-hidden mb-6">
-            <div className="px-4 py-3 border-b border-border flex items-center gap-2" style={{ backgroundColor: m.color + "12" }}>
-              <span className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
-                <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
-              </span>
-              <span className="text-sm font-medium text-text flex-1">{getMainName(mainId, t)}</span>
-              <span className="text-sm font-medium text-text tabular-nums mono">{fmtAmount(subTotal, undefined, 0)} kr</span>
-            </div>
-            <div className="divide-y divide-border">
-              {subRows.map(({ subId, total }) => {
-                const s = subMeta(subId);
-                const pct = subTotal > 0 ? (total / subTotal) * 100 : 0;
-                return (
-                  <button
-                    key={subId}
-                    className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
-                    style={{ backgroundColor: m.color + "12" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = m.color + "25")}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = m.color + "12")}
-                    onClick={() =>
-                      setView({ level: "txns", mainId, subId, ...(excluded ? { excluded: true } : {}) })
-                    }
+          <div
+            className="px-4 py-3 border-b border-border flex items-center gap-2"
+            style={{ backgroundColor: m.color + "12" }}
+          >
+            <span
+              className="w-6 h-6 rounded-md flex items-center justify-center"
+              style={{ backgroundColor: m.color + "22", color: m.color }}
+            >
+              <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
+            </span>
+            <span className="text-sm font-medium text-text flex-1">{getMainName(mainId, t)}</span>
+            <span className="text-sm font-medium text-text tabular-nums mono">
+              {fmtAmount(subTotal, undefined, 0)} kr
+            </span>
+          </div>
+          <div className="divide-y divide-border">
+            {subRows.map(({ subId, total }) => {
+              const s = subMeta(subId);
+              const pct = subTotal > 0 ? (total / subTotal) * 100 : 0;
+              return (
+                <button
+                  key={subId}
+                  className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
+                  style={{ backgroundColor: m.color + "12" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = m.color + "25")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = m.color + "12")}
+                  onClick={() =>
+                    setView({
+                      level: "txns",
+                      mainId,
+                      subId,
+                      ...(excluded ? { excluded: true } : {}),
+                    })
+                  }
+                >
+                  <span
+                    className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
+                    style={{ backgroundColor: m.color + "22", color: m.color }}
                   >
-                    <span
-                      className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
-                      style={{ backgroundColor: m.color + "22", color: m.color }}
-                    >
-                      <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
-                    </span>
-                    <span className="text-sm text-text flex-1 truncate">{getSubName(subId, t)}</span>
-                    <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
-                      {pct.toFixed(0)}%
-                    </span>
-                    <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
-                      {fmtAmount(total, undefined, 0)} kr
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                    <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
+                  </span>
+                  <span className="text-sm text-text flex-1 truncate">{getSubName(subId, t)}</span>
+                  <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
+                    {pct.toFixed(0)}%
+                  </span>
+                  <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
+                    {fmtAmount(total, undefined, 0)} kr
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <TransactionTable transactions={subTxns} subtitle={subtitle} onCategoryChange={onCategoryChange} onMutated={onMutated} shareMap={shareMap} />
+        <TransactionTable
+          transactions={subTxns}
+          subtitle={subtitle}
+          onCategoryChange={onCategoryChange}
+          onMutated={onMutated}
+          shareMap={shareMap}
+        />
       </div>
     );
   }
 
   // ── Level 0: main category breakdown ──
-  const expenseRows = mainRows.filter((r) => mainType(r.mainId) === "expense").sort((a, b) => b.total - a.total);
+  const expenseRows = mainRows
+    .filter((r) => mainType(r.mainId) === "expense")
+    .sort((a, b) => b.total - a.total);
 
   function pillClass(active: boolean) {
     return `text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors ${
@@ -347,7 +426,10 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = m.color + "12")}
           onClick={() => setView({ level: "sub", mainId })}
         >
-          <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: m.color + "22", color: m.color }}>
+          <span
+            className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
+            style={{ backgroundColor: m.color + "22", color: m.color }}
+          >
             <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
           </span>
           <span className="text-sm text-text flex-1 truncate">{getMainName(mainId, t)}</span>
@@ -401,7 +483,9 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
   const visibleExpenseRows = showAll ? expenseRows : expenseRows.filter((r) => r.count > 0);
   const visibleIncomeRows = showAll ? inntektSubRows : inntektSubRows.filter((r) => r.count > 0);
   const visibleSparingSubs = showAll ? sparingSubRows : sparingSubRows.filter((r) => r.count > 0);
-  const visibleExcludedSubs = showAll ? excludedSubRows : excludedSubRows.filter((r) => r.count > 0);
+  const visibleExcludedSubs = showAll
+    ? excludedSubRows
+    : excludedSubRows.filter((r) => r.count > 0);
 
   const incomeSectionTotal = inntektSubRows.reduce((sum, r) => sum + r.total, 0);
   const sparingSectionTotal = sparingSubRows.reduce((sum, r) => sum + r.total, 0);
@@ -416,7 +500,9 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
       {visibleExpenseRows.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{t("charts:breakdown.expenses")}</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+              {t("charts:breakdown.expenses")}
+            </h3>
             <button onClick={() => setShowAll((v) => !v)} className={pillClass(showAll)}>
               {t("charts:breakdown.showAll")}
             </button>
@@ -430,7 +516,9 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
       {visibleIncomeRows.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{t("charts:breakdown.income")}</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+              {t("charts:breakdown.income")}
+            </h3>
           </div>
           <div className="card overflow-hidden">
             <div className="divide-y divide-border">
@@ -443,7 +531,9 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
       {sparingSubRows.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{t("charts:breakdown.saving")}</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+              {t("charts:breakdown.saving")}
+            </h3>
           </div>
           {visibleSparingSubs.length > 0 && (
             <div className="card overflow-hidden">
@@ -458,7 +548,9 @@ export default function SpendingBreakdown({ transactions, subtitle, onCategoryCh
       {excludedSubRows.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{t("charts:breakdown.excluded")}</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+              {t("charts:breakdown.excluded")}
+            </h3>
           </div>
           {visibleExcludedSubs.length > 0 && (
             <div className="card overflow-hidden">

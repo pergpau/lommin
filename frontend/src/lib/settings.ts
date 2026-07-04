@@ -101,7 +101,15 @@ export async function setSetting<K extends keyof AppSettings>(
 }
 
 export async function getAllSettings(): Promise<AppSettings> {
-  const [proxyUrl, lookbackDays, usePassphrase, backupMethod, driveAutosave, lastLocalSavedAt, lastDataModifiedAt] = await Promise.all([
+  const [
+    proxyUrl,
+    lookbackDays,
+    usePassphrase,
+    backupMethod,
+    driveAutosave,
+    lastLocalSavedAt,
+    lastDataModifiedAt,
+  ] = await Promise.all([
     getSetting("proxyUrl"),
     getSetting("lookbackDays"),
     getSetting("usePassphrase"),
@@ -110,7 +118,15 @@ export async function getAllSettings(): Promise<AppSettings> {
     getSetting("lastLocalSavedAt"),
     getSetting("lastDataModifiedAt"),
   ]);
-  return { proxyUrl, lookbackDays, usePassphrase, backupMethod, driveAutosave, lastLocalSavedAt, lastDataModifiedAt };
+  return {
+    proxyUrl,
+    lookbackDays,
+    usePassphrase,
+    backupMethod,
+    driveAutosave,
+    lastLocalSavedAt,
+    lastDataModifiedAt,
+  };
 }
 
 export async function getDriveToken(): Promise<{ token: string; expiry: number } | null> {
@@ -121,8 +137,12 @@ export async function getDriveToken(): Promise<{ token: string; expiry: number }
     let expiry: number | undefined;
     const r1 = tx.objectStore(STORE).get("driveAccessToken");
     const r2 = tx.objectStore(STORE).get("driveTokenExpiry");
-    r1.onsuccess = () => { token = r1.result?.v as string | undefined; };
-    r2.onsuccess = () => { expiry = r2.result?.v as number | undefined; };
+    r1.onsuccess = () => {
+      token = r1.result?.v as string | undefined;
+    };
+    r2.onsuccess = () => {
+      expiry = r2.result?.v as number | undefined;
+    };
     tx.oncomplete = () => {
       if (!token || !expiry || Date.now() >= expiry - 60_000) resolve(null);
       else resolve({ token, expiry });

@@ -37,7 +37,10 @@ export default function CategoryBadge({ categoryId, onClick }: CategoryBadgeProp
         className="w-8 h-8 rounded-lg flex items-center justify-center transition-opacity group-hover:opacity-80"
         style={{ backgroundColor: mainCat.color + "22", color: mainCat.color, padding: "7px" }}
       >
-        <FontAwesomeIcon icon={getCategoryIcon(subCat.id)} style={{ width: "100%", height: "100%" }} />
+        <FontAwesomeIcon
+          icon={getCategoryIcon(subCat.id)}
+          style={{ width: "100%", height: "100%" }}
+        />
       </div>
     </button>
   );

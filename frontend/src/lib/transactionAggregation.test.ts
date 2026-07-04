@@ -1,13 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { txSection, buildMonthlyData, buildYearlyData } from "./transactionAggregation";
 
-function makeTx(overrides: Partial<{
-  excludeFromCalculations: boolean;
-  categoryId: number | undefined;
-  amount: number;
-  customDate: string;
-  transactionDate: string;
-}> = {}) {
+function makeTx(
+  overrides: Partial<{
+    excludeFromCalculations: boolean;
+    categoryId: number | undefined;
+    amount: number;
+    customDate: string;
+    transactionDate: string;
+  }> = {},
+) {
   return {
     excludeFromCalculations: false,
     categoryId: undefined as number | undefined,

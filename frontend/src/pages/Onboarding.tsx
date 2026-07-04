@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { useTranslation, Trans } from "react-i18next";
 import BankSetupGuide from "../components/BankSetupGuide";
 import CsvImportPanel from "../components/CsvImport";
 import PemImporter from "../components/PemImporter";
@@ -18,12 +18,12 @@ import {
   UploadIcon,
 } from "../components/ui/icons";
 import Input from "../components/ui/Input";
+import { loadKey, saveKey } from "../lib/auth";
 import { applyRestore, BackupError, loadBackup } from "../lib/backup";
+import { getAccounts } from "../lib/data";
 import { seedDemoData } from "../lib/demoData";
 import { signInWithGoogle } from "../lib/googleDrive";
-import { loadKey, saveKey } from "../lib/auth";
 import { DEFAULT_PROXY_URL, getSetting, persistDriveToken, setSetting } from "../lib/settings";
-import { getAccounts } from "../lib/data";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
@@ -73,7 +73,9 @@ function StepIntro({ onNext }: { onNext: GoTo }) {
   const { t } = useTranslation("onboarding");
   return (
     <div>
-      <div className="mono text-accent text-sm mb-4 tracking-widest uppercase">{t("intro.label")}</div>
+      <div className="mono text-accent text-sm mb-4 tracking-widest uppercase">
+        {t("intro.label")}
+      </div>
       <h1 className="text-2xl font-semibold text-text tracking-tight leading-tight mb-4">
         {t("intro.title")}
       </h1>
@@ -131,7 +133,10 @@ function StepBankExplain({ onNext }: { onNext: GoTo }) {
       <div className="mb-8">
         <BankSetupGuide />
       </div>
-      <Button className="w-full justify-center" onClick={() => onNext({ kind: DEFAULT_PROXY_URL ? "bank-pem" : "bank-proxy" })}>
+      <Button
+        className="w-full justify-center"
+        onClick={() => onNext({ kind: DEFAULT_PROXY_URL ? "bank-pem" : "bank-proxy" })}
+      >
         {t("bankExplain.next")}
       </Button>
     </div>
@@ -200,10 +205,7 @@ function StepBankPem({ onNext }: { onNext: GoTo }) {
     <div>
       <h2 className="text-xl font-semibold text-text mb-1">{t("bankPem.title")}</h2>
       <p className="text-sm text-muted mb-6 leading-relaxed">
-        <Trans
-          i18nKey="onboarding:bankPem.body"
-          components={{ pem: <span className="mono" /> }}
-        />
+        <Trans i18nKey="onboarding:bankPem.body" components={{ pem: <span className="mono" /> }} />
       </p>
       <div className="mb-4">
         <PemSafetyAccordion />
@@ -421,11 +423,7 @@ function StepRestoreFile({ navigate }: { navigate: ReturnType<typeof useNavigate
         {t("restore.fromFile.button")}
       </Button>
       {fileMsg && (
-        <Alert
-          type={fileState === "error" ? "error" : "ok"}
-          message={fileMsg}
-          className="mt-3"
-        />
+        <Alert type={fileState === "error" ? "error" : "ok"} message={fileMsg} className="mt-3" />
       )}
     </div>
   );
@@ -518,11 +516,7 @@ function StepRestoreDrive({ navigate }: { navigate: ReturnType<typeof useNavigat
         </>
       )}
       {driveMsg && (
-        <Alert
-          type={driveState === "error" ? "error" : "ok"}
-          message={driveMsg}
-          className="mt-3"
-        />
+        <Alert type={driveState === "error" ? "error" : "ok"} message={driveMsg} className="mt-3" />
       )}
     </div>
   );
@@ -611,14 +605,14 @@ export default function Onboarding() {
         {current.kind === "bank-explain" && <StepBankExplain onNext={goTo} />}
         {current.kind === "bank-proxy" && <StepBankProxy onNext={goTo} />}
         {current.kind === "bank-pem" && <StepBankPem onNext={goTo} />}
-        {current.kind === "bank-confirm" && (
-          <StepBankConfirm step={current} navigate={navigate} />
-        )}
+        {current.kind === "bank-confirm" && <StepBankConfirm step={current} navigate={navigate} />}
         {current.kind === "import-pick" && <StepImportPick onNext={goTo} />}
         {current.kind === "import-spiir" && (
           <div>
             <h2 className="text-xl font-semibold text-text mb-1">{t("importSpiir.title")}</h2>
-            <SpiirImportPanel onSuccess={() => navigate("/dashboard", { state: { checkDuplicates: true } })} />
+            <SpiirImportPanel
+              onSuccess={() => navigate("/dashboard", { state: { checkDuplicates: true } })}
+            />
           </div>
         )}
         {current.kind === "import-own" && <StepImportOwn />}

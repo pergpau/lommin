@@ -15,9 +15,7 @@ export default function TransactionsTab({ transactions, subtitle, refresh, share
 
   if (transactions.length === 0) {
     return (
-      <div className="card p-10 text-center text-muted text-sm">
-        {t("noTransactionsThisMonth")}
-      </div>
+      <div className="card p-10 text-center text-muted text-sm">{t("noTransactionsThisMonth")}</div>
     );
   }
 
@@ -25,7 +23,10 @@ export default function TransactionsTab({ transactions, subtitle, refresh, share
     <TransactionTable
       transactions={transactions}
       subtitle={subtitle}
-      onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
+      onCategoryChange={async (txId, catId) => {
+        await setCategoryId(txId, catId);
+        refresh();
+      }}
       onMutated={refresh}
       shareMap={shareMap}
     />

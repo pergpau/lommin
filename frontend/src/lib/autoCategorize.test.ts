@@ -30,9 +30,7 @@ describe("guessCategory", () => {
   });
 
   it("matches a BTC code", () => {
-    expect(
-      guessCategory(tx({ bankTransactionCode: "GROCERY STORES" })),
-    ).toBe(133);
+    expect(guessCategory(tx({ bankTransactionCode: "GROCERY STORES" }))).toBe(133);
   });
 
   it("lets the user history override the rules", () => {
@@ -51,8 +49,6 @@ describe("guessCategory", () => {
   });
 
   it("ignores ambiguous FINANCIAL INST codes", () => {
-    expect(
-      guessCategory(tx({ bankTransactionCode: "FINANCIAL INST" })),
-    ).toBeUndefined();
+    expect(guessCategory(tx({ bankTransactionCode: "FINANCIAL INST" }))).toBeUndefined();
   });
 });

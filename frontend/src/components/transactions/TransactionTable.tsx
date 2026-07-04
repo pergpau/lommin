@@ -39,12 +39,12 @@ export default function TransactionTable({
 
   const filtered = search
     ? transactions.filter((tx) => {
-      const q = search.toLowerCase();
-      return (
-        (tx.description ?? "").toLowerCase().includes(q) ||
-        String(Math.abs(tx.amount)).includes(q)
-      );
-    })
+        const q = search.toLowerCase();
+        return (
+          (tx.description ?? "").toLowerCase().includes(q) ||
+          String(Math.abs(tx.amount)).includes(q)
+        );
+      })
     : transactions;
 
   const totalPages = Math.ceil(filtered.length / pageSize);
@@ -57,9 +57,7 @@ export default function TransactionTable({
   }
 
   if (transactions.length === 0) {
-    return (
-      <div className="card p-10 text-center text-muted text-sm">{t("table.empty")}</div>
-    );
+    return <div className="card p-10 text-center text-muted text-sm">{t("table.empty")}</div>;
   }
 
   return (
@@ -67,27 +65,34 @@ export default function TransactionTable({
       <div className="card overflow-hidden">
         <div className="px-4 py-2.5 border-b border-border flex items-center gap-3 min-h-[44px]">
           <div className="flex-1">
-            <h2 className="text-sm font-medium text-text">{t("table.title")}: {filtered.length}</h2>
+            <h2 className="text-sm font-medium text-text">
+              {t("table.title")}: {filtered.length}
+            </h2>
             {subtitle && <p className="text-xs text-muted leading-tight">{subtitle}</p>}
           </div>
           <SearchInput
             value={search}
-            onChange={(v) => { setSearch(v); setPage(0); }}
+            onChange={(v) => {
+              setSearch(v);
+              setPage(0);
+            }}
             placeholder={t("table.searchPlaceholder")}
           />
         </div>
         <div className="divide-y divide-border">
           {pageItems.length === 0 ? (
             <div className="p-10 text-center text-muted text-sm">{t("table.empty")}</div>
-          ) : pageItems.map((tx) => (
-            <TransactionRow
-              key={tx.id}
-              transaction={tx}
-              onClick={() => setDetailForId(tx.id)}
-              onCategoryClick={onCategoryChange ? () => setPickerFor(tx) : undefined}
-              ownershipShare={shareMap?.get(tx.accountUid)}
-            />
-          ))}
+          ) : (
+            pageItems.map((tx) => (
+              <TransactionRow
+                key={tx.id}
+                transaction={tx}
+                onClick={() => setDetailForId(tx.id)}
+                onCategoryClick={onCategoryChange ? () => setPickerFor(tx) : undefined}
+                ownershipShare={shareMap?.get(tx.accountUid)}
+              />
+            ))
+          )}
         </div>
 
         {totalPages > 1 && (
@@ -126,8 +131,8 @@ export default function TransactionTable({
           onOpenCategoryPicker={
             onCategoryChange
               ? (tx) => {
-                setPickerFor(tx);
-              }
+                  setPickerFor(tx);
+                }
               : undefined
           }
           onMutated={onMutated}

@@ -307,7 +307,9 @@ export function buildImportPayload(
       currency,
       creditDebit: amount > 0 ? "CRDT" : "DBIT",
       description: f[idx["OriginalDescription"]] || f[idx["Description"]] || "",
-      matchDescription: normalizeForMatch(f[idx["OriginalDescription"]] || f[idx["Description"]] || ""),
+      matchDescription: normalizeForMatch(
+        f[idx["OriginalDescription"]] || f[idx["Description"]] || "",
+      ),
       status: "BOOK",
       excludeFromCalculations: f[idx["Extraordinary"]] === "Yes",
       raw: {
@@ -512,7 +514,9 @@ export async function buildImportPayloadFromZip(
       currency,
       creditDebit: amount > 0 ? "CRDT" : "DBIT",
       description: f[pIdx["OriginalDescription"]] || f[pIdx["Description"]] || "",
-      matchDescription: normalizeForMatch(f[pIdx["OriginalDescription"]] || f[pIdx["Description"]] || ""),
+      matchDescription: normalizeForMatch(
+        f[pIdx["OriginalDescription"]] || f[pIdx["Description"]] || "",
+      ),
       status,
       excludeFromCalculations: f[pIdx["IsExtraordinary"]] === "True",
       raw: {

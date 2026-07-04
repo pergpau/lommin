@@ -16,12 +16,19 @@ export default function Privacy() {
 
       <div className="space-y-4">
         <section className="card p-5">
-          <h2 className="text-sm font-semibold text-text mb-2">{t("sections.controller.heading")}</h2>
+          <h2 className="text-sm font-semibold text-text mb-2">
+            {t("sections.controller.heading")}
+          </h2>
           <p className="text-sm text-muted leading-relaxed">
             <Trans
               i18nKey="privacy:sections.controller.body"
               components={{
-                email: <a href="mailto:lommin.pointer632@passmail.net" className="text-accent hover:underline" />,
+                email: (
+                  <a
+                    href="mailto:lommin.pointer632@passmail.net"
+                    className="text-accent hover:underline"
+                  />
+                ),
                 github: (
                   <a
                     href="https://github.com/pergpau/lommin/issues"
@@ -41,12 +48,16 @@ export default function Privacy() {
         </section>
 
         <section className="card p-5">
-          <h2 className="text-sm font-semibold text-text mb-2">{t("sections.localStorage.heading")}</h2>
+          <h2 className="text-sm font-semibold text-text mb-2">
+            {t("sections.localStorage.heading")}
+          </h2>
           <p className="text-sm text-muted leading-relaxed">{t("sections.localStorage.body")}</p>
         </section>
 
         <section className="card p-5">
-          <h2 className="text-sm font-semibold text-text mb-2">{t("sections.signingKey.heading")}</h2>
+          <h2 className="text-sm font-semibold text-text mb-2">
+            {t("sections.signingKey.heading")}
+          </h2>
           <p className="text-sm text-muted leading-relaxed">
             <Trans
               i18nKey="privacy:sections.signingKey.body"
@@ -59,7 +70,9 @@ export default function Privacy() {
         </section>
 
         <section className="card p-5">
-          <h2 className="text-sm font-semibold text-text mb-2">{t("sections.indexedDB.heading")}</h2>
+          <h2 className="text-sm font-semibold text-text mb-2">
+            {t("sections.indexedDB.heading")}
+          </h2>
           <p className="text-sm text-muted leading-relaxed mb-3">{t("sections.indexedDB.body1")}</p>
           <p className="text-sm text-muted leading-relaxed">{t("sections.indexedDB.body2")}</p>
         </section>
@@ -99,7 +112,9 @@ export default function Privacy() {
         </section>
 
         <section className="card p-5 border-l-2 border-accent/40">
-          <h2 className="text-sm font-semibold text-text mb-2">{t("sections.googleDrive.heading")}</h2>
+          <h2 className="text-sm font-semibold text-text mb-2">
+            {t("sections.googleDrive.heading")}
+          </h2>
           <p className="text-sm text-muted leading-relaxed mb-3">
             <Trans
               i18nKey="privacy:sections.googleDrive.body1"
@@ -131,7 +146,9 @@ export default function Privacy() {
         </section>
 
         <section className="card p-5">
-          <h2 className="text-sm font-semibold text-text mb-2">{t("sections.thirdParty.heading")}</h2>
+          <h2 className="text-sm font-semibold text-text mb-2">
+            {t("sections.thirdParty.heading")}
+          </h2>
           <p className="text-sm text-muted leading-relaxed mb-3">
             <Trans
               i18nKey="privacy:sections.thirdParty.enableBanking"
@@ -183,7 +200,9 @@ export default function Privacy() {
         </section>
 
         <section className="card p-5">
-          <h2 className="text-sm font-semibold text-text mb-2">{t("sections.legalBasis.heading")}</h2>
+          <h2 className="text-sm font-semibold text-text mb-2">
+            {t("sections.legalBasis.heading")}
+          </h2>
           <p className="text-sm text-muted leading-relaxed mb-3">
             <Trans
               i18nKey="privacy:sections.legalBasis.body1"
@@ -255,7 +274,12 @@ export default function Privacy() {
             <Trans
               i18nKey="privacy:sections.contact.body"
               components={{
-                email: <a href="mailto:lommin.pointer632@passmail.net" className="text-accent hover:underline" />,
+                email: (
+                  <a
+                    href="mailto:lommin.pointer632@passmail.net"
+                    className="text-accent hover:underline"
+                  />
+                ),
                 github: (
                   <a
                     href="https://github.com/pergpau/lommin/issues"

@@ -51,7 +51,7 @@ export default function DuplicatesList({
   }
 
   const sorted = [...pairs].sort(([a], [b]) =>
-    effectiveDate(b) > effectiveDate(a) ? 1 : effectiveDate(b) < effectiveDate(a) ? -1 : 0
+    effectiveDate(b) > effectiveDate(a) ? 1 : effectiveDate(b) < effectiveDate(a) ? -1 : 0,
   );
 
   let lastYear: number | null = null;
@@ -70,7 +70,9 @@ export default function DuplicatesList({
                   {year}
                 </div>
               )}
-              <div className={`card overflow-hidden ${dismissingKeys.has(pairKey(a, b)) ? "opacity-0 transition-opacity duration-1000" : ""}`}>
+              <div
+                className={`card overflow-hidden ${dismissingKeys.has(pairKey(a, b)) ? "opacity-0 transition-opacity duration-1000" : ""}`}
+              >
                 <DuplicateRow
                   tx={a}
                   resolved={isResolved(a)}
@@ -87,11 +89,7 @@ export default function DuplicatesList({
                   onTransactionClick={() => setDetailForId(b.id)}
                 />
                 <div className="border-t border-border px-4 py-2 flex justify-end">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => handleDismiss(pairKey(a, b))}
-                  >
+                  <Button variant="primary" size="sm" onClick={() => handleDismiss(pairKey(a, b))}>
                     <FontAwesomeIcon icon={faCheck} className="w-3 h-3" />
                     {t("duplicates.notDuplicate")}
                   </Button>
@@ -114,7 +112,10 @@ export default function DuplicatesList({
         <TransactionDetail
           transaction={detailFor}
           onClose={() => setDetailForId(null)}
-          onOpenCategoryPicker={(tx) => { setDetailForId(null); setPickerFor(tx); }}
+          onOpenCategoryPicker={(tx) => {
+            setDetailForId(null);
+            setPickerFor(tx);
+          }}
           onMutated={onMutated}
         />
       )}
@@ -140,7 +141,13 @@ interface DuplicateRowProps {
   onTransactionClick: () => void;
 }
 
-function DuplicateRow({ tx, resolved, onCategoryClick, onDelete, onTransactionClick }: DuplicateRowProps) {
+function DuplicateRow({
+  tx,
+  resolved,
+  onCategoryClick,
+  onDelete,
+  onTransactionClick,
+}: DuplicateRowProps) {
   const { t } = useTranslation("dashboard");
   return (
     <div
@@ -156,7 +163,8 @@ function DuplicateRow({ tx, resolved, onCategoryClick, onDelete, onTransactionCl
       </div>
       <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
         <div className={`mono text-sm font-medium tabular-nums ${amountClass(tx)}`}>
-          {tx.amount >= 0 ? "+" : ""}{fmtAmount(tx.amount, tx.currency)}
+          {tx.amount >= 0 ? "+" : ""}
+          {fmtAmount(tx.amount, tx.currency)}
         </div>
         <button
           onClick={onDelete}

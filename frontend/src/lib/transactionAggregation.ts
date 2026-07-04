@@ -4,7 +4,10 @@ import { effectiveDate } from "./format";
 import { getLocale } from "./i18n";
 import type { Transaction } from "./types";
 
-type TxLike = Pick<Transaction, "excludeFromCalculations" | "categoryId" | "amount" | "customDate" | "transactionDate">;
+type TxLike = Pick<
+  Transaction,
+  "excludeFromCalculations" | "categoryId" | "amount" | "customDate" | "transactionDate"
+>;
 
 export function txSection(tx: TxLike): "income" | "expense" | "saving" | null {
   if (tx.excludeFromCalculations) return null;

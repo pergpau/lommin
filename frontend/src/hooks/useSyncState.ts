@@ -9,16 +9,16 @@ export function useSyncState() {
   const [syncProgress, setSyncProgress] = useState("");
   const [syncMsg, setSyncMsg] = useState("");
   const [error, setError] = useState("");
-  const [failedAccounts, setFailedAccounts] = useState<Map<string, string>>(
-    new Map(),
-  );
+  const [failedAccounts, setFailedAccounts] = useState<Map<string, string>>(new Map());
   const [sessionExpiredUids, setSessionExpiredUids] = useState<Set<string>>(new Set());
-  const [syncingAccountUids, setSyncingAccountUids] = useState<Set<string>>(
-    new Set(),
-  );
+  const [syncingAccountUids, setSyncingAccountUids] = useState<Set<string>>(new Set());
 
   const run = useCallback(
-    async (accounts: Account[], onSuccess?: (hadErrors: boolean) => void, forcedDateFrom?: string) => {
+    async (
+      accounts: Account[],
+      onSuccess?: (hadErrors: boolean) => void,
+      forcedDateFrom?: string,
+    ) => {
       setSyncing(true);
       setSyncProgress("");
       setSyncMsg("");
@@ -30,9 +30,7 @@ export function useSyncState() {
         const { inserted, errors } = await syncAccounts(accounts, setSyncProgress, forcedDateFrom);
         setSyncingAccountUids(new Set());
         setSyncProgress("");
-        setSyncMsg(
-          i18n.t("dashboard:snackbar.syncResult", { count: inserted }),
-        );
+        setSyncMsg(i18n.t("dashboard:snackbar.syncResult", { count: inserted }));
         if (errors.length > 0) {
           setFailedAccounts(
             new Map(
@@ -53,9 +51,12 @@ export function useSyncState() {
         onSuccess?.(errors.length > 0);
       } catch (e) {
         const base = i18n.t("dashboard:snackbar.syncFailed");
-        const detail = e instanceof ProxyNetworkError
-          ? i18n.t("dashboard:snackbar.proxyUnreachable")
-          : (e instanceof Error ? e.message : "");
+        const detail =
+          e instanceof ProxyNetworkError
+            ? i18n.t("dashboard:snackbar.proxyUnreachable")
+            : e instanceof Error
+              ? e.message
+              : "";
         setError(detail ? `${base}: ${detail}` : base);
         setSyncProgress("");
         setSyncMsg("");
@@ -67,5 +68,14 @@ export function useSyncState() {
     [],
   );
 
-  return { syncing, syncProgress, syncMsg, error, failedAccounts, sessionExpiredUids, syncingAccountUids, run };
+  return {
+    syncing,
+    syncProgress,
+    syncMsg,
+    error,
+    failedAccounts,
+    sessionExpiredUids,
+    syncingAccountUids,
+    run,
+  };
 }

@@ -61,7 +61,9 @@ export default function ImportSection({ highlightedHash }: { highlightedHash: st
         </div>
 
         {importSource === "spiir" ? (
-          <SpiirImportPanel onSuccess={() => navigate("/dashboard", { state: { checkDuplicates: true } })} />
+          <SpiirImportPanel
+            onSuccess={() => navigate("/dashboard", { state: { checkDuplicates: true } })}
+          />
         ) : (
           <CsvImportPanel />
         )}
@@ -72,10 +74,12 @@ export default function ImportSection({ highlightedHash }: { highlightedHash: st
         <p className="text-xs text-muted mb-3">{t("settings:duplicates.description")}</p>
         <div className="flex items-center gap-3 flex-wrap">
           <Button loading={checkingDuplicates} onClick={() => void runDuplicateCheck()}>
-            {checkingDuplicates ? t("settings:duplicates.checking") : t("settings:duplicates.check")}
+            {checkingDuplicates
+              ? t("settings:duplicates.checking")
+              : t("settings:duplicates.check")}
           </Button>
-          {duplicatePairs !== null && (
-            duplicatePairs.length === 0 ? (
+          {duplicatePairs !== null &&
+            (duplicatePairs.length === 0 ? (
               <span className="text-xs text-positive">{t("settings:duplicates.noneFound")}</span>
             ) : (
               <div className="flex items-center gap-2">
@@ -86,8 +90,7 @@ export default function ImportSection({ highlightedHash }: { highlightedHash: st
                   {t("settings:duplicates.review")}
                 </Button>
               </div>
-            )
-          )}
+            ))}
         </div>
       </Card>
     </>

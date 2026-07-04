@@ -8,7 +8,13 @@ import { CheckIcon } from "../components/ui/icons";
 import Spinner from "../components/ui/Spinner";
 import { useSnackbar } from "../components/ui/Snackbar";
 import { SESSION_VALID_DAYS } from "../constants";
-import { createSession, initiateAuth, listBanks, ProxyNetworkError, type BankEntry } from "../lib/enableBanking";
+import {
+  createSession,
+  initiateAuth,
+  listBanks,
+  ProxyNetworkError,
+  type BankEntry,
+} from "../lib/enableBanking";
 import { getAccounts, saveAccount, type Account, type AccountSource } from "../lib/data";
 import { syncAccounts } from "../lib/sync";
 
@@ -64,29 +70,35 @@ export default function Connect() {
     return [...starts, ...contains];
   }, [query, banks]);
 
-  const initiateConnectFor = useCallback(async (aspsp: { name: string; country: string }) => {
-    try {
-      const state = crypto.randomUUID();
-      localStorage.setItem(STATE_KEY, state);
-      localStorage.setItem(BANK_KEY, aspsp.name);
-      localStorage.setItem(BANK_COUNTRY_KEY, aspsp.country);
-      const validUntil = new Date(Date.now() + SESSION_VALID_DAYS * 86400_000)
-        .toISOString()
-        .replace(/\.\d+Z$/, "Z");
-      const redirectUrl = `${window.location.origin}/connect`;
-      const url = await initiateAuth({ aspsp, redirectUrl, validUntil, state });
-      window.location.href = url;
-    } catch (e) {
-      const detail = e instanceof ProxyNetworkError
-        ? t("proxyUnreachable")
-        : (e instanceof Error ? e.message : "");
-      const msg = detail ? `${t("authFailed")}: ${detail}` : t("authFailed");
-      setError(msg);
-      setPhase("error");
-      quickConnectStarted.current = false;
-      showSnackbar(msg, "error");
-    }
-  }, [t, showSnackbar]);
+  const initiateConnectFor = useCallback(
+    async (aspsp: { name: string; country: string }) => {
+      try {
+        const state = crypto.randomUUID();
+        localStorage.setItem(STATE_KEY, state);
+        localStorage.setItem(BANK_KEY, aspsp.name);
+        localStorage.setItem(BANK_COUNTRY_KEY, aspsp.country);
+        const validUntil = new Date(Date.now() + SESSION_VALID_DAYS * 86400_000)
+          .toISOString()
+          .replace(/\.\d+Z$/, "Z");
+        const redirectUrl = `${window.location.origin}/connect`;
+        const url = await initiateAuth({ aspsp, redirectUrl, validUntil, state });
+        window.location.href = url;
+      } catch (e) {
+        const detail =
+          e instanceof ProxyNetworkError
+            ? t("proxyUnreachable")
+            : e instanceof Error
+              ? e.message
+              : "";
+        const msg = detail ? `${t("authFailed")}: ${detail}` : t("authFailed");
+        setError(msg);
+        setPhase("error");
+        quickConnectStarted.current = false;
+        showSnackbar(msg, "error");
+      }
+    },
+    [t, showSnackbar],
+  );
 
   const connect = useCallback(async () => {
     if (!selected) return;
@@ -130,9 +142,7 @@ export default function Connect() {
 
     const storedState = localStorage.getItem(STATE_KEY);
     const csrfError =
-      !storedState || !returnedState || returnedState !== storedState
-        ? t("csrfError")
-        : null;
+      !storedState || !returnedState || returnedState !== storedState ? t("csrfError") : null;
 
     localStorage.removeItem(STATE_KEY);
     const bankName = !csrfError ? (localStorage.getItem(BANK_KEY) ?? undefined) : undefined;
@@ -259,7 +269,12 @@ export default function Connect() {
         setPhase("pick");
       })
       .catch((e) => {
-        const detail = e instanceof ProxyNetworkError ? t("proxyUnreachable") : (e instanceof Error ? e.message : "");
+        const detail =
+          e instanceof ProxyNetworkError
+            ? t("proxyUnreachable")
+            : e instanceof Error
+              ? e.message
+              : "";
         const msg = detail ? `${t("loadBanksFailed")}: ${detail}` : t("loadBanksFailed");
         setError(msg);
         setPhase("error");
@@ -402,11 +417,7 @@ export default function Connect() {
         </div>
       </Card>
 
-      <Button
-        className="w-full py-2.5 justify-center"
-        disabled={!selected}
-        onClick={connect}
-      >
+      <Button className="w-full py-2.5 justify-center" disabled={!selected} onClick={connect}>
         {selected ? t("connectButton", { name: `"${selected.name}"` }) : t("connectButtonGeneric")}
       </Button>
     </div>

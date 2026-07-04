@@ -1,8 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import Button from "./ui/Button";
-import { UploadIcon } from "./ui/icons";
-import { useSnackbar } from "./ui/Snackbar";
+import { MAX_IMPORT_BYTES } from "../constants";
+import { getAccounts, importAll, type Account } from "../lib/data";
 import {
   buildImportPayload,
   buildImportPayloadFromZip,
@@ -10,9 +9,9 @@ import {
   parseSpiirZipAccounts,
   type SpiirAccount,
 } from "../lib/spiirImport";
-import { getAccounts, type Account } from "../lib/data";
-import { importAll } from "../lib/data";
-import { MAX_IMPORT_BYTES } from "../constants";
+import Button from "./ui/Button";
+import { UploadIcon } from "./ui/icons";
+import { useSnackbar } from "./ui/Snackbar";
 
 type Props = { onSuccess?: () => void };
 
@@ -96,10 +95,7 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
         setAccountMap(initMap);
         setSpiirStep("mapping");
       } catch (err) {
-        showSnackbar(
-          err instanceof Error ? err.message : t("spiirImport.unreadableZip"),
-          "error",
-        );
+        showSnackbar(err instanceof Error ? err.message : t("spiirImport.unreadableZip"), "error");
       } finally {
         if (spiirZipRef.current) spiirZipRef.current.value = "";
       }
@@ -179,9 +175,7 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
                 <select
                   className="text-xs border border-border rounded px-2 py-1.5 bg-surface text-text"
                   value={accountMap[sa.accountId] ?? `spiir::${sa.accountId}`}
-                  onChange={(e) =>
-                    setAccountMap((m) => ({ ...m, [sa.accountId]: e.target.value }))
-                  }
+                  onChange={(e) => setAccountMap((m) => ({ ...m, [sa.accountId]: e.target.value }))}
                   disabled={spiirStep === "importing"}
                 >
                   <option value={`spiir::${sa.accountId}`}>{t("spiirImport.newAccount")}</option>

@@ -58,7 +58,12 @@ html.dark {
     flex-direction: column;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     color: rgb(var(--c-accent));
   }
 }
@@ -147,12 +152,28 @@ html.theme-switching * {
 
 /* ── Success checkmark animation ─────────────────────────── */
 @keyframes check-pop {
-  0%   { opacity: 0; transform: scale(0.4); }
-  20%  { opacity: 1; transform: scale(1.2); }
-  34%  { transform: scale(0.92); }
-  44%  { transform: scale(1); }
-  76%  { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.8); }
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  34% {
+    transform: scale(0.92);
+  }
+  44% {
+    transform: scale(1);
+  }
+  76% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
 }
 
 .animate-check-pop {

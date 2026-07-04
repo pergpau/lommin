@@ -107,7 +107,5 @@ export async function seedDemoData(): Promise<void> {
 export async function isDemoMode(): Promise<boolean> {
   const accounts = await getAccounts();
   if (accounts.length === 0) return false;
-  return accounts.every(
-    (acc) => acc.sources.length > 0 && acc.sources[0].type === "demo",
-  );
+  return accounts.every((acc) => acc.sources.length > 0 && acc.sources[0].type === "demo");
 }

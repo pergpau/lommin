@@ -12,7 +12,9 @@ export default function DeleteConfirmModal({ open, onCancel, onConfirm }: Delete
   return (
     <div
       className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
     >
       <div className="bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 shadow-xl p-6 flex flex-col gap-4">
         <h2 className="text-sm font-semibold text-text">{t("detail.deleteConfirmTitle")}</h2>

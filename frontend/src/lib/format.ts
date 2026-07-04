@@ -4,7 +4,10 @@ import i18n, { getLocale } from "./i18n";
 export function fmtDate(s?: string, options?: Intl.DateTimeFormatOptions): string {
   if (!s) return "—";
   try {
-    return new Date(s).toLocaleDateString(getLocale(), options ?? { month: "short", day: "numeric" });
+    return new Date(s).toLocaleDateString(
+      getLocale(),
+      options ?? { month: "short", day: "numeric" },
+    );
   } catch {
     return s;
   }

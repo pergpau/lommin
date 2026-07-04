@@ -1,8 +1,8 @@
-import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router-dom";
+import type { Account, Transaction } from "../lib/data";
 import { fmtAmount } from "../lib/format";
 import { getLocale } from "../lib/i18n";
-import type { Account, Transaction } from "../lib/data";
 import Button from "./ui/Button";
 import { AlertCircleIcon } from "./ui/icons";
 import Spinner from "./ui/Spinner";
@@ -26,7 +26,14 @@ function fmtSyncTime(ts?: number): string {
   });
 }
 
-export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg, isSessionExpired }: Props) {
+export default function AccountCard({
+  acc,
+  txns,
+  balance,
+  isSyncing,
+  errorMsg,
+  isSessionExpired,
+}: Props) {
   const navigate = useNavigate();
   const { t } = useTranslation(["components", "common"]);
 
@@ -65,8 +72,8 @@ export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg, i
         ) : (
           <>
             <div className="text-xs text-negative mb-3 line-clamp-2">
-            {isSessionExpired ? t("accountCard.sessionExpired") : errorMsg}
-          </div>
+              {isSessionExpired ? t("accountCard.sessionExpired") : errorMsg}
+            </div>
             <Button
               variant="danger"
               size="sm"
@@ -84,9 +91,7 @@ export default function AccountCard({ acc, txns, balance, isSyncing, errorMsg, i
           </>
         )}
         <div className="text-xs text-muted mt-3">
-          {syncTime
-            ? t("accountCard.lastSynced", { time: syncTime })
-            : t("accountCard.notSynced")}
+          {syncTime ? t("accountCard.lastSynced", { time: syncTime }) : t("accountCard.notSynced")}
         </div>
       </Link>
     );

@@ -73,7 +73,9 @@ export default function CategoryPicker({
       <div className="bg-surface border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg h-[630px] max-h-[90vh] flex flex-col shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-          <span className="font-semibold text-text text-sm">{t("transactions:categoryPicker.title")}</span>
+          <span className="font-semibold text-text text-sm">
+            {t("transactions:categoryPicker.title")}
+          </span>
           <button className="text-muted hover:text-text text-lg leading-none" onClick={onClose}>
             ✕
           </button>
@@ -165,7 +167,9 @@ export default function CategoryPicker({
                     </button>
                   ))
                 ) : (
-                  <div className="px-4 py-4 text-xs text-muted">{t("transactions:categoryPicker.selectMain")}</div>
+                  <div className="px-4 py-4 text-xs text-muted">
+                    {t("transactions:categoryPicker.selectMain")}
+                  </div>
                 )}
               </div>
             </>

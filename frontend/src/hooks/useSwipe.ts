@@ -28,9 +28,7 @@ export function useSwipe<T extends HTMLElement>({
       const touch = e.touches[0];
       startX.current = touch.clientX;
       startY.current = touch.clientY;
-      isEdge.current =
-        touch.clientX < edgeZone ||
-        touch.clientX > window.innerWidth - edgeZone;
+      isEdge.current = touch.clientX < edgeZone || touch.clientX > window.innerWidth - edgeZone;
     };
 
     const onTouchEnd = (e: TouchEvent) => {

@@ -2,7 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { triggerAutosave } from "../lib/backup";
-import { deleteAccount, disconnectAccount, resetAccountSync, saveAccount, setCategoryId, type Account } from "../lib/data";
+import {
+  deleteAccount,
+  disconnectAccount,
+  resetAccountSync,
+  saveAccount,
+  setCategoryId,
+  type Account,
+} from "../lib/data";
 import { getSetting } from "../lib/settings";
 import { accountLabel, effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
@@ -23,10 +30,17 @@ import { ArrowLeftIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
 import { isDemoMode } from "../lib/demoData";
 import { loadKey } from "../lib/auth";
 
-function ShareSlider({ account, onSave }: { account: Account | null | undefined; onSave: (acc: Account) => void }) {
+function ShareSlider({
+  account,
+  onSave,
+}: {
+  account: Account | null | undefined;
+  onSave: (acc: Account) => void;
+}) {
   const { t } = useTranslation("account");
   const [draft, setDraft] = useState<number | null>(null);
-  const share = draft ?? (account?.ownershipShare != null ? Math.round(account.ownershipShare * 100) : null);
+  const share =
+    draft ?? (account?.ownershipShare != null ? Math.round(account.ownershipShare * 100) : null);
 
   const commit = () => {
     if (!account || draft == null) return;
@@ -76,7 +90,15 @@ export default function AccountPage() {
   const navigate = useNavigate();
   const { accounts, loading: accountsLoading, reload } = useAccounts();
   const { transactions: all, loading: txLoading, refresh } = useTransactions(uid);
-  const { syncing, syncProgress, syncMsg, error: syncError, failedAccounts, sessionExpiredUids, run: runSync } = useSyncState();
+  const {
+    syncing,
+    syncProgress,
+    syncMsg,
+    error: syncError,
+    failedAccounts,
+    sessionExpiredUids,
+    run: runSync,
+  } = useSyncState();
   const accountError = failedAccounts.get(uid ?? "");
   const isSessionExpired = sessionExpiredUids.has(uid ?? "");
   const { showSnackbar } = useSnackbar();
@@ -112,10 +134,7 @@ export default function AccountPage() {
   const account = accounts.find((a) => a.uid === uid) ?? null;
 
   const sorted = useMemo(
-    () =>
-      [...all].sort((a, b) =>
-        (effectiveDate(b) ?? "").localeCompare(effectiveDate(a) ?? ""),
-      ),
+    () => [...all].sort((a, b) => (effectiveDate(b) ?? "").localeCompare(effectiveDate(a) ?? "")),
     [all],
   );
 
@@ -162,7 +181,15 @@ export default function AccountPage() {
     const d = new Date();
     d.setDate(d.getDate() - resyncDays);
     const dateFrom = d.toISOString().split("T")[0];
-    void runSync([account], (hadErrors) => { reload(); refresh(); if (!hadErrors) void triggerAutosave(); }, dateFrom);
+    void runSync(
+      [account],
+      (hadErrors) => {
+        reload();
+        refresh();
+        if (!hadErrors) void triggerAutosave();
+      },
+      dateFrom,
+    );
   }, [account, resyncDays, runSync, reload, refresh]);
 
   const disconnectBank = useCallback(async () => {
@@ -194,7 +221,11 @@ export default function AccountPage() {
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-8">
       <div className="flex items-center gap-3 mb-6">
-        <Link to="/dashboard" state={{ tab: "accounts" }} className="text-muted hover:text-text transition-colors">
+        <Link
+          to="/dashboard"
+          state={{ tab: "accounts" }}
+          className="text-muted hover:text-text transition-colors"
+        >
           <ArrowLeftIcon size={18} />
         </Link>
         <div className="flex-1">
@@ -240,7 +271,17 @@ export default function AccountPage() {
               loading={syncing}
               success={syncSuccess}
               disabled={!account}
-              onClick={() => account && runSync([account], (hadErrors) => { reload(); refresh(); if (!hadErrors) { void triggerAutosave(); syncFlash(); } })}
+              onClick={() =>
+                account &&
+                runSync([account], (hadErrors) => {
+                  reload();
+                  refresh();
+                  if (!hadErrors) {
+                    void triggerAutosave();
+                    syncFlash();
+                  }
+                })
+              }
             >
               <RefreshCwIcon size={12} />
               {t("sync")}
@@ -250,7 +291,10 @@ export default function AccountPage() {
               size="sm"
               disabled={isDemo}
               onClick={() => {
-                if (!hasKey) { navigate("/settings#pem"); return; }
+                if (!hasKey) {
+                  navigate("/settings#pem");
+                  return;
+                }
                 const p = new URLSearchParams();
                 if (account?.bankName) p.set("bank", account.bankName);
                 if (account?.bankCountry) p.set("country", account.bankCountry);
@@ -268,16 +312,26 @@ export default function AccountPage() {
               onClick={() => setActionsOpen((o) => !o)}
               aria-label="Account settings"
             >
-              {actionsOpen ? <XIcon size={18} /> : <FontAwesomeIcon icon={faGear} className="w-[18px] h-[18px]" />}
+              {actionsOpen ? (
+                <XIcon size={18} />
+              ) : (
+                <FontAwesomeIcon icon={faGear} className="w-[18px] h-[18px]" />
+              )}
             </button>
             {actionsOpen && (
               <div className="absolute right-0 top-full mt-1 w-52 card py-1 z-30 shadow-lg">
-                <ShareSlider account={account} onSave={(updated) => void saveAccount(updated).then(reload)} />
+                <ShareSlider
+                  account={account}
+                  onSave={(updated) => void saveAccount(updated).then(reload)}
+                />
                 <div className="border-t border-border my-1" />
                 {isConnected && (
                   <button
                     className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
-                    onClick={() => { setActionsOpen(false); void openResyncModal(); }}
+                    onClick={() => {
+                      setActionsOpen(false);
+                      void openResyncModal();
+                    }}
                   >
                     {t("forcedResync")}
                   </button>
@@ -285,20 +339,29 @@ export default function AccountPage() {
                 {isConnected && (
                   <button
                     className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
-                    onClick={() => { setActionsOpen(false); void disconnectBank(); }}
+                    onClick={() => {
+                      setActionsOpen(false);
+                      void disconnectBank();
+                    }}
                   >
                     {t("disconnectAccount")}
                   </button>
                 )}
                 <button
                   className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
-                  onClick={() => { setActionsOpen(false); void resetSync(); }}
+                  onClick={() => {
+                    setActionsOpen(false);
+                    void resetSync();
+                  }}
                 >
                   {t("deleteTransactions")}
                 </button>
                 <button
                   className="flex items-center gap-2 w-full px-4 py-2 text-sm text-danger hover:bg-surface-2 transition-colors text-left"
-                  onClick={() => { setActionsOpen(false); void removeAccount(); }}
+                  onClick={() => {
+                    setActionsOpen(false);
+                    void removeAccount();
+                  }}
                 >
                   {t("removeAccount")}
                 </button>
@@ -315,7 +378,10 @@ export default function AccountPage() {
             activeKey={selectedMonth || null}
             onSelect={(key) => setSelectedMonth((prev) => (prev === key ? "" : key))}
             mode={chartMode}
-            onModeChange={(m) => { setChartMode(m); setSelectedMonth(""); }}
+            onModeChange={(m) => {
+              setChartMode(m);
+              setSelectedMonth("");
+            }}
           />
         </div>
       )}
@@ -326,10 +392,16 @@ export default function AccountPage() {
           selectedMonth
             ? chartMode === "year"
               ? selectedMonth
-              : new Date(selectedMonth + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
+              : new Date(selectedMonth + "-15").toLocaleDateString(getLocale(), {
+                  month: "long",
+                  year: "numeric",
+                })
             : undefined
         }
-        onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
+        onCategoryChange={async (txId, catId) => {
+          await setCategoryId(txId, catId);
+          refresh();
+        }}
         onMutated={refresh}
       />
 

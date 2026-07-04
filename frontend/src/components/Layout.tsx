@@ -53,19 +53,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-1">
             {showNav && (
               <nav className="flex items-center gap-1">
-                {nav.filter(({ to }) => !(isDemo && to === "/settings")).map(({ to, label }) => (
-                  <Link
-                    key={to}
-                    to={to}
-                    className={`px-3 py-1.5 rounded text-sm transition-colors ${
-                      pathname.startsWith(to)
-                        ? "text-text bg-surface-2"
-                        : "text-muted hover:text-text hover:bg-surface-2"
-                    }`}
-                  >
-                    {label}
-                  </Link>
-                ))}
+                {nav
+                  .filter(({ to }) => !(isDemo && to === "/settings"))
+                  .map(({ to, label }) => (
+                    <Link
+                      key={to}
+                      to={to}
+                      className={`px-3 py-1.5 rounded text-sm transition-colors ${
+                        pathname.startsWith(to)
+                          ? "text-text bg-surface-2"
+                          : "text-muted hover:text-text hover:bg-surface-2"
+                      }`}
+                    >
+                      {label}
+                    </Link>
+                  ))}
               </nav>
             )}
             <button

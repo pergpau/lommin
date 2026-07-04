@@ -227,9 +227,9 @@ export async function fetchTransactions(
   const data = asRecord(await res.json(), "transactions-respons");
 
   const txAccountUid = localUid ?? accountUid;
-  const raws = (asArray(data.transactions ?? [], "transactions").filter(
-    isRecord,
-  ) as RawTransaction[]).filter((r) => r.status !== "PDNG");
+  const raws = (
+    asArray(data.transactions ?? [], "transactions").filter(isRecord) as RawTransaction[]
+  ).filter((r) => r.status !== "PDNG");
   const transactions: Transaction[] = raws.map((r) => {
     const ref = r.entry_reference ?? r.transaction_id ?? deriveStableRef(r);
     return {

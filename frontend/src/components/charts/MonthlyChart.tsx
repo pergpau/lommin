@@ -47,7 +47,9 @@ function StatBlock({ label, value, avg, valueClassName }: StatBlockProps) {
       <div className="text-[11px] sm:text-xs text-muted uppercase tracking-wider mb-0.5 sm:mb-1">
         {label}
       </div>
-      <div className={`text-lg sm:text-2xl font-semibold tabular-nums whitespace-nowrap ${valueClassName}`}>
+      <div
+        className={`text-lg sm:text-2xl font-semibold tabular-nums whitespace-nowrap ${valueClassName}`}
+      >
         {fmtAmount(value, undefined, 0)}
       </div>
       <div className="text-[11px] sm:text-xs text-muted mt-0.5">
@@ -66,7 +68,9 @@ function StatsRow({ children, modeToggle }: StatsRowProps) {
   return (
     <div className="flex items-start justify-between mb-5">
       <div className="flex-1 flex">
-        <div className="flex w-full justify-between sm:w-auto sm:justify-start sm:gap-6">{children}</div>
+        <div className="flex w-full justify-between sm:w-auto sm:justify-start sm:gap-6">
+          {children}
+        </div>
       </div>
       <div className="hidden sm:block shrink-0">{modeToggle}</div>
     </div>
@@ -194,10 +198,25 @@ export default function MonthlyChart({
       <div className="flex justify-end mb-3 sm:hidden">{modeToggle}</div>
 
       <StatsRow modeToggle={modeToggle}>
-          <StatBlock label={t("monthly.income")} value={selected?.income ?? 0} avg={avgIncome} valueClassName="text-positive" />
-          <StatBlock label={t("monthly.saving")} value={selected?.saving ?? 0} avg={avgSaving} valueClassName="text-[#8b3eb8]" />
-          <StatBlock label={t("monthly.expenses")} value={selected?.expenses ?? 0} avg={avgExpenses} valueClassName="text-negative" />
-        </StatsRow>
+        <StatBlock
+          label={t("monthly.income")}
+          value={selected?.income ?? 0}
+          avg={avgIncome}
+          valueClassName="text-positive"
+        />
+        <StatBlock
+          label={t("monthly.saving")}
+          value={selected?.saving ?? 0}
+          avg={avgSaving}
+          valueClassName="text-[#8b3eb8]"
+        />
+        <StatBlock
+          label={t("monthly.expenses")}
+          value={selected?.expenses ?? 0}
+          avg={avgExpenses}
+          valueClassName="text-negative"
+        />
+      </StatsRow>
 
       <div className="flex items-center gap-1">
         {!isMobile && (
@@ -248,7 +267,6 @@ export default function MonthlyChart({
           </button>
         )}
       </div>
-
     </div>
   );
 }

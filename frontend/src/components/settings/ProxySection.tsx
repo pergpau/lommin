@@ -31,14 +31,10 @@ export default function ProxySection() {
   return (
     <Card className="p-5 mb-4">
       <h2 className="text-sm font-semibold text-text mb-1">{t("settings:proxy.title")}</h2>
-      <p className="text-xs text-muted mb-3">
-        {t("settings:proxy.description")}
-      </p>
+      <p className="text-xs text-muted mb-3">{t("settings:proxy.description")}</p>
 
       <div className="mb-4 border border-warning/20 bg-warning/5 rounded-lg p-3">
-        <p className="text-xs text-muted leading-relaxed">
-          {t("settings:proxy.warning")}
-        </p>
+        <p className="text-xs text-muted leading-relaxed">{t("settings:proxy.warning")}</p>
       </div>
 
       <Input

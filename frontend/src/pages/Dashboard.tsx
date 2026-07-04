@@ -7,7 +7,13 @@ import MonthlyChart, { type ChartMode, type MonthBar } from "../components/chart
 import SpendingBreakdown from "../components/charts/SpendingBreakdown";
 import Button from "../components/ui/Button";
 import { useSnackbar } from "../components/ui/Snackbar";
-import { GoogleDriveIcon, HardDriveIcon, MenuIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
+import {
+  GoogleDriveIcon,
+  HardDriveIcon,
+  MenuIcon,
+  RefreshCwIcon,
+  XIcon,
+} from "../components/ui/icons";
 import Input from "../components/ui/Input";
 import Spinner from "../components/ui/Spinner";
 import { useAccounts } from "../hooks/useAccounts";
@@ -23,7 +29,12 @@ import { getAllSettings, getDismissedPairs, hasSetting } from "../lib/settings";
 import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
 import { addSaveListener, BackupError, saveBackup, triggerAutosave } from "../lib/backup";
 import { useSuccessFlash } from "../hooks/useSuccessFlash";
-import { clearAccounts, clearTransactions, getAllTransactions, getEnableBankingSource } from "../lib/data";
+import {
+  clearAccounts,
+  clearTransactions,
+  getAllTransactions,
+  getEnableBankingSource,
+} from "../lib/data";
 import { setCategoryId } from "../lib/data";
 
 type Tab = "categories" | "accounts" | "transactions";
@@ -69,7 +80,6 @@ export default function Dashboard() {
     });
     isDemoMode().then(setIsDemo);
     hasSetting("backupMethod").then(setHasBackupMethod);
-
   }, []);
 
   useEffect(() => {
@@ -102,28 +112,37 @@ export default function Dashboard() {
     } else {
       void handleQuickSave("");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasBackupMethod, usePassphrase, navigate]);
 
-  const handleQuickSave = useCallback(async (passphrase: string) => {
-    setDashDialog(false);
-    setDashBackupSaving(true);
-    try {
-      await saveBackup(passphrase);
-      showSnackbar(t(backupMethod === "drive" ? "snackbar.savedToDrive" : "snackbar.savedToFile"), "ok");
-      saveFlash();
-    } catch (e) {
-      const kind = e instanceof BackupError ? e.kind : "unknown";
-      if (kind === "drive-not-connected") {
-        navigate("/settings#backup");
-      } else if (kind !== "cancelled") {
-        showSnackbar(e instanceof Error && e.message ? e.message : t("snackbar.saveFailed"), "error");
+  const handleQuickSave = useCallback(
+    async (passphrase: string) => {
+      setDashDialog(false);
+      setDashBackupSaving(true);
+      try {
+        await saveBackup(passphrase);
+        showSnackbar(
+          t(backupMethod === "drive" ? "snackbar.savedToDrive" : "snackbar.savedToFile"),
+          "ok",
+        );
+        saveFlash();
+      } catch (e) {
+        const kind = e instanceof BackupError ? e.kind : "unknown";
+        if (kind === "drive-not-connected") {
+          navigate("/settings#backup");
+        } else if (kind !== "cancelled") {
+          showSnackbar(
+            e instanceof Error && e.message ? e.message : t("snackbar.saveFailed"),
+            "error",
+          );
+        }
+      } finally {
+        setDashBackupSaving(false);
+        setDashPassphrase("");
       }
-    } finally {
-      setDashBackupSaving(false);
-      setDashPassphrase("");
-    }
-  }, [backupMethod, navigate, showSnackbar, t, saveFlash]);
+    },
+    [backupMethod, navigate, showSnackbar, t, saveFlash],
+  );
 
   const exitDemo = useCallback(async () => {
     setExitingDemo(true);
@@ -142,9 +161,12 @@ export default function Dashboard() {
   const paramTab = searchParams.get("tab") as Tab | null;
   const stateTab = (location.state as { tab?: Tab } | null)?.tab;
   const defaultTab = !loading && accounts.length === 0 ? "accounts" : "categories";
-  const tab: Tab = paramTab && TABS.includes(paramTab) ? paramTab
-    : stateTab && TABS.includes(stateTab) ? stateTab
-    : defaultTab;
+  const tab: Tab =
+    paramTab && TABS.includes(paramTab)
+      ? paramTab
+      : stateTab && TABS.includes(stateTab)
+        ? stateTab
+        : defaultTab;
   const setTab = useCallback((t: Tab) => setSearchParams({ tab: t }), [setSearchParams]);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   const categoryGoBackRef = useRef<(() => boolean) | null>(null);
@@ -176,7 +198,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!location.state?.checkDuplicates) return;
     void checkAndShowDuplicatesBanner();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const shareMap = useMemo(() => {
@@ -196,8 +218,14 @@ export default function Dashboard() {
     });
   }, [transactions, shareMap]);
 
-  const monthlyData = useMemo<MonthBar[]>(() => buildMonthlyData(scaledTransactions), [scaledTransactions]);
-  const yearlyData = useMemo<MonthBar[]>(() => buildYearlyData(scaledTransactions), [scaledTransactions]);
+  const monthlyData = useMemo<MonthBar[]>(
+    () => buildMonthlyData(scaledTransactions),
+    [scaledTransactions],
+  );
+  const yearlyData = useMemo<MonthBar[]>(
+    () => buildYearlyData(scaledTransactions),
+    [scaledTransactions],
+  );
 
   const chartData = chartMode === "month" ? monthlyData : yearlyData;
   const activeMonth =
@@ -223,9 +251,7 @@ export default function Dashboard() {
           const date = effectiveDate(tx);
           return date ? date.startsWith(activeMonth) : false;
         })
-        .sort((a, b) =>
-          (effectiveDate(b) ?? "").localeCompare(effectiveDate(a) ?? ""),
-        ),
+        .sort((a, b) => (effectiveDate(b) ?? "").localeCompare(effectiveDate(a) ?? "")),
     [transactions, activeMonth],
   );
 
@@ -253,7 +279,12 @@ export default function Dashboard() {
         <div className="bg-warning/10 border border-warning/20 rounded-xl px-4 py-3 flex items-center justify-between gap-3 mb-6">
           <span className="text-sm text-warning font-medium">{t("duplicates.bannerText")}</span>
           <div className="flex items-center gap-1 shrink-0">
-            <Button variant="ghost" size="sm" className="border border-warning/40 text-warning hover:text-warning hover:bg-warning/10" onClick={() => navigate("/duplicates")}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="border border-warning/40 text-warning hover:text-warning hover:bg-warning/10"
+              onClick={() => navigate("/duplicates")}
+            >
               {t("duplicates.bannerAction")}
             </Button>
             <button
@@ -266,200 +297,243 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-xl font-semibold">{t("title")}</h1>
-            <p className="text-muted text-sm mt-0.5">
-              {t("subtitle", { count: accounts.length, txCount: transactions.length })}
-            </p>
-          </div>
-          {/* Desktop actions */}
-          <div className="hidden sm:flex items-center gap-2">
-            {!isDemo && (
-              <Link to={connectTarget} className="btn-ghost text-xs">
-                {t("actions.addAccount")}
-              </Link>
-            )}
-            <Button loading={dashBackupSaving || autoSaving} success={saveSuccess} disabled={isDemo} onClick={handleQuickSaveClick}>
-              <BackupIcon size={14} />
-              {t("actions.save")}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-xl font-semibold">{t("title")}</h1>
+          <p className="text-muted text-sm mt-0.5">
+            {t("subtitle", { count: accounts.length, txCount: transactions.length })}
+          </p>
+        </div>
+        {/* Desktop actions */}
+        <div className="hidden sm:flex items-center gap-2">
+          {!isDemo && (
+            <Link to={connectTarget} className="btn-ghost text-xs">
+              {t("actions.addAccount")}
+            </Link>
+          )}
+          <Button
+            loading={dashBackupSaving || autoSaving}
+            success={saveSuccess}
+            disabled={isDemo}
+            onClick={handleQuickSaveClick}
+          >
+            <BackupIcon size={14} />
+            {t("actions.save")}
+          </Button>
+          {hasLiveAccounts && (
+            <Button
+              loading={syncing}
+              success={syncSuccess}
+              onClick={() =>
+                runSync(accounts, (hadErrors) => {
+                  reload();
+                  refresh();
+                  if (!hadErrors) {
+                    void doAutosave();
+                    syncFlash();
+                    void checkAndShowDuplicatesBanner();
+                  }
+                })
+              }
+            >
+              <RefreshCwIcon size={14} />
+              {t("actions.sync")}
             </Button>
-            {hasLiveAccounts && (
-              <Button
-                loading={syncing}
-                success={syncSuccess}
-                onClick={() => runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); void checkAndShowDuplicatesBanner(); } })}
-              >
-                <RefreshCwIcon size={14} />
-                {t("actions.sync")}
-              </Button>
-            )}
-          </div>
-
-          {/* Mobile actions */}
-          <div className="sm:hidden flex items-center gap-1">
-            {hasLiveAccounts && (
-              <button
-                className="p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 disabled:opacity-40 transition-colors"
-                disabled={syncing}
-                onClick={() => runSync(accounts, (hadErrors) => { reload(); refresh(); if (!hadErrors) { void doAutosave(); syncFlash(); void checkAndShowDuplicatesBanner(); } })}
-                aria-label={syncing ? t("actions.syncing") : t("actions.sync")}
-              >
-                {syncing ? <Spinner size={18} /> : <RefreshCwIcon size={18} />}
-              </button>
-            )}
-            <div className="relative">
-              <button
-                className="p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 transition-colors"
-                onClick={() => setActionsOpen((o) => !o)}
-                aria-label={t("actions.mobile")}
-              >
-                {actionsOpen ? <XIcon size={18} /> : <MenuIcon size={18} />}
-              </button>
-              {actionsOpen && (
-                <div className="absolute right-0 top-full mt-1 w-48 card py-1 z-30 shadow-lg">
-                  {!isDemo && (
-                    <Link
-                      to={connectTarget}
-                      className="flex items-center px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors"
-                      onClick={() => setActionsOpen(false)}
-                    >
-                      {t("actions.addAccount")}
-                    </Link>
-                  )}
-                  <button
-                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
-                    disabled={isDemo || dashBackupSaving || autoSaving}
-                    onClick={() => {
-                      setActionsOpen(false);
-                      handleQuickSaveClick();
-                    }}
-                  >
-                    <BackupIcon size={13} />
-                    {dashBackupSaving ? t("actions.saving") : t("actions.save")}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
 
-        {chartData.length > 0 && (
-          <div className="mb-8">
-            <MonthlyChart
-              bars={chartData}
-              activeKey={activeMonth}
-              onSelect={setSelectedMonth}
-              mode={chartMode}
-              onModeChange={(m) => {
-                setChartMode(m);
-                setSelectedMonth(null);
-              }}
-            />
-          </div>
-        )}
-
-        <div className="flex justify-between sm:justify-start gap-1 mb-6 border-b border-border">
-          {TABS.map((tabKey) => (
+        {/* Mobile actions */}
+        <div className="sm:hidden flex items-center gap-1">
+          {hasLiveAccounts && (
             <button
-              key={tabKey}
-              className={`flex-1 sm:flex-none text-center px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${tab === tabKey
+              className="p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 disabled:opacity-40 transition-colors"
+              disabled={syncing}
+              onClick={() =>
+                runSync(accounts, (hadErrors) => {
+                  reload();
+                  refresh();
+                  if (!hadErrors) {
+                    void doAutosave();
+                    syncFlash();
+                    void checkAndShowDuplicatesBanner();
+                  }
+                })
+              }
+              aria-label={syncing ? t("actions.syncing") : t("actions.sync")}
+            >
+              {syncing ? <Spinner size={18} /> : <RefreshCwIcon size={18} />}
+            </button>
+          )}
+          <div className="relative">
+            <button
+              className="p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 transition-colors"
+              onClick={() => setActionsOpen((o) => !o)}
+              aria-label={t("actions.mobile")}
+            >
+              {actionsOpen ? <XIcon size={18} /> : <MenuIcon size={18} />}
+            </button>
+            {actionsOpen && (
+              <div className="absolute right-0 top-full mt-1 w-48 card py-1 z-30 shadow-lg">
+                {!isDemo && (
+                  <Link
+                    to={connectTarget}
+                    className="flex items-center px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors"
+                    onClick={() => setActionsOpen(false)}
+                  >
+                    {t("actions.addAccount")}
+                  </Link>
+                )}
+                <button
+                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
+                  disabled={isDemo || dashBackupSaving || autoSaving}
+                  onClick={() => {
+                    setActionsOpen(false);
+                    handleQuickSaveClick();
+                  }}
+                >
+                  <BackupIcon size={13} />
+                  {dashBackupSaving ? t("actions.saving") : t("actions.save")}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {chartData.length > 0 && (
+        <div className="mb-8">
+          <MonthlyChart
+            bars={chartData}
+            activeKey={activeMonth}
+            onSelect={setSelectedMonth}
+            mode={chartMode}
+            onModeChange={(m) => {
+              setChartMode(m);
+              setSelectedMonth(null);
+            }}
+          />
+        </div>
+      )}
+
+      <div className="flex justify-between sm:justify-start gap-1 mb-6 border-b border-border">
+        {TABS.map((tabKey) => (
+          <button
+            key={tabKey}
+            className={`flex-1 sm:flex-none text-center px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              tab === tabKey
                 ? "border-accent text-accent"
                 : "border-transparent text-muted hover:text-text"
-                }`}
-              onClick={() => setTab(tabKey)}
-            >
-              {t("tabs." + tabKey)}
-            </button>
-          ))}
-        </div>
-
-        <div
-          ref={swipeRef}
-          className={swipeDirection === "left" ? "animate-slide-in-left" : swipeDirection === "right" ? "animate-slide-in-right" : undefined}
-          style={{ touchAction: "pan-y" }}
-          onAnimationEnd={() => setSwipeDirection(null)}
-        >
-          {tab === "categories" && (
-            <SpendingBreakdown
-              transactions={recent}
-              subtitle={
-                selectedMonthBar
-                  ? chartMode === "year"
-                    ? selectedMonthBar.key
-                    : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
-                  : undefined
-              }
-              onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); refresh(); }}
-              onMutated={refresh}
-              goBackRef={categoryGoBackRef}
-              shareMap={shareMap}
-            />
-          )}
-
-          {tab === "accounts" && (
-            <AccountsTab
-              accounts={accounts}
-              txByAccount={txByAccount}
-              syncingAccountUids={syncingAccountUids}
-              failedAccounts={failedAccounts}
-              sessionExpiredUids={sessionExpiredUids}
-              isDemo={isDemo}
-              connectTarget={connectTarget}
-            />
-          )}
-
-          {tab === "transactions" && (
-            <TransactionsTab
-              transactions={recent}
-              subtitle={
-                selectedMonthBar
-                  ? chartMode === "year"
-                    ? selectedMonthBar.key
-                    : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), { month: "long", year: "numeric" })
-                  : undefined
-              }
-              refresh={refresh}
-              shareMap={shareMap}
-            />
-          )}
-        </div>
-
-        {dashDialog && (
-          <div
-            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-            onClick={() => setDashDialog(false)}
+            }`}
+            onClick={() => setTab(tabKey)}
           >
-            <div
-              className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="text-sm font-semibold text-text mb-1">{t("dashboard:backup.dialogTitle")}</h3>
-              <p className="text-xs text-muted mb-4">{t("dashboard:backup.dialogHint")}</p>
-              <Input
-                label={t("common:dialog.passwordLabel")}
-                type="password"
-                placeholder={t("common:dialog.passwordPlaceholder")}
-                value={dashPassphrase}
-                onChange={(e) => setDashPassphrase(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") void handleQuickSave(dashPassphrase);
-                  if (e.key === "Escape") setDashDialog(false);
-                }}
-                className="mb-4"
-                autoFocus
-              />
-              <div className="flex gap-2 justify-end">
-                <Button variant="ghost" onClick={() => setDashDialog(false)}>
-                  {t("common:actions.cancel")}
-                </Button>
-                <Button onClick={() => void handleQuickSave(dashPassphrase)}>
-                  {t("common:actions.save")}
-                </Button>
-              </div>
+            {t("tabs." + tabKey)}
+          </button>
+        ))}
+      </div>
+
+      <div
+        ref={swipeRef}
+        className={
+          swipeDirection === "left"
+            ? "animate-slide-in-left"
+            : swipeDirection === "right"
+              ? "animate-slide-in-right"
+              : undefined
+        }
+        style={{ touchAction: "pan-y" }}
+        onAnimationEnd={() => setSwipeDirection(null)}
+      >
+        {tab === "categories" && (
+          <SpendingBreakdown
+            transactions={recent}
+            subtitle={
+              selectedMonthBar
+                ? chartMode === "year"
+                  ? selectedMonthBar.key
+                  : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), {
+                      month: "long",
+                      year: "numeric",
+                    })
+                : undefined
+            }
+            onCategoryChange={async (txId, catId) => {
+              await setCategoryId(txId, catId);
+              refresh();
+            }}
+            onMutated={refresh}
+            goBackRef={categoryGoBackRef}
+            shareMap={shareMap}
+          />
+        )}
+
+        {tab === "accounts" && (
+          <AccountsTab
+            accounts={accounts}
+            txByAccount={txByAccount}
+            syncingAccountUids={syncingAccountUids}
+            failedAccounts={failedAccounts}
+            sessionExpiredUids={sessionExpiredUids}
+            isDemo={isDemo}
+            connectTarget={connectTarget}
+          />
+        )}
+
+        {tab === "transactions" && (
+          <TransactionsTab
+            transactions={recent}
+            subtitle={
+              selectedMonthBar
+                ? chartMode === "year"
+                  ? selectedMonthBar.key
+                  : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), {
+                      month: "long",
+                      year: "numeric",
+                    })
+                : undefined
+            }
+            refresh={refresh}
+            shareMap={shareMap}
+          />
+        )}
+      </div>
+
+      {dashDialog && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={() => setDashDialog(false)}
+        >
+          <div
+            className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-semibold text-text mb-1">
+              {t("dashboard:backup.dialogTitle")}
+            </h3>
+            <p className="text-xs text-muted mb-4">{t("dashboard:backup.dialogHint")}</p>
+            <Input
+              label={t("common:dialog.passwordLabel")}
+              type="password"
+              placeholder={t("common:dialog.passwordPlaceholder")}
+              value={dashPassphrase}
+              onChange={(e) => setDashPassphrase(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void handleQuickSave(dashPassphrase);
+                if (e.key === "Escape") setDashDialog(false);
+              }}
+              className="mb-4"
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost" onClick={() => setDashDialog(false)}>
+                {t("common:actions.cancel")}
+              </Button>
+              <Button onClick={() => void handleQuickSave(dashPassphrase)}>
+                {t("common:actions.save")}
+              </Button>
             </div>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 }

@@ -49,7 +49,9 @@ export default function TransactionDetail({
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, []);
 
   const [closing, setClosing] = useState(false);
@@ -95,20 +97,35 @@ export default function TransactionDetail({
       const ady = Math.abs(dy);
 
       if (!dragging.current) {
-        if (dy < 0 && ady > adx) { locked.current = true; return; }
-        if (dx < 0 && adx > ady) { locked.current = true; return; }
+        if (dy < 0 && ady > adx) {
+          locked.current = true;
+          return;
+        }
+        if (dx < 0 && adx > ady) {
+          locked.current = true;
+          return;
+        }
 
         if (dx > 0 && adx > ady * 1.5) {
           e.preventDefault();
-          if (adx > 10) { gestureDir.current = "right"; dragging.current = true; }
+          if (adx > 10) {
+            gestureDir.current = "right";
+            dragging.current = true;
+          }
           return;
         }
 
         if (dy > 0 && ady >= adx) {
           const scrolled = scrollRef.current && scrollRef.current.scrollTop > 0;
-          if (scrolled) { locked.current = true; return; }
+          if (scrolled) {
+            locked.current = true;
+            return;
+          }
           e.preventDefault();
-          if (dy > 10 && ady > adx * 1.5) { gestureDir.current = "down"; dragging.current = true; }
+          if (dy > 10 && ady > adx * 1.5) {
+            gestureDir.current = "down";
+            dragging.current = true;
+          }
           return;
         }
 
@@ -130,7 +147,10 @@ export default function TransactionDetail({
 
     const onEnd = (e: TouchEvent) => {
       e.stopPropagation();
-      if (!dragging.current) { gestureDir.current = null; return; }
+      if (!dragging.current) {
+        gestureDir.current = null;
+        return;
+      }
       dragging.current = false;
       const dir = gestureDir.current;
       gestureDir.current = null;
@@ -172,7 +192,9 @@ export default function TransactionDetail({
       onKeyDown={(e) => {
         if (e.key === "Escape") dismiss();
       }}
-      onAnimationEnd={() => { if (closing) onClose(); }}
+      onAnimationEnd={() => {
+        if (closing) onClose();
+      }}
     >
       <div
         ref={sheetRef}

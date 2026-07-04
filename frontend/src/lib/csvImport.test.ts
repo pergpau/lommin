@@ -121,14 +121,16 @@ abc-123,2024-01-15,2024-01-14,-100.00,Test`;
   });
 
   it("handles Windows CRLF line endings", () => {
-    const csv = "booking_date,transaction_date,amount,description\r\n2024-01-01,2024-01-01,-100.00,Test\r\n";
+    const csv =
+      "booking_date,transaction_date,amount,description\r\n2024-01-01,2024-01-01,-100.00,Test\r\n";
     const { drafts, errors } = parseCsvImport(csv);
     expect(errors).toHaveLength(0);
     expect(drafts).toHaveLength(1);
   });
 
   it("strips UTF-8 BOM", () => {
-    const csv = "﻿booking_date,transaction_date,amount,description\n2024-01-01,2024-01-01,-100.00,Test";
+    const csv =
+      "﻿booking_date,transaction_date,amount,description\n2024-01-01,2024-01-01,-100.00,Test";
     const { drafts, errors } = parseCsvImport(csv);
     expect(errors).toHaveLength(0);
     expect(drafts).toHaveLength(1);

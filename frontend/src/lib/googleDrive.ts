@@ -65,11 +65,7 @@ export async function getDriveBackupModifiedTime(token: string): Promise<number 
   return iso ? new Date(iso).getTime() : null;
 }
 
-function buildMultipartBody(
-  metadata: string,
-  fileBytes: Uint8Array,
-  boundary: string,
-): Uint8Array {
+function buildMultipartBody(metadata: string, fileBytes: Uint8Array, boundary: string): Uint8Array {
   const enc = new TextEncoder();
   const prefix = enc.encode(
     `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: application/octet-stream\r\n\r\n`,
@@ -82,7 +78,9 @@ function buildMultipartBody(
   return out;
 }
 
-export async function signInWithGoogle(clientId: string): Promise<{ token: string; expiresIn: number }> {
+export async function signInWithGoogle(
+  clientId: string,
+): Promise<{ token: string; expiresIn: number }> {
   const redirectUri = `${window.location.origin}/oauth/google`;
   const params = new URLSearchParams({
     client_id: clientId,
@@ -117,10 +115,13 @@ export async function signInWithGoogle(clientId: string): Promise<{ token: strin
     );
 
     const pollClosed = setInterval(() => {
-      if (popup.closed) setTimeout(() => finish(undefined, undefined, "Autentisering avbrutt."), 500);
+      if (popup.closed)
+        setTimeout(() => finish(undefined, undefined, "Autentisering avbrutt."), 500);
     }, 500);
 
-    channel.onmessage = (e: MessageEvent<{ access_token?: string; expires_in?: number; error?: string }>) => {
+    channel.onmessage = (
+      e: MessageEvent<{ access_token?: string; expires_in?: number; error?: string }>,
+    ) => {
       if (e.data?.error) finish(undefined, undefined, e.data.error);
       else finish(e.data?.access_token, e.data?.expires_in);
     };
@@ -154,18 +155,11 @@ export async function saveBackupToDrive(
   return new Date(modifiedTime).getTime();
 }
 
-export async function loadBackupFromDrive(
-  token: string,
-  passphrase: string,
-): Promise<object> {
+export async function loadBackupFromDrive(token: string, passphrase: string): Promise<object> {
   const fileId = await findBackupFile(token);
   if (!fileId) throw new Error("Ingen sikkerhetskopi funnet i Google Drive.");
 
-  const res = await driveRequest(
-    "GET",
-    `${DRIVE_API}/files/${fileId}?alt=media`,
-    token,
-  );
+  const res = await driveRequest("GET", `${DRIVE_API}/files/${fileId}?alt=media`, token);
   const buf = await res.arrayBuffer();
   return decryptStore(new Uint8Array(buf), passphrase);
 }

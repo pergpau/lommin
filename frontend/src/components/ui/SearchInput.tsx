@@ -33,7 +33,11 @@ export default function SearchInput({ value, onChange, placeholder, className }:
       {value && (
         <button
           className="absolute right-2 flex items-center text-muted hover:text-text transition-colors"
-          onClick={(e) => { e.stopPropagation(); onChange(""); inputRef.current?.focus(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onChange("");
+            inputRef.current?.focus();
+          }}
           aria-label="Clear search"
           tabIndex={-1}
         >

@@ -72,7 +72,10 @@ export default function KeySection({ highlightedHash }: { highlightedHash: strin
   }, [navigate]);
 
   return (
-    <Card id="pem" className={`p-5 mb-4 transition-shadow duration-300 ${highlightedHash === "#pem" ? "ring-2 ring-accent" : ""} ${!hasKey ? "border-accent/30 bg-accent/5" : ""}`}>
+    <Card
+      id="pem"
+      className={`p-5 mb-4 transition-shadow duration-300 ${highlightedHash === "#pem" ? "ring-2 ring-accent" : ""} ${!hasKey ? "border-accent/30 bg-accent/5" : ""}`}
+    >
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold text-text">{t("settings:signingKey.title")}</h2>
@@ -100,12 +103,18 @@ export default function KeySection({ highlightedHash }: { highlightedHash: strin
               label={t("settings:appId.label")}
               value={appId}
               onChange={(e) => setAppId(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") saveAppIdFn(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveAppIdFn();
+              }}
               placeholder={t("settings:appId.placeholder")}
               className="w-full font-mono"
             />
           </div>
-          <Button loading={savingAppId} onClick={saveAppIdFn} disabled={!appId.trim() || appId.trim() === savedAppId.current}>
+          <Button
+            loading={savingAppId}
+            onClick={saveAppIdFn}
+            disabled={!appId.trim() || appId.trim() === savedAppId.current}
+          >
             {t("settings:appId.update")}
           </Button>
         </div>
@@ -123,7 +132,9 @@ export default function KeySection({ highlightedHash }: { highlightedHash: strin
                 className="text-xs text-accent hover:underline"
                 onClick={() => setShowGuide((v) => !v)}
               >
-                {showGuide ? t("settings:signingKey.guideHide") : t("settings:signingKey.guideShow")}
+                {showGuide
+                  ? t("settings:signingKey.guideHide")
+                  : t("settings:signingKey.guideShow")}
               </button>
               {showGuide && (
                 <div className="border border-border rounded-xl p-4 mt-1">
@@ -140,7 +151,10 @@ export default function KeySection({ highlightedHash }: { highlightedHash: strin
                       savedAppId.current = id;
                       setHasKey(true);
                     } catch (e) {
-                      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.saveKeyFailed"), "error");
+                      showSnackbar(
+                        e instanceof Error ? e.message : t("settings:snackbar.saveKeyFailed"),
+                        "error",
+                      );
                     }
                   } else {
                     pendingPemKey.current = key;
@@ -156,7 +170,9 @@ export default function KeySection({ highlightedHash }: { highlightedHash: strin
                 label={t("settings:appId.label")}
                 value={pemAppId}
                 onChange={(e) => setPemAppId(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") void confirmPemKey(); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void confirmPemKey();
+                }}
                 className="font-mono"
                 autoFocus
               />

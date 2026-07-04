@@ -52,23 +52,26 @@ export default function Duplicates() {
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-text">{t("duplicates.modalTitle")}</h1>
-          <p className="text-sm text-muted mt-0.5">{t("duplicates.pairCount", { count: visiblePairs.length })}</p>
+          <p className="text-sm text-muted mt-0.5">
+            {t("duplicates.pairCount", { count: visiblePairs.length })}
+          </p>
         </div>
         {visiblePairs.length > 0 && (
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            onClick={handleDismissAll}
-          >
+          <Button type="button" variant="primary" size="sm" onClick={handleDismissAll}>
             {t("duplicates.dismissAll")}
           </Button>
         )}
       </div>
       <DuplicatesList
         pairs={visiblePairs}
-        onCategoryChange={async (txId, catId) => { await setCategoryId(txId, catId); await reload(); }}
-        onDelete={async (txId) => { await deleteTransaction(txId); await reload(); }}
+        onCategoryChange={async (txId, catId) => {
+          await setCategoryId(txId, catId);
+          await reload();
+        }}
+        onDelete={async (txId) => {
+          await deleteTransaction(txId);
+          await reload();
+        }}
         onDismissPair={handleDismissPair}
         onMutated={() => void reload()}
       />

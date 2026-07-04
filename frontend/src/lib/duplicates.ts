@@ -7,7 +7,12 @@ function daysDiff(a: string, b: string): number {
 
 function isExcludedCategory(tx: Transaction): boolean {
   if (tx.categoryId == null) return false;
-  return SUB_CATEGORY_MAP[tx.categoryId]?.type === "exclude" || tx.categoryId === 128 || tx.categoryId === 155 || tx.categoryId === 156;
+  return (
+    SUB_CATEGORY_MAP[tx.categoryId]?.type === "exclude" ||
+    tx.categoryId === 128 ||
+    tx.categoryId === 155 ||
+    tx.categoryId === 156
+  );
 }
 
 const FOOD_CATEGORY_IDS = new Set([133, 134, 135, 136, 155, 156]);
@@ -46,7 +51,8 @@ export function detectDuplicatePairs(transactions: Transaction[]): [Transaction,
     if (group.length < 2) continue;
     for (let i = 0; i < group.length; i++) {
       for (let j = i + 1; j < group.length; j++) {
-        const a = group[i], b = group[j];
+        const a = group[i],
+          b = group[j];
         if (isExcludedCategory(a) || isExcludedCategory(b)) continue;
         if (daysDiff(a.transactionDate, b.transactionDate) <= 1) {
           pairs.push([a, b]);

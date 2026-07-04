@@ -11,7 +11,12 @@ type TransactionRowProps = {
   ownershipShare?: number;
 };
 
-export default function TransactionRow({ transaction: tx, onClick, onCategoryClick, ownershipShare }: TransactionRowProps) {
+export default function TransactionRow({
+  transaction: tx,
+  onClick,
+  onCategoryClick,
+  ownershipShare,
+}: TransactionRowProps) {
   const { t } = useTranslation(["transactions", "common"]);
   const subCat = tx.categoryId != null ? SUB_CATEGORY_MAP[tx.categoryId] : undefined;
   const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
@@ -27,14 +32,16 @@ export default function TransactionRow({ transaction: tx, onClick, onCategoryCli
       }}
     >
       <div onClick={(e) => e.stopPropagation()}>
-        <CategoryBadge
-          categoryId={tx.categoryId}
-          onClick={onCategoryClick}
-        />
+        <CategoryBadge categoryId={tx.categoryId} onClick={onCategoryClick} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`text-sm flex items-center gap-1.5 ${tx.status === "PNDG" ? "italic text-muted" : "text-text"}`}>
-          <span className="truncate">{tx.description || "—"}{tx.status === "PNDG" ? " " + t("row.pending") : ""}</span>
+        <div
+          className={`text-sm flex items-center gap-1.5 ${tx.status === "PNDG" ? "italic text-muted" : "text-text"}`}
+        >
+          <span className="truncate">
+            {tx.description || "—"}
+            {tx.status === "PNDG" ? " " + t("row.pending") : ""}
+          </span>
           {tx.excludeFromCalculations && (
             <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-yellow-400/15 text-yellow-600 border border-yellow-400/30 leading-none">
               Ekskludert
@@ -42,7 +49,10 @@ export default function TransactionRow({ transaction: tx, onClick, onCategoryCli
           )}
         </div>
         {subCat && mainCat ? (
-          <div className="text-[11px] mt-0.5 truncate h-4 flex items-center" style={{ color: mainCat.color }}>
+          <div
+            className="text-[11px] mt-0.5 truncate h-4 flex items-center"
+            style={{ color: mainCat.color }}
+          >
             {t("categories:sub." + subCat.id)}
           </div>
         ) : (
@@ -65,9 +75,7 @@ export default function TransactionRow({ transaction: tx, onClick, onCategoryCli
             {fmtAmount(tx.amount, tx.currency)}
           </span>
         </div>
-        <div className="text-xs text-muted mt-0.5">
-          {fmtDate(effectiveDate(tx))}
-        </div>
+        <div className="text-xs text-muted mt-0.5">{fmtDate(effectiveDate(tx))}</div>
       </div>
     </div>
   );
