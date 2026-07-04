@@ -18,12 +18,12 @@ import {
   UploadIcon,
 } from "../components/ui/icons";
 import Input from "../components/ui/Input";
-import { loadEncryptedFile } from "../lib/cryptoFile";
+import { applyRestore, BackupError, loadBackup } from "../lib/backup";
 import { seedDemoData } from "../lib/demoData";
-import { DriveAuthError, loadBackupFromDrive, signInWithGoogle } from "../lib/googleDrive";
+import { signInWithGoogle } from "../lib/googleDrive";
 import { loadKey, saveKey } from "../lib/auth";
 import { DEFAULT_PROXY_URL, getSetting, persistDriveToken, setSetting } from "../lib/settings";
-import { getAccounts, importAll } from "../lib/data";
+import { getAccounts } from "../lib/data";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
@@ -371,26 +371,27 @@ function StepRestoreFile({ navigate }: { navigate: ReturnType<typeof useNavigate
     setFileState("loading");
     setFileMsg("");
     try {
-      const { inserted } = await importAll(await loadEncryptedFile(passphrase));
+      const plan = await loadBackup(passphrase, { source: "file" });
+      const { inserted } = await applyRestore(plan);
       await setSetting("backupMethod", "file");
       setFileState("done");
       setFileMsg(t("restore.restored", { count: inserted }));
       setTimeout(() => navigate("/dashboard", { state: { checkDuplicates: true } }), 1000);
     } catch (e) {
-      if ((e as Error).name === "AbortError") {
+      const kind = e instanceof BackupError ? e.kind : "unknown";
+      if (kind === "cancelled") {
         setFileState("idle");
         return;
       }
-      const isDecryptErr = e instanceof DOMException && e.name === "OperationError";
       setFileState("error");
       setFileMsg(
-        isDecryptErr
-          ? passphrase
-            ? t("restore.errors.wrongPassword")
-            : t("restore.errors.encrypted")
-          : e instanceof Error
-            ? e.message
-            : t("restore.errors.restoreFailed"),
+        kind === "wrong-passphrase"
+          ? t("restore.errors.wrongPassword")
+          : kind === "passphrase-required"
+            ? t("restore.errors.encrypted")
+            : e instanceof Error && e.message
+              ? e.message
+              : t("restore.errors.restoreFailed"),
       );
     }
   }, [passphrase, navigate, t]);
@@ -459,25 +460,24 @@ function StepRestoreDrive({ navigate }: { navigate: ReturnType<typeof useNavigat
     setDriveState("loading");
     setDriveMsg("");
     try {
-      const { inserted } = await importAll(
-        await loadBackupFromDrive(driveToken, drivePassphrase),
-      );
+      const plan = await loadBackup(drivePassphrase, { source: "drive" });
+      const { inserted } = await applyRestore(plan);
       await setSetting("backupMethod", "drive");
       setDriveState("done");
       setDriveMsg(t("restore.restored", { count: inserted }));
       setTimeout(() => navigate("/dashboard", { state: { checkDuplicates: true } }), 1000);
     } catch (e) {
-      if (e instanceof DriveAuthError) setDriveToken(null);
-      const isDecryptErr = e instanceof DOMException && e.name === "OperationError";
+      const kind = e instanceof BackupError ? e.kind : "unknown";
+      if (kind === "drive-auth" || kind === "drive-not-connected") setDriveToken(null);
       setDriveState("error");
       setDriveMsg(
-        isDecryptErr
-          ? drivePassphrase
-            ? t("restore.errors.wrongPassword")
-            : t("restore.errors.encrypted")
-          : e instanceof Error
-            ? e.message
-            : t("restore.errors.loadDriveFailed"),
+        kind === "wrong-passphrase"
+          ? t("restore.errors.wrongPassword")
+          : kind === "passphrase-required"
+            ? t("restore.errors.encrypted")
+            : e instanceof Error && e.message
+              ? e.message
+              : t("restore.errors.loadDriveFailed"),
       );
     }
   }, [driveToken, drivePassphrase, navigate, t]);

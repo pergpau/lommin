@@ -7,14 +7,8 @@ import { DownloadIcon, UploadIcon } from "../ui/icons";
 import Input from "../ui/Input";
 import Spinner from "../ui/Spinner";
 import { useSnackbar } from "../ui/Snackbar";
-import { loadEncryptedFile, saveEncryptedFile } from "../../lib/cryptoFile";
-import {
-  DriveAuthError,
-  getDriveBackupModifiedTime,
-  loadBackupFromDrive,
-  saveBackupToDrive,
-  signInWithGoogle,
-} from "../../lib/googleDrive";
+import { applyRestore, BackupError, loadBackup, type RestorePlan, saveBackup } from "../../lib/backup";
+import { signInWithGoogle } from "../../lib/googleDrive";
 import {
   clearDriveToken,
   getDriveToken,
@@ -23,7 +17,6 @@ import {
   persistDriveToken,
   setSetting,
 } from "../../lib/settings";
-import { exportAll, getAllTransactions, importAll } from "../../lib/data";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
@@ -35,15 +28,9 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
   const [backupMethod, setBackupMethod] = useState<"drive" | "file" | null>(null);
   const [driveAutosave, setDriveAutosave] = useState(true);
   const [dialog, setDialog] = useState<"save" | "load" | "drive-save" | "drive-load" | null>(null);
-  const [restorePreview, setRestorePreview] = useState<{
-    loading: boolean;
-    data?: object;
-    fileCount?: number;
-    localCount?: number;
-    remoteSavedAt?: number | null;
-    localSavedAt?: number | null;
-    driveModifiedAt?: number | null;
-  } | null>(null);
+  const [restorePreview, setRestorePreview] = useState<
+    { loading: true } | { loading: false; plan: RestorePlan } | null
+  >(null);
   const [driveToken, setDriveToken] = useState<string | null>(null);
   const [driveSyncing, setDriveSyncing] = useState<"connect" | "save" | "load" | null>(null);
   const [dialogPassphrase, setDialogPassphrase] = useState("");
@@ -85,48 +72,47 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
     void setSetting("backupMethod", method);
   }, []);
 
-  const saveFile = useCallback(async (passphrase: string) => {
+  const backupErrorText = useCallback((e: unknown, fallback: string): string => {
+    const kind = e instanceof BackupError ? e.kind : "unknown";
+    if (kind === "wrong-passphrase") return t("settings:snackbar.wrongPassword");
+    if (kind === "passphrase-required") return t("settings:snackbar.encryptedFile");
+    return e instanceof Error && e.message ? e.message : fallback;
+  }, [t]);
+
+  const handleSave = useCallback(async (passphrase: string) => {
+    const isDrive = backupMethod === "drive";
     setDialog(null);
-    setSyncing("save");
+    (isDrive ? setDriveSyncing : setSyncing)("save");
     try {
-      const data = await exportAll();
-      await saveEncryptedFile(data, passphrase);
-      const now = Date.now();
-      void setSetting("lastLocalSavedAt", now);
-      void setSetting("lastDataModifiedAt", now);
-      showSnackbar(t("settings:snackbar.savedToFile"), "ok");
+      await saveBackup(passphrase);
+      showSnackbar(t(isDrive ? "settings:snackbar.savedToDrive" : "settings:snackbar.savedToFile"), "ok");
     } catch (e) {
-      if ((e as Error).name !== "AbortError")
-        showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.saveFailed"), "error");
+      const kind = e instanceof BackupError ? e.kind : "unknown";
+      if (kind === "drive-auth") setDriveToken(null);
+      if (kind !== "cancelled")
+        showSnackbar(backupErrorText(e, t("settings:snackbar.saveFailed")), "error");
     } finally {
-      setSyncing(null);
+      (isDrive ? setDriveSyncing : setSyncing)(null);
       setDialogPassphrase("");
     }
-  }, [showSnackbar, t]);
+  }, [backupMethod, showSnackbar, t, backupErrorText]);
 
   const loadFile = useCallback(async (passphrase: string) => {
     setDialog(null);
     setSyncing("load");
     try {
-      const data = await loadEncryptedFile(passphrase);
-      await importAll(data);
+      const plan = await loadBackup(passphrase, { source: "file" });
+      await applyRestore(plan);
       showSnackbar(t("settings:snackbar.restoreSuccess"), "ok");
       navigate("/dashboard", { state: { checkDuplicates: true } });
     } catch (e) {
-      if ((e as Error).name !== "AbortError") {
-        const isDecryptErr = e instanceof DOMException && e.name === "OperationError";
-        const text = isDecryptErr
-          ? passphrase
-            ? t("settings:snackbar.wrongPassword")
-            : t("settings:snackbar.encryptedFile")
-          : e instanceof Error ? e.message : t("settings:snackbar.loadFailed");
-        showSnackbar(text, "error");
-      }
+      if (!(e instanceof BackupError && e.kind === "cancelled"))
+        showSnackbar(backupErrorText(e, t("settings:snackbar.loadFailed")), "error");
     } finally {
       setSyncing(null);
       setDialogPassphrase("");
     }
-  }, [showSnackbar, t, navigate]);
+  }, [showSnackbar, t, navigate, backupErrorText]);
 
   const connectDrive = useCallback(async () => {
     if (!GOOGLE_CLIENT_ID) return;
@@ -142,76 +128,38 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
     }
   }, [showSnackbar, t]);
 
-  const saveDrive = useCallback(async (passphrase: string) => {
-    if (!driveToken) return;
-    setDialog(null);
-    setDriveSyncing("save");
-    try {
-      const data = await exportAll();
-      const savedAt = await saveBackupToDrive(driveToken, data, passphrase);
-      void setSetting("lastLocalSavedAt", savedAt);
-      void setSetting("lastDataModifiedAt", savedAt);
-      showSnackbar(t("settings:snackbar.savedToDrive"), "ok");
-    } catch (e) {
-      if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
-      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.saveFailed"), "error");
-    } finally {
-      setDriveSyncing(null);
-      setDialogPassphrase("");
-    }
-  }, [driveToken, showSnackbar, t]);
-
   const loadDrive = useCallback(async (passphrase: string) => {
     if (!driveToken) return;
     setDialog(null);
     setRestorePreview({ loading: true });
     try {
-      const [data, driveModifiedAt] = await Promise.all([
-        loadBackupFromDrive(driveToken, passphrase),
-        getDriveBackupModifiedTime(driveToken).catch(() => null),
-      ]);
-      const [localTxs, localSavedAt] = await Promise.all([
-        getAllTransactions(),
-        getSetting("lastLocalSavedAt"),
-      ]);
-      const raw = data as { transactions?: unknown[]; exportedAt?: number };
-      const fileCount = Array.isArray(raw.transactions) ? raw.transactions.length : 0;
-      setRestorePreview({ loading: false, data, fileCount, localCount: localTxs.length, remoteSavedAt: raw.exportedAt ?? null, localSavedAt, driveModifiedAt });
+      const plan = await loadBackup(passphrase, { source: "drive" });
+      setRestorePreview({ loading: false, plan });
     } catch (e) {
       setRestorePreview(null);
-      if (e instanceof DriveAuthError) { setDriveToken(null); void clearDriveToken(); }
-      const isDecryptErr = e instanceof DOMException && e.name === "OperationError";
-      const text = isDecryptErr
-        ? passphrase
-          ? t("settings:snackbar.wrongPassword")
-          : t("settings:snackbar.encryptedFile")
-        : e instanceof Error ? e.message : t("settings:snackbar.loadFailed");
-      showSnackbar(text, "error");
+      if (e instanceof BackupError && e.kind === "drive-auth") setDriveToken(null);
+      showSnackbar(backupErrorText(e, t("settings:snackbar.loadFailed")), "error");
     } finally {
       setDialogPassphrase("");
     }
-  }, [driveToken, showSnackbar, t]);
+  }, [driveToken, showSnackbar, t, backupErrorText]);
 
   const confirmDriveRestore = useCallback(async () => {
-    if (!restorePreview?.data) return;
-    const { data, driveModifiedAt } = restorePreview;
+    if (!restorePreview || restorePreview.loading) return;
+    const { plan } = restorePreview;
     setRestorePreview(null);
     setDriveSyncing("load");
     showSnackbar(t("common:sync.syncing"), "info", null);
     try {
-      await importAll(data, { overwrite: true });
-      if (driveModifiedAt) {
-        await setSetting("lastLocalSavedAt", driveModifiedAt);
-        await setSetting("lastDataModifiedAt", driveModifiedAt);
-      }
+      await applyRestore(plan, { mode: "overwrite" });
       showSnackbar(t("settings:snackbar.driveRestoreSuccess"), "ok");
       navigate("/dashboard", { state: { checkDuplicates: true } });
     } catch (e) {
-      showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.loadFailed"), "error");
+      showSnackbar(backupErrorText(e, t("settings:snackbar.loadFailed")), "error");
     } finally {
       setDriveSyncing(null);
     }
-  }, [restorePreview, showSnackbar, t, navigate]);
+  }, [restorePreview, showSnackbar, t, navigate, backupErrorText]);
 
   const dialogTitle =
     dialog === "save"
@@ -314,7 +262,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                       className="flex-1 justify-center"
                       loading={driveSyncing === "save"}
                       disabled={!!driveSyncing || !!restorePreview}
-                      onClick={() => usePassphrase ? openDialog("drive-save") : void saveDrive("")}
+                      onClick={() => usePassphrase ? openDialog("drive-save") : void handleSave("")}
                     >
                       <DownloadIcon size={13} />
                       {t("settings:backup.saveToDrive")}
@@ -347,7 +295,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                   className="flex-1 justify-center"
                   loading={syncing === "save"}
                   disabled={!!syncing}
-                  onClick={() => usePassphrase ? openDialog("save") : void saveFile("")}
+                  onClick={() => usePassphrase ? openDialog("save") : void handleSave("")}
                 >
                   <DownloadIcon size={13} />
                   {t("settings:backup.saveFile")}
@@ -391,9 +339,8 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
               onChange={(e) => setDialogPassphrase(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  if (dialog === "save") saveFile(dialogPassphrase);
+                  if (dialog === "save" || dialog === "drive-save") handleSave(dialogPassphrase);
                   else if (dialog === "load") loadFile(dialogPassphrase);
-                  else if (dialog === "drive-save") saveDrive(dialogPassphrase);
                   else if (dialog === "drive-load") loadDrive(dialogPassphrase);
                 }
                 if (e.key === "Escape") closeDialog();
@@ -407,13 +354,11 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
               </Button>
               <Button
                 onClick={
-                  dialog === "save"
-                    ? () => saveFile(dialogPassphrase)
+                  dialog === "save" || dialog === "drive-save"
+                    ? () => handleSave(dialogPassphrase)
                     : dialog === "load"
                       ? () => loadFile(dialogPassphrase)
-                      : dialog === "drive-save"
-                        ? () => saveDrive(dialogPassphrase)
-                        : () => loadDrive(dialogPassphrase)
+                      : () => loadDrive(dialogPassphrase)
                 }
               >
                 {dialogAction}
@@ -440,19 +385,17 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
             ) : (
               <>
                 {(() => {
-                  const local = restorePreview.localSavedAt ?? 0;
-                  const remote = restorePreview.remoteSavedAt ?? 0;
-                  const same = local > 0 && remote > 0 && local === remote;
-                  const localNewer = same || (local > 0 && local > remote);
-                  const remoteNewer = same || (remote > 0 && remote > local);
+                  const { plan } = restorePreview;
+                  const localNewer = plan.freshness === "local-newer" || plan.freshness === "same";
+                  const remoteNewer = plan.freshness === "backup-newer" || plan.freshness === "same";
                   const fmt = (ts: number) => new Date(ts).toLocaleString("nb-NO", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
                   return (
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between text-xs">
                         <span className="text-muted">{t("settings:backup.restorePreviewLocalLabel")}</span>
-                        {restorePreview.localSavedAt ? (
+                        {plan.localSavedAt ? (
                           <span className={`font-medium ${localNewer ? "text-green-500" : remoteNewer ? "text-red-500" : "text-text"}`}>
-                            {fmt(restorePreview.localSavedAt)}
+                            {fmt(plan.localSavedAt)}
                           </span>
                         ) : (
                           <span className="italic text-muted">{t("settings:backup.restorePreviewNever")}</span>
@@ -460,9 +403,9 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-muted">{t("settings:backup.restorePreviewRemoteLabel")}</span>
-                        {restorePreview.remoteSavedAt ? (
+                        {plan.backupSavedAt ? (
                           <span className={`font-medium ${remoteNewer ? "text-green-500" : localNewer ? "text-red-500" : "text-text"}`}>
-                            {fmt(restorePreview.remoteSavedAt)}
+                            {fmt(plan.backupSavedAt)}
                           </span>
                         ) : (
                           <span className="italic text-muted">{t("settings:backup.restorePreviewNever")}</span>
@@ -471,17 +414,17 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                       <div className="border-t border-border pt-2 mt-2">
                         <div className="flex justify-between text-xs">
                           <span className="text-muted">{t("settings:backup.restorePreviewFileCount")}</span>
-                          <span className="font-medium text-text">{restorePreview.fileCount}</span>
+                          <span className="font-medium text-text">{plan.backupCount}</span>
                         </div>
                         <div className="flex justify-between text-xs mt-1">
                           <span className="text-muted">{t("settings:backup.restorePreviewLocalCount")}</span>
-                          <span className="font-medium text-text">{restorePreview.localCount}</span>
+                          <span className="font-medium text-text">{plan.localCount}</span>
                         </div>
                       </div>
                     </div>
                   );
                 })()}
-                {(restorePreview.fileCount ?? 0) < (restorePreview.localCount ?? 0) && (
+                {restorePreview.plan.warnFewerTransactions && (
                   <div className="border border-warning/20 bg-warning/5 rounded-lg p-3 mb-4">
                     <p className="text-xs text-warning leading-relaxed">
                       {t("settings:backup.restorePreviewWarning")}

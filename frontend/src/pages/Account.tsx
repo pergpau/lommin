@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { triggerAutosave } from "../lib/autosave";
+import { triggerAutosave } from "../lib/backup";
 import { deleteAccount, disconnectAccount, resetAccountSync, saveAccount, setCategoryId, type Account } from "../lib/data";
 import { getSetting } from "../lib/settings";
 import { accountLabel, effectiveDate } from "../lib/format";

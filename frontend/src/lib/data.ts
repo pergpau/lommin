@@ -1,20 +1,13 @@
 // Public data interface. All writes trigger autosave (debounced 3 s).
 // Import data operations from here, not from store.ts directly.
-// Exception: autosave.ts imports exportAll from store to avoid a circular dependency.
+// Exception: backup.ts imports store directly to avoid a circular dependency.
 
-import { triggerAutosave } from "./autosave";
+import { scheduleAutosave } from "./backup";
 import { setSetting } from "./settings";
 import * as store from "./store";
 
 export type { Account, AccountSource, SyncCursor, Transaction } from "./types";
 export { getEnableBankingSource, makeTransactionId, normalizeForMatch } from "./types";
-
-let _debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-function scheduleAutosave(): void {
-  if (_debounceTimer) clearTimeout(_debounceTimer);
-  _debounceTimer = setTimeout(() => void triggerAutosave(), 3000);
-}
 
 function markAndSchedule(): void {
   void setSetting("lastDataModifiedAt", Date.now());

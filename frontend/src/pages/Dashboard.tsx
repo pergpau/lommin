@@ -14,18 +14,16 @@ import { useAccounts } from "../hooks/useAccounts";
 import { useSwipe } from "../hooks/useSwipe";
 import { useSyncState } from "../hooks/useSyncState";
 import { useTransactions } from "../hooks/useTransactions";
-import { saveEncryptedFile } from "../lib/cryptoFile";
 import { isDemoMode } from "../lib/demoData";
-import { DriveAuthError, saveBackupToDrive } from "../lib/googleDrive";
 import { loadKey } from "../lib/auth";
 import { effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
 import { buildMonthlyData, buildYearlyData } from "../lib/transactionAggregation";
-import { clearDriveToken, getAllSettings, getDismissedPairs, getDriveToken, hasSetting } from "../lib/settings";
+import { getAllSettings, getDismissedPairs, hasSetting } from "../lib/settings";
 import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
-import { addSaveListener, triggerAutosave } from "../lib/autosave";
+import { addSaveListener, BackupError, saveBackup, triggerAutosave } from "../lib/backup";
 import { useSuccessFlash } from "../hooks/useSuccessFlash";
-import { clearAccounts, clearTransactions, exportAll, getAllTransactions, getEnableBankingSource } from "../lib/data";
+import { clearAccounts, clearTransactions, getAllTransactions, getEnableBankingSource } from "../lib/data";
 import { setCategoryId } from "../lib/data";
 
 type Tab = "categories" | "accounts" | "transactions";
@@ -52,7 +50,6 @@ export default function Dashboard() {
   const [backupMethod, setBackupMethod] = useState<"drive" | "file">("file");
   const [hasBackupMethod, setHasBackupMethod] = useState(false);
   const [usePassphrase, setUsePassphrase] = useState(false);
-  const [dashDriveToken, setDashDriveToken] = useState<string | null>(null);
   const [dashBackupSaving, setDashBackupSaving] = useState(false);
   const [dashDialog, setDashDialog] = useState(false);
   const [dashPassphrase, setDashPassphrase] = useState("");
@@ -69,9 +66,6 @@ export default function Dashboard() {
     getAllSettings().then((s) => {
       setBackupMethod(s.backupMethod);
       setUsePassphrase(s.usePassphrase);
-    });
-    getDriveToken().then((stored) => {
-      if (stored) setDashDriveToken(stored.token);
     });
     isDemoMode().then(setIsDemo);
     hasSetting("backupMethod").then(setHasBackupMethod);
@@ -109,36 +103,27 @@ export default function Dashboard() {
       void handleQuickSave("");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasBackupMethod, usePassphrase, backupMethod, dashDriveToken, navigate]);
+  }, [hasBackupMethod, usePassphrase, navigate]);
 
   const handleQuickSave = useCallback(async (passphrase: string) => {
     setDashDialog(false);
     setDashBackupSaving(true);
     try {
-      const data = await exportAll();
-      if (backupMethod === "drive") {
-        if (!dashDriveToken) {
-          navigate("/settings#backup");
-          return;
-        }
-        await saveBackupToDrive(dashDriveToken, data, passphrase);
-        showSnackbar(t("snackbar.savedToDrive"), "ok");
-        saveFlash();
-      } else {
-        await saveEncryptedFile(data, passphrase);
-        showSnackbar(t("snackbar.savedToFile"), "ok");
-        saveFlash();
-      }
+      await saveBackup(passphrase);
+      showSnackbar(t(backupMethod === "drive" ? "snackbar.savedToDrive" : "snackbar.savedToFile"), "ok");
+      saveFlash();
     } catch (e) {
-      if ((e as Error).name !== "AbortError") {
-        if (e instanceof DriveAuthError) { setDashDriveToken(null); void clearDriveToken(); }
-        showSnackbar(e instanceof Error ? e.message : t("snackbar.saveFailed"), "error");
+      const kind = e instanceof BackupError ? e.kind : "unknown";
+      if (kind === "drive-not-connected") {
+        navigate("/settings#backup");
+      } else if (kind !== "cancelled") {
+        showSnackbar(e instanceof Error && e.message ? e.message : t("snackbar.saveFailed"), "error");
       }
     } finally {
       setDashBackupSaving(false);
       setDashPassphrase("");
     }
-  }, [backupMethod, dashDriveToken, navigate, showSnackbar, t, saveFlash]);
+  }, [backupMethod, navigate, showSnackbar, t, saveFlash]);
 
   const exitDemo = useCallback(async () => {
     setExitingDemo(true);

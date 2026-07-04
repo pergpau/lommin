@@ -59,7 +59,7 @@ The app is a React 19 SPA with React Router v7, Tailwind CSS, and no state manag
 | `categories.ts`      | Norwegian category taxonomy (`MAIN_CATEGORIES`); `CategoryType`: income/expense/saving/exclude    |
 | `categoryIcons.ts`   | Maps category IDs to Font Awesome icons                                                            |
 | `autoCategorize.ts`  | Guesses category from `bankTransactionCode` (BTC rules) and description patterns                  |
-| `autosave.ts`        | Debounced (3 s) autosave to Google Drive; `triggerAutosave()` / `addSaveListener()`               |
+| `backup.ts`          | The backup pipeline: `saveBackup`/`loadBackup`/`applyRestore`, debounced Drive autosave, `assessDriveSync`, `BackupError` classification |
 | `googleDrive.ts`     | Google Drive backup/restore using `drive.appdata` scope; `DriveAuthError` for token expiry        |
 | `spiirImport.ts`     | Parse Spiir ZIP export → Accounts + Transactions; maps Spiir category IDs to own IDs             |
 | `transfers.ts`       | `detectTransfers()` — greedy same-amount opposite-sign matcher across accounts (±3 days)          |
@@ -89,7 +89,7 @@ All user-facing strings are in `src/locales/{nb,en}/*.json`. Use `useTranslation
 
 ### Data access: data.ts is the public interface
 
-Import all data operations from `src/lib/data.ts` — never import `store.ts` directly. `data.ts` wraps every write with debounced autosave (3 s) and re-exports all reads and types. For type-only imports in `src/lib/` files, import from `src/lib/types.ts` to avoid depending on the persistence layer. The only file that may import `store.ts` directly (besides `data.ts`) is `autosave.ts`, to avoid a circular dependency.
+Import all data operations from `src/lib/data.ts` — never import `store.ts` directly. `data.ts` wraps every write with debounced autosave (3 s) and re-exports all reads and types. For type-only imports in `src/lib/` files, import from `src/lib/types.ts` to avoid depending on the persistence layer. The only file that may import `store.ts` directly (besides `data.ts`) is `backup.ts`, to avoid a circular dependency.
 
 ### Account and Transaction models
 

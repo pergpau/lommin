@@ -1,34 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnackbar } from "../components/ui/Snackbar";
-import { triggerAutosave } from "../lib/autosave";
-import { DriveAuthError, getDriveBackupModifiedTime, loadBackupFromDrive } from "../lib/googleDrive";
-import { clearDriveToken, getAllSettings, getDriveToken, hasDriveTokenStored, setSetting } from "../lib/settings";
-import { getAllTransactions, importAll } from "../lib/data";
-
-export type PendingDriveRestore = {
-  data: object;
-  driveModifiedAt: number;
-  backupCount: number;
-  localCount: number;
-};
+import {
+  applyRestore,
+  assessDriveSync,
+  BackupError,
+  loadBackup,
+  type RestorePlan,
+  triggerAutosave,
+} from "../lib/backup";
 
 export function useDriveSync() {
   const { showSnackbar, hideSnackbar } = useSnackbar();
   const { t } = useTranslation("common");
   const inFlight = useRef(false);
-  const [pendingRestore, setPendingRestore] = useState<PendingDriveRestore | null>(null);
-  const pendingRef = useRef<PendingDriveRestore | null>(null);
+  const [pendingRestore, setPendingRestore] = useState<RestorePlan | null>(null);
+  const pendingRef = useRef<RestorePlan | null>(null);
   pendingRef.current = pendingRestore;
   const declinedDriveVersion = useRef<number | null>(null);
 
-  const applyRestore = useCallback(async (data: object, driveModifiedAt: number) => {
-    await importAll(data, { overwrite: true });
-    await setSetting("lastLocalSavedAt", driveModifiedAt);
-    await setSetting("lastDataModifiedAt", driveModifiedAt);
-    window.dispatchEvent(new Event("lommin:data-reload"));
-    showSnackbar(t("sync.done"), "ok");
-  }, [showSnackbar, t]);
+  const restoreNow = useCallback(
+    async (plan: RestorePlan) => {
+      await applyRestore(plan, { mode: "overwrite" });
+      showSnackbar(t("sync.done"), "ok");
+    },
+    [showSnackbar, t],
+  );
 
   const attemptSync = useCallback(async () => {
     if (window.opener) return;
@@ -36,51 +33,34 @@ export function useDriveSync() {
     inFlight.current = true;
 
     try {
-      const [settings, stored] = await Promise.all([getAllSettings(), getDriveToken()]);
-      if (!settings.driveAutosave || settings.backupMethod !== "drive" || settings.usePassphrase) return;
-      if (!stored) {
-        const hadToken = await hasDriveTokenStored();
-        if (hadToken) window.dispatchEvent(new Event("lommin:drive-auth-expired"));
-        return;
-      }
-
-      const hasUnsavedLocalChanges = settings.lastDataModifiedAt !== null
-        && (settings.lastLocalSavedAt === null || settings.lastDataModifiedAt > settings.lastLocalSavedAt);
-
-      if (hasUnsavedLocalChanges) {
+      const assessment = await assessDriveSync();
+      if (assessment.action === "push") {
         void triggerAutosave();
         return;
       }
-
-      const driveModifiedAt = await getDriveBackupModifiedTime(stored.token);
-      if (!driveModifiedAt) return;
-      if (settings.lastLocalSavedAt !== null && driveModifiedAt <= settings.lastLocalSavedAt) return;
-      if (declinedDriveVersion.current === driveModifiedAt) return;
+      if (assessment.action !== "pull") return;
+      if (declinedDriveVersion.current === assessment.driveModifiedAt) return;
 
       showSnackbar(t("sync.syncing"), "info", null);
-      const data = await loadBackupFromDrive(stored.token, "");
-      const raw = data as { transactions?: unknown[] };
-      const backupCount = Array.isArray(raw.transactions) ? raw.transactions.length : 0;
-      const localCount = (await getAllTransactions()).length;
+      const plan = await loadBackup("", { source: "drive" });
 
-      if (backupCount < localCount) {
+      if (plan.warnFewerTransactions) {
         hideSnackbar();
-        setPendingRestore({ data, driveModifiedAt, backupCount, localCount });
+        setPendingRestore(plan);
         return;
       }
 
-      await applyRestore(data, driveModifiedAt);
+      await restoreNow(plan);
     } catch (e) {
-      if (e instanceof DriveAuthError) {
-        void clearDriveToken();
-        window.dispatchEvent(new Event("lommin:drive-auth-expired"));
-      } else {
+      // drive-auth: the backup module already cleared the token and fired
+      // the reconnect event; the reconnect modal takes it from here.
+      if (!(e instanceof BackupError && e.kind === "drive-auth")) {
         showSnackbar(t("sync.error"), "error");
       }
     } finally {
       inFlight.current = false;
     }
-  }, [showSnackbar, hideSnackbar, t, applyRestore]);
+  }, [showSnackbar, hideSnackbar, t, restoreNow]);
 
   const confirmRestore = useCallback(async () => {
     const pending = pendingRef.current;
@@ -88,15 +68,15 @@ export function useDriveSync() {
     setPendingRestore(null);
     showSnackbar(t("sync.syncing"), "info", null);
     try {
-      await applyRestore(pending.data, pending.driveModifiedAt);
+      await restoreNow(pending);
     } catch {
       showSnackbar(t("sync.error"), "error");
     }
-  }, [applyRestore, showSnackbar, t]);
+  }, [restoreNow, showSnackbar, t]);
 
   const dismissRestore = useCallback(() => {
     const pending = pendingRef.current;
-    if (pending) declinedDriveVersion.current = pending.driveModifiedAt;
+    if (pending) declinedDriveVersion.current = pending.backupSavedAt;
     setPendingRestore(null);
   }, []);
 
