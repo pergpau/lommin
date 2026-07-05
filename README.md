@@ -15,6 +15,15 @@ Connect your bank accounts and sync transactions whenever you like. Categorize s
 
 Don't have an Enable Banking account, or just want to try it out first? There's a built-in **demo mode** that seeds realistic synthetic data with no bank connection needed. You can also bring in real transactions from a **CSV export from your bank**, or import a full account history from **[Spiir](https://spiir.dk/)** (including Spiir's own categories, mapped to Lommin's taxonomy).
 
+
+## Screenshots
+<img width="264" height="559" alt="image" src="https://github.com/user-attachments/assets/7251c6ac-8221-486c-b64d-20ac7608519a" />
+<img width="264" height="559" alt="image" src="https://github.com/user-attachments/assets/5ef54067-bd78-4ae4-a634-895cb0fc6e1f" />
+<img width="264" height="559" alt="image" src="https://github.com/user-attachments/assets/7084db37-2b35-49a0-adea-d11ce47eb1ca" />
+
+## Demo
+You can try it out on https://demo.lommin.no but you need to host it yourself to connect bank accounts and store data.
+
 ## Self-hosting
 
 Lommin is a self-hosted app. You deploy both the frontend (a static SPA) and a CORS proxy (f.ex. a Cloudflare Worker). No shared infrastructure.
