@@ -78,8 +78,8 @@ function StatsRow({ children, modeToggle }: StatsRowProps) {
 }
 
 const BAR_MAX = 80;
-const VISIBLE_BARS = 6;
-const VISIBLE_BARS_MOBILE = 3;
+const VISIBLE_BARS = 8;
+const VISIBLE_BARS_MOBILE = 4;
 // Width reserved at the strip edges so the neighboring bars peek in under the fade.
 const PEEK_PX = 40;
 
@@ -88,6 +88,16 @@ function barStyle(height: number, color: string): CSSProperties {
     height: `${height}px`,
     width: "14px",
     borderRadius: "3px 3px 0 0",
+    backgroundColor: color,
+    transition: "background-color 0.15s, height 0.25s ease",
+  };
+}
+
+function segStyle(height: number, color: string, rounded: boolean): CSSProperties {
+  return {
+    height: `${height}px`,
+    width: "100%",
+    borderRadius: rounded ? "3px 3px 0 0" : "0",
     backgroundColor: color,
     transition: "background-color 0.15s, height 0.25s ease",
   };
@@ -145,18 +155,23 @@ export default function MonthlyChart({
               isActive ? "rgb(var(--c-positive))" : "rgb(var(--c-positive) / 0.18)",
             )}
           />
-          {savingH > 0 && (
-            <div style={barStyle(savingH, isActive ? "#8b3eb8" : "rgba(139,62,184,0.18)")} />
-          )}
-          <div
-            style={barStyle(
-              expenseH,
-              isActive ? "rgb(var(--c-negative))" : "rgb(var(--c-negative) / 0.18)",
+          <div className="flex flex-col justify-end" style={{ width: "14px" }}>
+            {savingH > 0 && (
+              <div
+                style={segStyle(savingH, isActive ? "#8b3eb8" : "rgba(139,62,184,0.18)", true)}
+              />
             )}
-          />
+            <div
+              style={segStyle(
+                expenseH,
+                isActive ? "rgb(var(--c-accent))" : "rgb(var(--c-accent) / 0.18)",
+                savingH === 0,
+              )}
+            />
+          </div>
         </div>
         <div
-          className={`text-[9px] font-medium mt-2 leading-tight text-center ${isActive ? "text-text" : "text-muted"}`}
+          className={`text-[11px] font-medium mt-2 leading-tight text-center ${isActive ? "text-text" : "text-muted"}`}
         >
           {b.label}
         </div>
@@ -214,7 +229,7 @@ export default function MonthlyChart({
           label={t("monthly.expenses")}
           value={selected?.expenses ?? 0}
           avg={avgExpenses}
-          valueClassName="text-negative"
+          valueClassName="text-accent"
         />
       </StatsRow>
 
@@ -243,7 +258,7 @@ export default function MonthlyChart({
                   style={{ flex: `${months.length} 0 ${barBasis(months.length)}` }}
                 >
                   <div className="flex items-end w-full">{months.map((b) => renderBar(b))}</div>
-                  <div className="text-[10px] text-muted font-medium mt-2 text-center border-t border-border pt-1 w-full">
+                  <div className="text-xs text-muted font-semibold mt-2 text-center border-t border-border pt-1 w-full">
                     {year}
                   </div>
                 </div>
