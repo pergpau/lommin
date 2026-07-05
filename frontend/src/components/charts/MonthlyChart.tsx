@@ -116,6 +116,7 @@ export default function MonthlyChart({
   const { scrollView, scrollByPage, stripProps } = useDragScrollStrip(bars.length, {
     anchorKey: `${mode}:${visibleCount}`,
     peekPx: PEEK_PX,
+    visibleCount,
   });
 
   const barBasis = (n = 1) => `calc((100% - ${PEEK_PX}px) / ${visibleCount} * ${n})`;

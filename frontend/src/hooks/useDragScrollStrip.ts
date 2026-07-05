@@ -23,6 +23,8 @@ type Options = {
   anchorKey?: unknown;
   /** Width reserved at the strip edges; arrow paging steps by clientWidth - peekPx. */
   peekPx?: number;
+  /** Number of items visible at once; used to seed the window on re-anchor. */
+  visibleCount?: number;
 };
 
 /**
@@ -31,7 +33,10 @@ type Options = {
  * (assumes equal-width items) and fades the edges that have more content.
  * Spread `stripProps` onto the scroll container.
  */
-export function useDragScrollStrip(itemCount: number, { anchorKey, peekPx = 0 }: Options = {}) {
+export function useDragScrollStrip(
+  itemCount: number,
+  { anchorKey, peekPx = 0, visibleCount }: Options = {},
+) {
   const stripRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef(0);
   const momentumRef = useRef(0);
@@ -50,6 +55,25 @@ export function useDragScrollStrip(itemCount: number, { anchorKey, peekPx = 0 }:
     atStart: true,
     atEnd: true,
   });
+
+  // When itemCount or the anchor changes the strip re-anchors to its end in the
+  // layout effect below, but that only updates scrollView after commit. Deriving
+  // the end-anchored window here, during render, keeps the reported window valid
+  // for the current itemCount — otherwise callers slice `bars` with indices from
+  // the previous (longer) list for one frame, producing bogus geometry.
+  const anchorSeedRef = useRef<string>("");
+  const seed = `${itemCount}|${String(anchorKey)}`;
+  if (anchorSeedRef.current !== seed) {
+    anchorSeedRef.current = seed;
+    const vc = visibleCount ?? itemCount;
+    const first = Math.max(0, itemCount - vc);
+    const last = Math.max(0, itemCount - 1);
+    setScrollView((p) =>
+      p.first === first && p.last === last && p.atStart === (first === 0) && p.atEnd
+        ? p
+        : { first, last, atStart: first === 0, atEnd: true },
+    );
+  }
 
   const updateScrollView = useCallback(() => {
     const el = stripRef.current;
