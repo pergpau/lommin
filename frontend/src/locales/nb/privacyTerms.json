@@ -1,0 +1,57 @@
+{
+  "back": "← Tilbake",
+  "title": "Personvern og vilkår",
+  "lastUpdated": "Sist oppdatert: 5. juli 2026",
+  "sections": {
+    "selfHosted": {
+      "heading": "Selvhostet programvare, ingen garanti",
+      "body": "Lommin er åpen kildekode-programvare som du selv setter opp og kjører. Det står ingen bedrift, backend eller felles tjeneste bak, og ingen sentral aktør samler dataene dine. Programvaren leveres som den er, uten noen form for garanti — verken uttrykkelig eller underforstått. Det gis ingen garantier for tilgjengelighet, nøyaktighet eller egnethet for noe bestemt formål, og ingen er ansvarlig for datatap som følge av sletting av nettleserlagring, enhetsfeil eller endringer i tredjepartstjenester. Bruk på egen risiko, og les koden eller meld inn feil på <github>GitHub</github>.",
+      "selfHostWarning": "<strong>Hvis du bruker en versjon av Lommin som noen andre hoster, er du avhengig av deres proxy og deres kopi av appen, og du gjør det på egen risiko.</strong> Banktrafikken din går gjennom deres proxy, som de kontrollerer og kan inspisere. For å være sikker på at dataene dine holdes private, bør du hoste Lommin selv."
+    },
+    "signingKey": {
+      "heading": "Signeringsnøkkelen din",
+      "body": "Den private <pem>.pem</pem>-nøkkelen din importeres som et ikke-ekstraherbart <crypto>CryptoKey</crypto>-objekt. Rånøkkeldataene kan ikke leses av noen kode etter import og forlater aldri enheten din."
+    },
+    "indexedDB": {
+      "heading": "Dine finansdata (IndexedDB)",
+      "body1": "Alle kontoer, transaksjoner, synkroniseringspekere og appinnstillinger lagres i IndexedDB — en lokal database i nettleseren din. Disse dataene forlater aldri enheten din med mindre du aktivt slår på Google Drive-sikkerhetskopi.",
+      "body2": "Data beholdes til du sletter dem. Du kan slette enkeltkontoer, tømme alle transaksjoner, eller bruke «Slett alt» under Innstillinger for å fjerne all lokal data og starte på nytt.",
+      "body3": "Ingen andre har tilgang til disse dataene, og de kan ikke gjenopprettes hvis du sletter nettleserlagringen — dette er ditt ansvar. Bruk den krypterte sikkerhetskopien eller Google Drive-sikkerhetskopi under <settingsLink>Innstillinger</settingsLink> for å beskytte mot datatap."
+    },
+    "dataPortability": {
+      "heading": "Dataportabilitet",
+      "body": "Du kan eksportere alle dataene dine når som helst via Innstillinger. Eksporter krypteres med en passfrase du velger selv. Du kan importere en sikkerhetskopi for å gjenopprette dataene dine på en hvilken som helst enhet."
+    },
+    "proxy": {
+      "heading": "Proxyen og tilgangstokenet ditt",
+      "body1": "Enable Bankings API godtar ikke forespørsler direkte fra nettlesere, så de rutes gjennom en liten proxyserver som du selv må hoste. Denne proxyen ser <strong>det kortvarige tilgangstokenet</strong> som brukes til å autorisere hver forespørsel — ikke den private nøkkelen din."
+    },
+    "googleDrive": {
+      "heading": "Google Drive-sikkerhetskopi (valgfritt)",
+      "body1": "Hvis du aktiverer Google Drive-sikkerhetskopi under Innstillinger, laster Lommin opp én kryptert fil (<mono>lommin-backup.enc</mono>) til Google Drives skjulte appdatamappe. Denne mappen er bare synlig for Lommin — den vises ikke i den vanlige Drive-oversikten.",
+      "body2": "Filen krypteres med <mono>AES-GCM</mono> før opplasting. Google ser aldri innholdet i klartekst. Lommin ber bare om <mono>drive.appdata</mono>-tilgang og kan ikke se eller endre andre filer i Driven din.",
+      "body3": "«Slett alt» i Innstillinger fjerner all lokal data og Google-tilgangstokenet, men sletter <strong>ikke</strong> sikkerhetskopifilen fra Google Drive. For å fjerne den helt, slett Lommins appdata via <googleLink>Google-kontoinnstillingene</googleLink>. <termsLink>Googles tjenestevilkår</termsLink> gjelder for din bruk av Google Drive."
+    },
+    "thirdParty": {
+      "heading": "Tredjepartstjenester",
+      "enableBanking": "<strong>Enable Banking</strong> — Lommin kommuniserer med Enable Bankings API på dine vegne. Bankdataene dine — kontodetaljer, transaksjoner og saldoer — flyter gjennom CORS-proxyen beskrevet over, og lagres kun i nettleseren din. Din bruk av API-et reguleres av <termsLink>Enable Bankings tjenestevilkår</termsLink> og deres <privacyLink>personvernerklæring</privacyLink>; de kan endre API-et eller vilkårene når som helst, og Lommin kan ikke garantere fortsatt banktilkobling.",
+      "google": "<strong>Google</strong> — Bruker du Google Drive-sikkerhetskopi, lagres den krypterte sikkerhetskopien i Google Drive (se over). I tillegg laster Lommin inn Geist-fonten fra Google Fonts, noe som betyr at Google mottar IP-adressen din for fontforespørselen. Se <googleLink>Googles personvernerklæring</googleLink>."
+    },
+    "openSource": {
+      "heading": "Åpen kildekode",
+      "body": "Lommin er åpen kildekode. Den fullstendige kildekoden — inkludert CORS-proxyen — er tilgjengelig på <repoLink>GitHub</repoLink>. Du kan verifisere alle personvern- og sikkerhetspåstander i dette dokumentet ved å lese koden."
+    },
+    "license": {
+      "heading": "Lisens",
+      "body": "Lommin er utgitt under <licenseLink>PolyForm Noncommercial License 1.0.0</licenseLink>, © Per Gunnar Paulsen. Du står fritt til å bruke, endre og selv hoste programvaren til ethvert ikke-kommersielt formål — inkludert personlig bruk, hobbyprosjekter og bruk av ideelle organisasjoner, utdanningsinstitusjoner og offentlige virksomheter. Kommersiell bruk er ikke tillatt. Den fullstendige lisensteksten følger med kildekoden."
+    },
+    "changes": {
+      "heading": "Endringer",
+      "body": "Hvis dette dokumentet endres, oppdateres «sist oppdatert»-datoen øverst på denne siden. Sjekk denne siden med jevne mellomrom. Vesentlige endringer registreres i prosjektets versjonshistorikk på GitHub."
+    },
+    "contact": {
+      "heading": "Spørsmål og feil",
+      "body": "For spørsmål eller feilrapporter, <github>opprett et issue på GitHub</github>."
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "back": "← Back",
+  "title": "Privacy and terms",
+  "lastUpdated": "Last updated: 5 July 2026",
+  "sections": {
+    "selfHosted": {
+      "heading": "Self-hosted software, no warranty",
+      "body": "Lommin is open-source software that you deploy and run yourself. There is no company, backend or shared service behind it, and no central operator that collects your data. It is provided as is, without any warranty — either express or implied. There are no guarantees about availability, accuracy or fitness for any particular purpose, and no one is liable for any data loss resulting from browser storage clearing, device failure or third-party service changes. Use at your own risk, and read the code or report issues on <github>GitHub</github>.",
+      "selfHostWarning": "<strong>If you use a version of Lommin hosted by someone else, you rely on their proxy and their copy of the app, and you do so at your own risk.</strong> Your bank traffic passes through their proxy, which they control and could inspect. To be certain your data stays private, host Lommin yourself."
+    },
+    "signingKey": {
+      "heading": "Your signing key",
+      "body": "Your private <pem>.pem</pem> key is imported as a non-extractable <crypto>CryptoKey</crypto> object. The raw key data cannot be read by any code after import and never leaves your device."
+    },
+    "indexedDB": {
+      "heading": "Your financial data (IndexedDB)",
+      "body1": "All accounts, transactions, sync cursors and app settings are stored in IndexedDB — a local database inside your browser. This data never leaves your device unless you explicitly enable Google Drive backup.",
+      "body2": "Data is kept until you delete it. You can delete individual accounts, clear all transactions, or use \"Delete Everything\" under Settings to wipe all local data and start fresh.",
+      "body3": "No one else has access to this data, and it cannot be recovered if you clear browser storage — this is your responsibility. Use the encrypted backup or Google Drive backup under <settingsLink>Settings</settingsLink> to protect against data loss."
+    },
+    "dataPortability": {
+      "heading": "Data portability",
+      "body": "You can export all your data at any time via Settings. Exports are encrypted with a passphrase you choose. You can import a backup to restore your data on any device."
+    },
+    "proxy": {
+      "heading": "The proxy and your access token",
+      "body1": "Enable Banking's API does not accept requests directly from browsers, so they are routed through a small proxy server that you must host yourself. This proxy sees <strong>the short-lived access token</strong> used to authorise each request — not your private key."
+    },
+    "googleDrive": {
+      "heading": "Google Drive backup (optional)",
+      "body1": "If you enable Google Drive backup under Settings, Lommin uploads a single encrypted file (<mono>lommin-backup.enc</mono>) to your Google Drive's hidden app data folder. This folder is only visible to Lommin — it does not appear in your regular Drive.",
+      "body2": "The file is encrypted with <mono>AES-GCM</mono> before upload. Google never sees the plaintext. Lommin requests only the <mono>drive.appdata</mono> scope and cannot see or modify any other files in your Drive.",
+      "body3": "\"Delete Everything\" in Settings removes all local data and the Google access token, but does <strong>not</strong> delete the backup file from Google Drive. To remove it completely, delete Lommin's app data via your <googleLink>Google account settings</googleLink>. <termsLink>Google's terms of service</termsLink> apply to your use of Google Drive."
+    },
+    "thirdParty": {
+      "heading": "Third-party services",
+      "enableBanking": "<strong>Enable Banking</strong> — Lommin communicates with Enable Banking's API on your behalf. Your bank data — account details, transactions and balances — flows through the CORS proxy described above and is stored only in your browser. Your use of the API is governed by <termsLink>Enable Banking's terms of service</termsLink> and their <privacyLink>privacy policy</privacyLink>; they may change the API or terms at any time, and Lommin cannot guarantee continued bank connectivity.",
+      "google": "<strong>Google</strong> — If you use Google Drive backup, your encrypted backup file is stored in Google Drive (see above). Additionally, Lommin loads the Geist font from Google Fonts, which means Google receives your IP address for the font request. See <googleLink>Google's privacy policy</googleLink>."
+    },
+    "openSource": {
+      "heading": "Open source",
+      "body": "Lommin is open source. The full source code — including the CORS proxy — is available on <repoLink>GitHub</repoLink>. You can verify every privacy and security claim in this document by reading the code."
+    },
+    "license": {
+      "heading": "License",
+      "body": "Lommin is released under the <licenseLink>PolyForm Noncommercial License 1.0.0</licenseLink>, © Per Gunnar Paulsen. You are free to use, modify and self-host it for any noncommercial purpose — including personal use, hobby projects, and use by nonprofit, educational and government organizations. Commercial use is not permitted. The full license text is included with the source code."
+    },
+    "changes": {
+      "heading": "Changes",
+      "body": "If this document changes, the \"last updated\" date at the top of this page will be updated. Check this page periodically. Significant changes are recorded in the project's version history on GitHub."
+    },
+    "contact": {
+      "heading": "Questions and issues",
+      "body": "For questions or bug reports, <github>open an issue on GitHub</github>."
+    }
+  }
+}

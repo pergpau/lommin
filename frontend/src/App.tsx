@@ -12,8 +12,7 @@ import { loadKey } from "./lib/auth";
 import { getAccounts } from "./lib/data";
 import Spinner from "./components/ui/Spinner";
 import ErrorBoundary from "./components/ErrorBoundary";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
+import PrivacyTerms from "./pages/PrivacyTerms";
 import OAuthCallback from "./pages/OAuthCallback";
 import { useDriveSync } from "./hooks/useDriveSync";
 import DriveReconnectModal from "./components/DriveReconnectModal";
@@ -104,8 +103,9 @@ function AppContent() {
               }
             />
             <Route path="/oauth/google" element={<OAuthCallback />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy-terms" element={<PrivacyTerms />} />
+            <Route path="/privacy" element={<Navigate to="/privacy-terms" replace />} />
+            <Route path="/terms" element={<Navigate to="/privacy-terms" replace />} />
             <Route path="*" element={<RootRedirect />} />
           </Routes>
         </ErrorBoundary>

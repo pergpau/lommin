@@ -3,8 +3,8 @@ import { useTranslation, Trans } from "react-i18next";
 import { CheckIcon, CopyIcon, ExternalLinkIcon } from "./ui/icons";
 
 const REDIRECT_URL = `${window.location.origin}/connect`;
-const PRIVACY_URL = `${window.location.origin}/privacy`;
-const TERMS_URL = `${window.location.origin}/terms`;
+const PRIVACY_URL = `${window.location.origin}/privacy-terms`;
+const TERMS_URL = `${window.location.origin}/privacy-terms`;
 
 function useCopy() {
   const [copied, setCopied] = useState<string | null>(null);

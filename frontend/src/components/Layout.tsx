@@ -52,12 +52,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <main className="flex-1 flex flex-col">{children}</main>
       <footer className="border-t border-border py-4">
         <div className="max-w-3xl mx-auto px-4 flex items-center justify-center gap-4">
-          <Link to="/privacy" className="text-xs text-muted hover:text-text transition-colors">
-            {t("footer.privacy")}
-          </Link>
-          <span className="text-border">·</span>
-          <Link to="/terms" className="text-xs text-muted hover:text-text transition-colors">
-            {t("footer.terms")}
+          <Link
+            to="/privacy-terms"
+            className="text-xs text-muted hover:text-text transition-colors"
+          >
+            {t("footer.privacyTerms")}
           </Link>
           <span className="text-border">·</span>
           <a

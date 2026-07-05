@@ -13,8 +13,7 @@ import nbComponents from "../locales/nb/components.json";
 import nbTransactions from "../locales/nb/transactions.json";
 import nbCategories from "../locales/nb/categories.json";
 import nbCharts from "../locales/nb/charts.json";
-import nbPrivacy from "../locales/nb/privacy.json";
-import nbTerms from "../locales/nb/terms.json";
+import nbPrivacyTerms from "../locales/nb/privacyTerms.json";
 
 import enCommon from "../locales/en/common.json";
 import enNav from "../locales/en/nav.json";
@@ -27,8 +26,7 @@ import enComponents from "../locales/en/components.json";
 import enTransactions from "../locales/en/transactions.json";
 import enCategories from "../locales/en/categories.json";
 import enCharts from "../locales/en/charts.json";
-import enPrivacy from "../locales/en/privacy.json";
-import enTerms from "../locales/en/terms.json";
+import enPrivacyTerms from "../locales/en/privacyTerms.json";
 
 void i18n
   .use(LanguageDetector)
@@ -47,8 +45,7 @@ void i18n
         transactions: nbTransactions,
         categories: nbCategories,
         charts: nbCharts,
-        privacy: nbPrivacy,
-        terms: nbTerms,
+        privacyTerms: nbPrivacyTerms,
       },
       en: {
         common: enCommon,
@@ -62,8 +59,7 @@ void i18n
         transactions: enTransactions,
         categories: enCategories,
         charts: enCharts,
-        privacy: enPrivacy,
-        terms: enTerms,
+        privacyTerms: enPrivacyTerms,
       },
     },
     fallbackLng: "nb",
