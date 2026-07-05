@@ -2,11 +2,13 @@ import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChartColumn, faGear } from "@fortawesome/free-solid-svg-icons";
+import AppearanceControls from "./AppearanceControls";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
   const { t } = useTranslation("nav");
   const showNav = pathname !== "/setup" && pathname !== "/onboarding";
+  const isOnboarding = pathname === "/onboarding";
 
   const nav = [
     { to: "/dashboard", label: t("items.overview"), icon: faChartColumn },
@@ -20,6 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Link to="/dashboard" className="flex items-center gap-2">
             <img src="/logo.png" alt="Lommin" className="h-10 w-auto" />
           </Link>
+          {isOnboarding && <AppearanceControls />}
           {showNav && (
             <nav className="flex items-center gap-1">
               {nav.map(({ to, label, icon }) => (
