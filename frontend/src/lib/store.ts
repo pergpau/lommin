@@ -1,8 +1,8 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import { APP_NAME } from "../constants";
+import { applySyncedSettings } from "./settings";
 import { normalizeForMatch, type Account, type SyncCursor, type Transaction } from "./types";
 import { validateImportData } from "./validate";
-import { applySyncedSettings } from "./settings";
 
 export type { Account, AccountSource, SyncCursor, Transaction } from "./types";
 
@@ -150,69 +150,51 @@ export async function tagTransferCategory(transferIds: Set<string>): Promise<voi
   await tx.done;
 }
 
-export async function setCategoryId(
-  transactionId: string,
-  categoryId: number | undefined,
-): Promise<void> {
-  const d = await db();
-  const tx = d.transaction("transactions", "readwrite");
-  const t = await tx.store.get(transactionId);
-  if (t) await tx.store.put({ ...t, categoryId });
-  await tx.done;
-}
-
-export async function batchSetCategoryId(
+async function patchTransactions(
   transactionIds: string[],
-  categoryId: number | undefined,
+  patch: (t: Transaction) => Transaction,
 ): Promise<void> {
   if (transactionIds.length === 0) return;
   const d = await db();
   const tx = d.transaction("transactions", "readwrite");
   for (const id of transactionIds) {
     const t = await tx.store.get(id);
-    if (t) await tx.store.put({ ...t, categoryId });
+    if (t) await tx.store.put(patch(t));
   }
   await tx.done;
 }
 
-export async function setCustomDate(
-  transactionId: string,
-  date: string | undefined,
-): Promise<void> {
+async function removeTransactions(transactionIds: string[]): Promise<void> {
+  if (transactionIds.length === 0) return;
   const d = await db();
   const tx = d.transaction("transactions", "readwrite");
-  const t = await tx.store.get(transactionId);
-  if (t) await tx.store.put({ ...t, customDate: date });
+  for (const id of transactionIds) await tx.store.delete(id);
   await tx.done;
 }
 
-export async function setExcludeFromCalculations(
-  transactionId: string,
-  value: boolean,
-): Promise<void> {
-  const d = await db();
-  const tx = d.transaction("transactions", "readwrite");
-  const t = await tx.store.get(transactionId);
-  if (t) await tx.store.put({ ...t, excludeFromCalculations: value });
-  await tx.done;
-}
+export const setCategoryId = (transactionId: string, categoryId: number | undefined) =>
+  patchTransactions([transactionId], (t) => ({ ...t, categoryId }));
+export const batchSetCategoryId = (transactionIds: string[], categoryId: number | undefined) =>
+  patchTransactions(transactionIds, (t) => ({ ...t, categoryId }));
 
-export async function setComment(
-  transactionId: string,
-  comment: string | undefined,
-): Promise<void> {
-  const d = await db();
-  const tx = d.transaction("transactions", "readwrite");
-  const t = await tx.store.get(transactionId);
-  if (t) await tx.store.put({ ...t, comment: comment || undefined });
-  await tx.done;
-}
+export const setCustomDate = (transactionId: string, date: string | undefined) =>
+  patchTransactions([transactionId], (t) => ({ ...t, customDate: date }));
+export const batchSetCustomDate = (transactionIds: string[], date: string | undefined) =>
+  patchTransactions(transactionIds, (t) => ({ ...t, customDate: date }));
 
-// Remove the enableBanking source from an account so it's no longer synced via API.
-export async function deleteTransaction(transactionId: string): Promise<void> {
-  const d = await db();
-  await d.delete("transactions", transactionId);
-}
+export const setExcludeFromCalculations = (transactionId: string, value: boolean) =>
+  patchTransactions([transactionId], (t) => ({ ...t, excludeFromCalculations: value }));
+export const batchSetExcludeFromCalculations = (transactionIds: string[], value: boolean) =>
+  patchTransactions(transactionIds, (t) => ({ ...t, excludeFromCalculations: value }));
+
+export const setComment = (transactionId: string, comment: string | undefined) =>
+  patchTransactions([transactionId], (t) => ({ ...t, comment: comment || undefined }));
+export const batchSetComment = (transactionIds: string[], comment: string | undefined) =>
+  patchTransactions(transactionIds, (t) => ({ ...t, comment: comment || undefined }));
+
+export const deleteTransaction = (transactionId: string) => removeTransactions([transactionId]);
+export const batchDeleteTransactions = (transactionIds: string[]) =>
+  removeTransactions(transactionIds);
 
 export async function disconnectAccount(uid: string): Promise<void> {
   const d = await db();

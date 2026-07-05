@@ -48,6 +48,30 @@
     "skip": "Skip",
     "andMore": "…and {{count}} more not shown"
   },
+  "bulk": {
+    "select": "Select",
+    "selectAll": "Select all",
+    "done": "Done",
+    "selected": "{{count}} selected",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "varies": "varies",
+    "editTitle": "Edit {{count}} transactions",
+    "category": "Category",
+    "setCategory": "Set category",
+    "date": "Date",
+    "setDate": "Set date",
+    "statistics": "Statistics",
+    "comment": "Comment",
+    "hide": "Hide",
+    "show": "Show",
+    "delete": "Delete",
+    "commentTitle": "Comment on {{count}} transactions",
+    "commentOverwriteWarning": "Some of the selected transactions already have a comment. Adding a comment and saving will overwrite them.",
+    "deleteTitle": "Delete {{count}} transactions?",
+    "deleteBody": "This removes {{count}} transactions from your local database. They may be resynced from the bank API on the next sync."
+  },
   "row": {
     "pending": "(Pending)",
     "uncategorized": "Uncategorized"

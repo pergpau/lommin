@@ -48,6 +48,30 @@
     "skip": "Hopp over",
     "andMore": "…og {{count}} til som ikke vises"
   },
+  "bulk": {
+    "select": "Velg",
+    "selectAll": "Velg alle",
+    "done": "Ferdig",
+    "selected": "{{count}} valgt",
+    "edit": "Rediger",
+    "save": "Lagre",
+    "cancel": "Avbryt",
+    "varies": "ulike",
+    "editTitle": "Rediger {{count}} transaksjoner",
+    "category": "Kategori",
+    "setCategory": "Velg kategori",
+    "date": "Dato",
+    "setDate": "Velg dato",
+    "statistics": "Statistikk",
+    "comment": "Kommentar",
+    "hide": "Skjul",
+    "show": "Vis",
+    "delete": "Slett",
+    "commentTitle": "Kommenter {{count}} transaksjoner",
+    "commentOverwriteWarning": "Noen av de valgte transaksjonene har allerede en kommentar. Å legge til en kommentar og lagre vil overskrive dem.",
+    "deleteTitle": "Slette {{count}} transaksjoner?",
+    "deleteBody": "Dette fjerner {{count}} transaksjoner fra din lokale database. De kan bli synkronisert inn igjen fra bank-API-et ved neste synkronisering."
+  },
   "row": {
     "pending": "(Reservert)",
     "uncategorized": "Ukategorisert"

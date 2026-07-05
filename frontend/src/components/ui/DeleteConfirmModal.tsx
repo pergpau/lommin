@@ -4,9 +4,17 @@ interface DeleteConfirmModalProps {
   open: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  title?: string;
+  body?: string;
 }
 
-export default function DeleteConfirmModal({ open, onCancel, onConfirm }: DeleteConfirmModalProps) {
+export default function DeleteConfirmModal({
+  open,
+  onCancel,
+  onConfirm,
+  title,
+  body,
+}: DeleteConfirmModalProps) {
   const { t } = useTranslation("transactions");
   if (!open) return null;
   return (
@@ -17,8 +25,12 @@ export default function DeleteConfirmModal({ open, onCancel, onConfirm }: Delete
       }}
     >
       <div className="bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 shadow-xl p-6 flex flex-col gap-4">
-        <h2 className="text-sm font-semibold text-text">{t("detail.deleteConfirmTitle")}</h2>
-        <p className="text-xs text-muted leading-relaxed">{t("detail.deleteConfirmBody")}</p>
+        <h2 className="text-sm font-semibold text-text">
+          {title ?? t("detail.deleteConfirmTitle")}
+        </h2>
+        <p className="text-xs text-muted leading-relaxed">
+          {body ?? t("detail.deleteConfirmBody")}
+        </p>
         <div className="flex gap-2 justify-end">
           <button className="btn-ghost text-sm px-4 py-1.5" onClick={onCancel}>
             {t("detail.deleteConfirmCancel")}
