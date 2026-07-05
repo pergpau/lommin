@@ -45,28 +45,28 @@ The app is a React 19 SPA with React Router v7, Tailwind CSS, and no state manag
 
 ### `src/lib/` — core logic
 
-| File                 | Responsibility                                                                                     |
-| -------------------- | -------------------------------------------------------------------------------------------------- |
-| `auth.ts`            | PEM parsing, RS256 JWT minting, CryptoKey import + IndexedDB persistence (keystore)               |
-| `enableBanking.ts`   | Enable Banking API client; routes all calls through the proxy                                      |
-| `types.ts`           | Data type definitions (`Account`, `Transaction`, `SyncCursor`) and pure helpers                   |
-| `store.ts`           | IndexedDB CRUD for accounts, transactions, sync cursors — **do not import directly**              |
-| `data.ts`       | Public data interface: all writes (with autosave), reads, and type re-exports                     |
-| `settings.ts`        | IndexedDB CRUD for app settings (proxy URL, lookback days, backup method, Drive token, etc.)      |
-| `cryptoFile.ts`      | AES-GCM encrypted file export/import via File System Access API (PBKDF2 key derivation)           |
-| `sync.ts`            | Orchestrates a full sync: paginated transaction fetch → upsert → cursor update                    |
-| `format.ts`          | Number/date formatting helpers                                                                     |
-| `categories.ts`      | Norwegian category taxonomy (`MAIN_CATEGORIES`); `CategoryType`: income/expense/saving/exclude    |
-| `categoryIcons.ts`   | Maps category IDs to Font Awesome icons                                                            |
-| `autoCategorize.ts`  | Guesses category from `bankTransactionCode` (BTC rules) and description patterns                  |
-| `backup.ts`          | The backup pipeline: `saveBackup`/`loadBackup`/`applyRestore`, debounced Drive autosave, `assessDriveSync`, `BackupError` classification |
-| `googleDrive.ts`     | Google Drive backup/restore using `drive.appdata` scope; `DriveAuthError` for token expiry        |
-| `spiirImport.ts`     | Parse Spiir ZIP export → Accounts + Transactions; maps Spiir category IDs to own IDs             |
-| `transfers.ts`       | `detectTransfers()` — greedy same-amount opposite-sign matcher across accounts (±3 days)          |
-| `i18n.ts`            | i18next setup; Norwegian (`nb`) + English (`en`); auto-detects browser language                   |
-| `theme.ts`           | Dark/light theme toggle; persisted in `localStorage`; `ThemeContext`                              |
-| `validate.ts`        | Runtime validation guards for external data (API responses, import files); no Zod dependency      |
-| `demoData.ts`        | Seeds two demo accounts with synthetic transactions for the demo onboarding flow                  |
+| File                | Responsibility                                                                                                                           |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `auth.ts`           | PEM parsing, RS256 JWT minting, CryptoKey import + IndexedDB persistence (keystore)                                                      |
+| `enableBanking.ts`  | Enable Banking API client; routes all calls through the proxy                                                                            |
+| `types.ts`          | Data type definitions (`Account`, `Transaction`, `SyncCursor`) and pure helpers                                                          |
+| `store.ts`          | IndexedDB CRUD for accounts, transactions, sync cursors — **do not import directly**                                                     |
+| `data.ts`           | Public data interface: all writes (with autosave), reads, and type re-exports                                                            |
+| `settings.ts`       | IndexedDB CRUD for app settings (proxy URL, lookback days, backup method, Drive token, etc.)                                             |
+| `cryptoFile.ts`     | AES-GCM encrypted file export/import via File System Access API (PBKDF2 key derivation)                                                  |
+| `sync.ts`           | Orchestrates a full sync: paginated transaction fetch → upsert → cursor update                                                           |
+| `format.ts`         | Number/date formatting helpers                                                                                                           |
+| `categories.ts`     | Norwegian category taxonomy (`MAIN_CATEGORIES`); `CategoryType`: income/expense/saving/exclude                                           |
+| `categoryIcons.ts`  | Maps category IDs to Font Awesome icons                                                                                                  |
+| `autoCategorize.ts` | Guesses category from `bankTransactionCode` (BTC rules) and description patterns                                                         |
+| `backup.ts`         | The backup pipeline: `saveBackup`/`loadBackup`/`applyRestore`, debounced Drive autosave, `assessDriveSync`, `BackupError` classification |
+| `googleDrive.ts`    | Google Drive backup/restore using `drive.appdata` scope; `DriveAuthError` for token expiry                                               |
+| `spiirImport.ts`    | Parse Spiir ZIP export → Accounts + Transactions; maps Spiir category IDs to own IDs                                                     |
+| `transfers.ts`      | `detectTransfers()` — greedy same-amount opposite-sign matcher across accounts (±3 days)                                                 |
+| `i18n.ts`           | i18next setup; Norwegian (`nb`) + English (`en`); auto-detects browser language                                                          |
+| `theme.ts`          | Dark/light theme toggle; persisted in `localStorage`; `ThemeContext`                                                                     |
+| `validate.ts`       | Runtime validation guards for external data (API responses, import files); no Zod dependency                                             |
+| `demoData.ts`       | Seeds two demo accounts with synthetic transactions for the demo onboarding flow                                                         |
 
 ### `src/hooks/` — data hooks for pages
 
@@ -112,6 +112,7 @@ Unit tests use Vitest (`npm run test`). Test files live alongside source: `*.tes
 ## CORS proxy (`proxy/worker.ts`)
 
 Single-file Cloudflare Worker (~130 lines). Key constraints:
+
 - **Origin allowlist**: set `ALLOWED_ORIGINS` (comma-separated) in `wrangler.toml`; localhost always allowed.
 - **Path allowlist**: only `/aspsps`, `/auth`, `/sessions`, `/accounts/:id/transactions`, `/accounts/:id/balances` are forwarded.
 - **Rate limiting**: 60 req/min per IP (hashed SHA-256 IP stored in KV). KV binding `RATE_LIMIT_KV` must exist; if not bound (local dev), rate limiting is skipped.
@@ -143,3 +144,4 @@ Always use **Font Awesome** for icons (`@fortawesome/react-fontawesome` + `@fort
 - **Frontend**: `npm run build` → deploy `frontend/dist/` to any static host. Set `VITE_PROXY_URL` env var to your proxy Worker URL at build time. The `public/_redirects` catch-all (`/* /index.html 200`) handles SPA routing on Netlify.
 - **Proxy**: `wrangler deploy` from `proxy/`. Set `ALLOWED_ORIGINS` in `wrangler.toml` to your frontend URL.
 - The redirect URL registered in the Enable Banking control panel must match the deployed SPA URL exactly.
+- **Demo-only instance**: build with `VITE_DEMO_ONLY=true npm run build` (leave `VITE_PROXY_URL`/`VITE_GOOGLE_CLIENT_ID` unset). The `DEMO_ONLY` constant (`src/constants.ts`) makes the app seed demo data on boot, skip onboarding, redirect `/onboarding` and `/connect` to `/dashboard`, and expose only an appearance-only Settings page — no bank/sync/backup surfaces. Detection otherwise reuses the runtime `isDemoMode()` gating.

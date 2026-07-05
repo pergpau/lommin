@@ -21,6 +21,7 @@ import { useSwipe } from "../hooks/useSwipe";
 import { useSyncState } from "../hooks/useSyncState";
 import { useTransactions } from "../hooks/useTransactions";
 import { isDemoMode } from "../lib/demoData";
+import { DEMO_ONLY } from "../constants";
 import { loadKey } from "../lib/auth";
 import { effectiveDate } from "../lib/format";
 import { getLocale } from "../lib/i18n";
@@ -270,9 +271,11 @@ export default function Dashboard() {
       {isDemo && (
         <div className="bg-warning/10 border border-warning/20 rounded-xl px-4 py-3 flex items-center justify-between mb-6">
           <span className="text-sm text-warning font-medium">{t("demo.banner")}</span>
-          <Button variant="ghost" size="sm" loading={exitingDemo} onClick={exitDemo}>
-            {t("demo.exit")}
-          </Button>
+          {!DEMO_ONLY && (
+            <Button variant="ghost" size="sm" loading={exitingDemo} onClick={exitDemo}>
+              {t("demo.exit")}
+            </Button>
+          )}
         </div>
       )}
       {showDuplicatesBanner && (

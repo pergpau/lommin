@@ -9,3 +9,5 @@ export const SESSION_VALID_DAYS = 90;
 export const JWT_LIFETIME_SECONDS = 300;
 export const CHART_MONTHS = 6;
 export const MAX_IMPORT_BYTES = 50 * 1024 * 1024; // 50 MB
+
+export const DEMO_ONLY = import.meta.env.VITE_DEMO_ONLY === "true";

@@ -1,24 +1,17 @@
-import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChartColumn, faGear } from "@fortawesome/free-solid-svg-icons";
-import { isDemoMode } from "../lib/demoData";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
   const { t } = useTranslation("nav");
   const showNav = pathname !== "/setup" && pathname !== "/onboarding";
-  const [isDemo, setIsDemo] = useState(false);
 
   const nav = [
     { to: "/dashboard", label: t("items.overview"), icon: faChartColumn },
     { to: "/settings", label: t("items.settings"), icon: faGear },
   ];
-
-  useEffect(() => {
-    if (showNav) isDemoMode().then(setIsDemo);
-  }, [showNav]);
 
   return (
     <div className="min-h-screen bg-bg text-text flex flex-col">
@@ -29,22 +22,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </Link>
           {showNav && (
             <nav className="flex items-center gap-1">
-              {nav
-                .filter(({ to }) => !(isDemo && to === "/settings"))
-                .map(({ to, label, icon }) => (
-                  <Link
-                    key={to}
-                    to={to}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                      pathname.startsWith(to)
-                        ? "text-text bg-surface-2"
-                        : "text-muted hover:text-text hover:bg-surface-2"
-                    }`}
-                  >
-                    <FontAwesomeIcon icon={icon} />
-                    <span className="hidden sm:inline">{label}</span>
-                  </Link>
-                ))}
+              {nav.map(({ to, label, icon }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors ${
+                    pathname.startsWith(to)
+                      ? "text-text bg-surface-2"
+                      : "text-muted hover:text-text hover:bg-surface-2"
+                  }`}
+                >
+                  <FontAwesomeIcon icon={icon} />
+                  <span className="hidden sm:inline">{label}</span>
+                </Link>
+              ))}
             </nav>
           )}
         </div>

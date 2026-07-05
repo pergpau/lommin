@@ -7,6 +7,7 @@ import DangerZone from "../components/settings/DangerZone";
 import ImportSection from "../components/settings/ImportSection";
 import KeySection from "../components/settings/KeySection";
 import SyncSection from "../components/settings/SyncSection";
+import { DEMO_ONLY } from "../constants";
 import { isDemoMode } from "../lib/demoData";
 
 export default function Settings() {
@@ -31,7 +32,17 @@ export default function Settings() {
     return () => clearTimeout(timer);
   }, [hash, isDemo]);
 
-  if (isDemo === null || isDemo) return null;
+  if (isDemo === null && !DEMO_ONLY) return null;
+
+  // Demo mode (runtime or the demo-only build): expose just appearance
+  // (theme + language), nothing else.
+  if (DEMO_ONLY || isDemo)
+    return (
+      <div className="w-full max-w-xl mx-auto px-4 py-8">
+        <h1 className="text-xl font-semibold mb-6">{t("title")}</h1>
+        <AppearanceSection />
+      </div>
+    );
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
