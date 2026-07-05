@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChartColumn, faGear } from "@fortawesome/free-solid-svg-icons";
 import { isDemoMode } from "../lib/demoData";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -10,8 +12,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isDemo, setIsDemo] = useState(false);
 
   const nav = [
-    { to: "/dashboard", label: t("items.overview") },
-    { to: "/settings", label: t("items.settings") },
+    { to: "/dashboard", label: t("items.overview"), icon: faChartColumn },
+    { to: "/settings", label: t("items.settings"), icon: faGear },
   ];
 
   useEffect(() => {
@@ -29,17 +31,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <nav className="flex items-center gap-1">
               {nav
                 .filter(({ to }) => !(isDemo && to === "/settings"))
-                .map(({ to, label }) => (
+                .map(({ to, label, icon }) => (
                   <Link
                     key={to}
                     to={to}
-                    className={`px-3 py-1.5 rounded text-sm transition-colors ${
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors ${
                       pathname.startsWith(to)
                         ? "text-text bg-surface-2"
                         : "text-muted hover:text-text hover:bg-surface-2"
                     }`}
                   >
-                    {label}
+                    <FontAwesomeIcon icon={icon} />
+                    <span className="hidden sm:inline">{label}</span>
                   </Link>
                 ))}
             </nav>
