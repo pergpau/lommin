@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
+import AppearanceSection from "../components/settings/AppearanceSection";
 import BackupSection from "../components/settings/BackupSection";
 import DangerZone from "../components/settings/DangerZone";
 import ImportSection from "../components/settings/ImportSection";
@@ -39,6 +40,7 @@ export default function Settings() {
       <SyncSection />
       <BackupSection highlightedHash={highlightedHash} />
       <ImportSection highlightedHash={highlightedHash} />
+      <AppearanceSection />
       <DangerZone />
     </div>
   );

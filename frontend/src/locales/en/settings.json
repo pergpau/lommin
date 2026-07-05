@@ -79,6 +79,13 @@
     "title": "Import from your own data",
     "comingSoon": "Coming soon. Here you'll be able to import transactions from your own CSV files and other sources."
   },
+  "appearance": {
+    "title": "Appearance",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "language": "Language"
+  },
   "danger": {
     "title": "Danger zone",
     "deleteTransactions": "Delete transactions",

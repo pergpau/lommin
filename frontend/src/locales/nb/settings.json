@@ -79,6 +79,13 @@
     "title": "Importer fra egne data",
     "comingSoon": "Kommer snart. Her vil du kunne importere transaksjoner fra egne CSV-filer og andre kilder."
   },
+  "appearance": {
+    "title": "Utseende",
+    "theme": "Tema",
+    "light": "Lyst",
+    "dark": "Mørkt",
+    "language": "Språk"
+  },
   "danger": {
     "title": "Faresone",
     "deleteTransactions": "Slett transaksjoner",
