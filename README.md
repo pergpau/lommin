@@ -6,39 +6,44 @@ A privacy-first personal spending tracker that connects to your European bank ac
 
 ## What it does
 
-Connect your bank accounts and sync transactions whenever you like. Categorize spending, spot trends, and export encrypted backups — all without your data ever hitting a server you don't control.
+Lommin gives you a clear picture of where your money goes — without handing your financial life to yet another company. Connect your European bank accounts, pull in your transactions, and see your spending come to life.
 
-- Transactions and accounts are stored in IndexedDB, locally in your browser
-- Your `.pem` signing key is imported as a non-extractable `CryptoKey` — the raw bytes are unrecoverable by JS after import and never leave the device
-- Backup files are encrypted (AES-GCM) with a key derived from your passphrase (PBKDF2); the passphrase never leaves the device
-- Your transaction data is available offline after the first sync
+- **See your spending clearly.** Every transaction is sorted into categories, so you can tell at a glance what you're spending on groceries, transport, eating out, or anything else.
+- **Spot the trends.** Watch how your spending shifts over time, catch the months that got away from you, and keep an eye on what matters to you.
+- **Automatic categorization.** New transactions are sorted for you, so you spend less time tagging and more time understanding.
+- **Your data stays yours.** Everything lives on your own device, in your own browser. Nothing is sent to a server we control — because there isn't one.
+- **Encrypted backups you own.** Save a secure, password-protected backup to a file or to your own Google Drive, and restore it whenever you need to.
+- **Works offline.** Once your transactions are synced, you can browse them anytime, even without a connection.
 
-Don't have an Enable Banking account, or just want to try it out first? There's a built-in **demo mode** that seeds realistic synthetic data with no bank connection needed. You can also bring in real transactions from a **CSV export from your bank**, or import a full account history from **[Spiir](https://spiir.dk/)** (including Spiir's own categories, mapped to Lommin's taxonomy).
-
+Want to try it before connecting a bank? A built-in **demo mode** fills the app with realistic sample data so you can explore every feature instantly. Already track your money elsewhere? Bring your history along with a **CSV export from your bank** or a full import from **[Spiir](https://spiir.dk/)** — categories and all.
 
 ## Screenshots
+
 <img width="264" height="559" alt="image" src="https://github.com/user-attachments/assets/7251c6ac-8221-486c-b64d-20ac7608519a" />
 <img width="264" height="559" alt="image" src="https://github.com/user-attachments/assets/5ef54067-bd78-4ae4-a634-895cb0fc6e1f" />
 <img width="264" height="559" alt="image" src="https://github.com/user-attachments/assets/7084db37-2b35-49a0-adea-d11ce47eb1ca" />
 
 ## Demo
-You can try it out on https://demo.lommin.no but you need to host it yourself to connect bank accounts and store data.
+
+You can try it out on https://demo.lommin.no but you need to host it yourself to connect bank accounts and save data.
 
 ## Self-hosting
 
-Lommin is a self-hosted app. You deploy both the frontend (a static SPA) and a CORS proxy (f.ex. a Cloudflare Worker). No shared infrastructure.
+Lommin is a self-hosted app. You deploy both the frontend (a static SPA) and a CORS proxy (any proxy works; a Cloudflare Worker example is included). No shared infrastructure.
 
 ### Prerequisites
 
 - Node.js 20+
 - A free [Enable Banking](https://enablebanking.com/) account with a `.pem` signing key (for transaction sync)
-- A proxy that redirects traffic from the frontend to Enable Banking. F.ex. a [Cloudflare](https://www.cloudflare.com/) worker proxy (free tier available).
+- A CORS proxy that forwards requests from the frontend to Enable Banking — any proxy works; this repo includes a ready-to-deploy [Cloudflare Worker](https://www.cloudflare.com/) example (free tier available)
 - Any static hosting provider for the frontend (Netlify, Vercel, Cloudflare Pages, etc.)
 - (Optional) A Google Cloud project with OAuth credentials if you want Google Drive backup
 
 ### 1. Deploy the CORS proxy
 
-The proxy is a single-file Cloudflare Worker that relays browser requests to the Enable Banking API. See [`proxy/README.md`](./proxy/README.md) for step-by-step instructions.
+Lommin needs a CORS proxy that relays browser requests to the Enable Banking API. **Any proxy will do** — its only job is to forward requests to `api.enablebanking.com` with the right CORS headers. You can use an existing proxy, roll your own, or use the ready-made example included in this repo.
+
+The [`proxy/`](./proxy) directory ships a single-file Cloudflare Worker you can deploy as-is (free tier available). See [`proxy/README.md`](./proxy/README.md) for step-by-step instructions.
 
 ```sh
 cd proxy
@@ -47,7 +52,7 @@ wrangler kv namespace create RATE_LIMIT_KV  # paste the id into wrangler.toml
 wrangler deploy
 ```
 
-Note the Worker URL (e.g. `https://proxy.your-account.workers.dev`).
+Note the resulting proxy URL (e.g. `https://proxy.your-account.workers.dev`) — you'll point the frontend at it in the next step.
 
 ### 2. Build and deploy the frontend
 
@@ -62,7 +67,9 @@ npm run build
 # deploy frontend/dist/ to your static host
 ```
 
-**Netlify** — connect the repo in the Netlify dashboard or:
+`frontend/dist/` is a plain static bundle, so **any static host works** — Netlify, Vercel, Cloudflare Pages, GitHub Pages, or your own server. Whichever you choose, set `VITE_PROXY_URL` (and optionally `VITE_GOOGLE_CLIENT_ID`) at build time, and make sure SPA routing falls back to `index.html` (handled by the included `public/_redirects` on Netlify).
+
+As an example, to deploy to **Netlify** — connect the repo in the Netlify dashboard or:
 
 ```sh
 netlify deploy --dir frontend/dist --prod
@@ -72,7 +79,7 @@ The included `netlify.toml` configures the build command and publish directory. 
 
 ### 3. Update the proxy's allowed origins
 
-After deploying the frontend, add your SPA URL to `ALLOWED_ORIGINS` in `proxy/wrangler.toml` and redeploy the proxy.
+After deploying the frontend, allow your SPA's URL as a CORS origin on your proxy so the browser's requests aren't blocked. With the included Cloudflare Worker example, add your SPA URL to `ALLOWED_ORIGINS` in `proxy/wrangler.toml` and redeploy the proxy.
 
 ### 4. Configure Enable Banking
 
@@ -89,16 +96,16 @@ To enable encrypted Google Drive backup:
 
 ## The proxy and security
 
-The only server-side piece is a stateless CORS proxy that relays requests between your browser and the Enable Banking API. It is [a single TypeScript file](./proxy/worker.ts) — short enough to read and verify yourself.
+The only server-side piece is a stateless CORS proxy that relays requests between your browser and the Enable Banking API — and you run it yourself, on your own infrastructure. Nothing here goes through servers we operate. The included example is [a single TypeScript file](./proxy/worker.ts) — short enough to read and verify yourself before you deploy it.
 
 What it can and cannot see:
 
-|                            | Status | Detail                                                                                                                     |
-| -------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------- |
-| Your `.pem` signing key    | Safe | Never sent to the proxy. JWTs are signed locally with a non-extractable key.                                               |
-| Your access token (JWT)    | In transit | Passes through in the `Authorization` header. Short-lived (5 min); the proxy can't mint new ones.                   |
-| Your transaction data      | In transit | Passes through in responses while being relayed.                                                                    |
-| Anything stored            | Safe | No bodies, tokens, or raw IPs are persisted. Only an opaque `SHA-256(ip)` counter for rate limiting, with a ~2-minute TTL. |
+|                         | Status     | Detail                                                                                                                     |
+| ----------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Your `.pem` signing key | Safe       | Never sent to the proxy. JWTs are signed locally with a non-extractable key.                                               |
+| Your access token (JWT) | In transit | Passes through in the `Authorization` header. Short-lived (5 min); the proxy can't mint new ones.                          |
+| Your transaction data   | In transit | Passes through in responses while being relayed.                                                                           |
+| Anything stored         | Safe       | No bodies, tokens, or raw IPs are persisted. Only an opaque `SHA-256(ip)` counter for rate limiting, with a ~2-minute TTL. |
 
 The real guarantee is the code itself — **read it, since you're running your own.**
 
@@ -106,7 +113,7 @@ The real guarantee is the code itself — **read it, since you're running your o
 
 ```
 frontend/   React + Vite SPA
-proxy/      Cloudflare Worker — stateless CORS relay to api.enablebanking.com
+proxy/      Example Cloudflare Worker — stateless CORS relay to api.enablebanking.com
 ```
 
 ## Contributing

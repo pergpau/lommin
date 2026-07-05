@@ -111,7 +111,7 @@ Unit tests use Vitest (`npm run test`). Test files live alongside source: `*.tes
 
 ## CORS proxy (`proxy/worker.ts`)
 
-Single-file Cloudflare Worker (~130 lines). Key constraints:
+Single-file Cloudflare Worker (~190 lines). Key constraints:
 
 - **Origin allowlist**: set `ALLOWED_ORIGINS` (comma-separated) in `wrangler.toml`; localhost always allowed.
 - **Path allowlist**: only `/aspsps`, `/auth`, `/sessions`, `/accounts/:id/transactions`, `/accounts/:id/balances` are forwarded.
@@ -133,7 +133,7 @@ To add a new Enable Banking endpoint, add a regex to `PATH_ALLOWLIST` in `worker
 - The `.pem` key is imported as `extractable: false` — raw bytes are unrecoverable from JS after import.
 - The proxy never receives the `.pem`; it only sees the already-signed JWT (5-min validity).
 - Encrypted sync files use AES-GCM with PBKDF2-derived keys; the plaintext never leaves the device.
-- The `_headers` file (in `frontend/public/`) sets CSP `connect-src` — update it if you change the proxy URL.
+- The `_headers` file (in `frontend/public/`) sets CSP `connect-src 'self' https:` — any HTTPS proxy origin is allowed, so no edit is needed when the proxy URL changes. Tighten it only if you want a stricter per-origin allowlist.
 
 ## Icons
 

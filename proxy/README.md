@@ -2,7 +2,7 @@
 
 A stateless [Cloudflare Worker](https://workers.cloudflare.com/) that relays browser requests to the Enable Banking API. Browsers can't call `api.enablebanking.com` directly (no CORS headers), so this proxy adds them.
 
-**The entire program is [`worker.ts`](./worker.ts) — ~130 lines. Read it; that is the trust model.**
+**The entire program is [`worker.ts`](./worker.ts) — ~190 lines. Read it; that is the trust model.**
 
 ## What it can and cannot see
 
@@ -58,9 +58,9 @@ wrangler deploy
 
 Wrangler prints the Worker URL (e.g. `https://proxy.your-account.workers.dev`). Point **Settings → CORS Proxy** in the app at that URL.
 
-### 5. Update the frontend CSP
+### 5. Point the frontend at your proxy
 
-If you're also self-hosting the frontend, add your Worker URL to `connect-src` in `frontend/public/_headers`.
+Set your Worker URL as `VITE_PROXY_URL` at build time, or configure it at runtime in the app under **Settings → CORS Proxy**. No CSP change is needed: `frontend/public/_headers` already allows any HTTPS origin (`connect-src 'self' https:`) so a self-hosted proxy works without edits.
 
 ## Local dev
 

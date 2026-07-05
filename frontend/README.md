@@ -42,6 +42,16 @@ Or connect the repo in the Netlify dashboard — `netlify.toml` at the root alre
 
 After deploying, add your new SPA URL to `ALLOWED_ORIGINS` in `proxy/wrangler.toml` and redeploy the proxy.
 
+## Demo-only build
+
+To build a self-contained demo instance (like [demo.lommin.no](https://demo.lommin.no)), set `VITE_DEMO_ONLY=true` and leave `VITE_PROXY_URL` / `VITE_GOOGLE_CLIENT_ID` unset:
+
+```sh
+VITE_DEMO_ONLY=true npm run build
+```
+
+This auto-seeds demo data on boot, skips onboarding, redirects `/onboarding` and `/connect` to the dashboard, and hides all bank/sync/backup surfaces (Settings shows appearance options only). Deploy `dist/` like any other static build.
+
 ## Other commands
 
 ```sh
@@ -58,4 +68,4 @@ npm run preview     # serve the production build locally
 - **Key never leaves the device.** The `.pem` is imported as `extractable: false`; raw bytes are unrecoverable by JS after import.
 - **CORS proxy trust boundary.** Your proxy can observe transaction data and short-lived access tokens in transit. It never receives the signing key. Review the proxy code yourself — it's a single file.
 - **Encrypted backup.** AES-GCM with PBKDF2-derived keys; the passphrase never leaves the device.
-- **CSP.** `script-src 'self'` (no inline/eval). `connect-src` permits any HTTPS origin so users can configure a custom proxy at runtime. The CSP is in `public/_headers` — update `connect-src` there if you change the proxy URL.
+- **CSP.** `script-src 'self'` (no inline/eval). `connect-src 'self' https:` permits any HTTPS origin so users can point at a custom proxy at runtime without editing the CSP. The policy lives in `public/_headers`; tighten `connect-src` to your specific proxy origin if you want a stricter allowlist.
