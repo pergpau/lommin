@@ -6,6 +6,6 @@ hooks = [{ id = "check-yaml" }, { id = "end-of-file-fixer" }, { id = "trailing-w
 [[repos]]
 repo = "local"
 hooks = [
-  { id = "oxlint", name = "Oxlint (Linter)", entry = "npx oxlint --deny-warnings", language = "system", files = "\\.(js|jsx|ts|tsx)$" },
-  { id = "oxfmt", name = "Oxfmt (Formatter)", entry = "npx oxfmt --no-error-on-unmatched-pattern", language = "system", files = "\\.(js|jsx|ts|tsx|json|jsonc|yaml|yml|md)$" },
+  { id = "oxlint", name = "Oxlint (Linter)", entry = "frontend/node_modules/.bin/oxlint --deny-warnings", language = "system", files = "\\.(js|jsx|ts|tsx)$" },
+  { id = "oxfmt", name = "Oxfmt (Formatter)", entry = "frontend/node_modules/.bin/oxfmt --no-error-on-unmatched-pattern", language = "system", files = "\\.(js|jsx|ts|tsx|json|jsonc|yaml|yml|md)$" },
 ]
