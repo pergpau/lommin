@@ -55,6 +55,9 @@ export default function TransactionDetail({
   }, []);
 
   const [closing, setClosing] = useState(false);
+  // A running or fill-mode animation overrides inline `style.transform`, so the
+  // entrance class must be gone before the drag handlers can move the sheet.
+  const [entered, setEntered] = useState(false);
   const dismiss = useCallback(() => {
     if (closing) return;
     setClosing(true);
@@ -77,6 +80,7 @@ export default function TransactionDetail({
 
     const onStart = (e: TouchEvent) => {
       e.stopPropagation();
+      setEntered(true);
       const touch = e.touches[0];
       startY.current = touch.clientY;
       startX.current = touch.clientX;
@@ -97,6 +101,16 @@ export default function TransactionDetail({
       const ady = Math.abs(dy);
 
       if (!dragging.current) {
+        const scrolled = scrollRef.current && scrollRef.current.scrollTop > 0;
+
+        // Inside the dead zone movement is just touch jitter — don't lock or
+        // engage yet, but keep iOS from starting a native scroll it won't let
+        // us cancel later.
+        if (Math.max(adx, ady) <= 10) {
+          if (dy > 0 && !scrolled) e.preventDefault();
+          return;
+        }
+
         if (dy < 0 && ady > adx) {
           locked.current = true;
           return;
@@ -108,21 +122,18 @@ export default function TransactionDetail({
 
         if (dx > 0 && adx > ady * 1.5) {
           e.preventDefault();
-          if (adx > 10) {
-            gestureDir.current = "right";
-            dragging.current = true;
-          }
+          gestureDir.current = "right";
+          dragging.current = true;
           return;
         }
 
         if (dy > 0 && ady >= adx) {
-          const scrolled = scrollRef.current && scrollRef.current.scrollTop > 0;
           if (scrolled) {
             locked.current = true;
             return;
           }
           e.preventDefault();
-          if (dy > 10 && ady > adx * 1.5) {
+          if (ady > adx * 1.5) {
             gestureDir.current = "down";
             dragging.current = true;
           }
@@ -198,9 +209,12 @@ export default function TransactionDetail({
     >
       <div
         ref={sheetRef}
-        className={`bg-surface border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] flex flex-col shadow-xl ${closing ? "animate-sheet-out" : "animate-sheet-in"}`}
+        className={`bg-surface border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] flex flex-col shadow-xl ${closing ? "animate-sheet-out" : entered ? "" : "animate-sheet-in"}`}
         role="dialog"
         aria-modal="true"
+        onAnimationEnd={(e) => {
+          if (e.animationName === "sheetIn") setEntered(true);
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">

@@ -26,7 +26,7 @@ export default {
         "slide-up": "slideUp 0.4s cubic-bezier(0.16,1,0.3,1) forwards",
         "slide-in-left": "slideInLeft 0.2s cubic-bezier(0.16,1,0.3,1) forwards",
         "slide-in-right": "slideInRight 0.2s cubic-bezier(0.16,1,0.3,1) forwards",
-        "sheet-in": "sheetIn 0.3s cubic-bezier(0.16,1,0.3,1) forwards",
+        "sheet-in": "sheetIn 0.3s cubic-bezier(0.16,1,0.3,1)",
         "sheet-out": "sheetOut 0.2s ease-in forwards",
         "backdrop-in": "fadeIn 0.2s ease forwards",
         "backdrop-out": "fadeOut 0.2s ease forwards",
