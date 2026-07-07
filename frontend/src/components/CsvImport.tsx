@@ -69,7 +69,7 @@ export default function CsvImportPanel() {
       );
       setStep("preview");
     },
-    [showSnackbar],
+    [showSnackbar, t],
   );
 
   const doImport = useCallback(async () => {
