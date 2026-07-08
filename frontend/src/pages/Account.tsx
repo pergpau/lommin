@@ -20,13 +20,14 @@ import { useSyncState } from "../hooks/useSyncState";
 import { useSuccessFlash } from "../hooks/useSuccessFlash";
 import Spinner from "../components/ui/Spinner";
 import Button from "../components/ui/Button";
+import DropdownMenu, { DropdownItem } from "../components/ui/DropdownMenu";
 import { useSnackbar } from "../components/ui/Snackbar";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import TransactionTable from "../components/transactions/TransactionTable";
 import ResyncModal from "../components/ResyncModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
-import { ArrowLeftIcon, RefreshCwIcon, XIcon } from "../components/ui/icons";
+import { ArrowLeftIcon, RefreshCwIcon } from "../components/ui/icons";
 import { isDemoMode } from "../lib/demoData";
 import { loadKey } from "../lib/auth";
 
@@ -156,7 +157,6 @@ export default function AccountPage() {
     [selectedMonth, sorted, chartMode],
   );
 
-  const [actionsOpen, setActionsOpen] = useState(false);
   const [resyncModal, setResyncModal] = useState(false);
   const [resyncDays, setResyncDays] = useState(90);
 
@@ -306,68 +306,58 @@ export default function AccountPage() {
           )}
 
           {/* Settings cogwheel — Delete transactions + Remove account */}
-          <div className="relative">
-            <button
-              className="p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 transition-colors flex items-center justify-center"
-              onClick={() => setActionsOpen((o) => !o)}
-              aria-label="Account settings"
-            >
-              {actionsOpen ? (
-                <XIcon size={18} />
-              ) : (
-                <FontAwesomeIcon icon={faGear} className="w-[18px] h-[18px]" />
-              )}
-            </button>
-            {actionsOpen && (
-              <div className="absolute right-0 top-full mt-1 w-52 card py-1 z-30 shadow-lg">
+          <DropdownMenu
+            icon={<FontAwesomeIcon icon={faGear} className="w-[18px] h-[18px]" />}
+            ariaLabel="Account settings"
+            menuClassName="w-52"
+          >
+            {(close) => (
+              <>
                 <ShareSlider
                   account={account}
                   onSave={(updated) => void saveAccount(updated).then(reload)}
                 />
                 <div className="border-t border-border my-1" />
                 {isConnected && (
-                  <button
-                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
+                  <DropdownItem
                     onClick={() => {
-                      setActionsOpen(false);
+                      close();
                       void openResyncModal();
                     }}
                   >
                     {t("forcedResync")}
-                  </button>
+                  </DropdownItem>
                 )}
                 {isConnected && (
-                  <button
-                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
+                  <DropdownItem
                     onClick={() => {
-                      setActionsOpen(false);
+                      close();
                       void disconnectBank();
                     }}
                   >
                     {t("disconnectAccount")}
-                  </button>
+                  </DropdownItem>
                 )}
-                <button
-                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors text-left"
+                <DropdownItem
                   onClick={() => {
-                    setActionsOpen(false);
+                    close();
                     void resetSync();
                   }}
                 >
                   {t("deleteTransactions")}
-                </button>
-                <button
-                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-danger hover:bg-surface-2 transition-colors text-left"
+                </DropdownItem>
+                <DropdownItem
+                  danger
                   onClick={() => {
-                    setActionsOpen(false);
+                    close();
                     void removeAccount();
                   }}
                 >
                   {t("removeAccount")}
-                </button>
-              </div>
+                </DropdownItem>
+              </>
             )}
-          </div>
+          </DropdownMenu>
         </div>
       </div>
 

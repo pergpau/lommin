@@ -6,6 +6,7 @@ import TransactionsTab from "../components/TransactionsTab";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import SpendingBreakdown from "../components/charts/SpendingBreakdown";
 import Button from "../components/ui/Button";
+import DropdownMenu, { DropdownItem, dropdownItemClass } from "../components/ui/DropdownMenu";
 import { useSnackbar } from "../components/ui/Snackbar";
 import {
   GoogleDriveIcon,
@@ -184,7 +185,6 @@ export default function Dashboard() {
       }
     },
   });
-  const [actionsOpen, setActionsOpen] = useState(false);
   const [showDuplicatesBanner, setShowDuplicatesBanner] = useState(false);
 
   const checkAndShowDuplicatesBanner = useCallback(async () => {
@@ -364,39 +364,31 @@ export default function Dashboard() {
               {syncing ? <Spinner size={18} /> : <RefreshCwIcon size={18} />}
             </button>
           )}
-          <div className="relative">
-            <button
-              className="p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 transition-colors"
-              onClick={() => setActionsOpen((o) => !o)}
-              aria-label={t("actions.mobile")}
-            >
-              {actionsOpen ? <XIcon size={18} /> : <MenuIcon size={18} />}
-            </button>
-            {actionsOpen && (
-              <div className="absolute right-0 top-full mt-1 w-48 card py-1 z-30 shadow-lg">
+          <DropdownMenu icon={<MenuIcon size={18} />} ariaLabel={t("actions.mobile")}>
+            {(close) => (
+              <>
                 {!isDemo && (
                   <Link
                     to={connectTarget}
-                    className="flex items-center px-4 py-2 text-sm text-text hover:bg-surface-2 transition-colors"
-                    onClick={() => setActionsOpen(false)}
+                    className={`${dropdownItemClass} text-text`}
+                    onClick={close}
                   >
                     {t("actions.addAccount")}
                   </Link>
                 )}
-                <button
-                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text hover:bg-surface-2 disabled:opacity-40 transition-colors text-left"
+                <DropdownItem
                   disabled={isDemo || dashBackupSaving || autoSaving}
                   onClick={() => {
-                    setActionsOpen(false);
+                    close();
                     handleQuickSaveClick();
                   }}
                 >
                   <BackupIcon size={13} />
                   {dashBackupSaving ? t("actions.saving") : t("actions.save")}
-                </button>
-              </div>
+                </DropdownItem>
+              </>
             )}
-          </div>
+          </DropdownMenu>
         </div>
       </div>
 
