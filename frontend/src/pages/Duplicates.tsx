@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "../components/ui/Button";
 import DuplicatesList from "../components/transactions/DuplicatesList";
-import Spinner from "../components/ui/Spinner";
+import LoadingScreen from "../components/ui/LoadingScreen";
 import { detectDuplicatePairs, filterVisiblePairs, pairKey } from "../lib/duplicates";
 import { deleteTransaction, setCategoryId } from "../lib/data";
 import { addDismissedPair, dismissAllPairs, getDismissedPairs } from "../lib/settings";
@@ -38,11 +38,7 @@ export default function Duplicates() {
   }, [pairs]);
 
   if (pairs === null) {
-    return (
-      <div className="flex-1 flex items-center justify-center py-20">
-        <Spinner size={24} />
-      </div>
-    );
+    return <LoadingScreen className="py-20" />;
   }
 
   const visiblePairs = filterVisiblePairs(pairs, dismissedKeys);

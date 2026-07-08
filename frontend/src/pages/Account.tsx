@@ -18,7 +18,7 @@ import { useAccounts } from "../hooks/useAccounts";
 import { useTransactions } from "../hooks/useTransactions";
 import { useSyncState } from "../hooks/useSyncState";
 import { useSuccessFlash } from "../hooks/useSuccessFlash";
-import Spinner from "../components/ui/Spinner";
+import LoadingScreen from "../components/ui/LoadingScreen";
 import Button from "../components/ui/Button";
 import DropdownMenu, { DropdownItem } from "../components/ui/DropdownMenu";
 import { useSnackbar } from "../components/ui/Snackbar";
@@ -211,11 +211,7 @@ export default function AccountPage() {
   }, [uid, t, refresh]);
 
   if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <Spinner size={24} />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

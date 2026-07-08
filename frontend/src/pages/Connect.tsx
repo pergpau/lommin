@@ -5,6 +5,7 @@ import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import { CheckIcon } from "../components/ui/icons";
+import LoadingScreen from "../components/ui/LoadingScreen";
 import Spinner from "../components/ui/Spinner";
 import { useSnackbar } from "../components/ui/Snackbar";
 import { SESSION_VALID_DAYS } from "../constants";
@@ -288,41 +289,39 @@ export default function Connect() {
 
   if ((isReauth || phase === "connecting") && phase !== "error") {
     return (
+      <LoadingScreen
+        size={32}
+        label={t("statuses.connecting")}
+        className="bg-bg grid-bg animate-fade-in"
+      />
+    );
+  }
+
+  if (phase === "done") {
+    return (
       <div className="flex-1 bg-bg grid-bg flex items-center justify-center">
-        <div className="flex flex-col items-center animate-fade-in">
-          <Spinner size={32} />
-          <div className="text-muted text-sm mt-4">{t("statuses.connecting")}</div>
+        <div className="text-center animate-fade-in">
+          <div className="w-12 h-12 rounded-full bg-positive/10 border border-positive/20 flex items-center justify-center mx-auto mb-4">
+            <CheckIcon size={22} className="text-positive" />
+          </div>
+          <div className="text-text font-medium">{t("statuses.connected")}</div>
+          <div className="text-muted text-sm mt-1">{t("statuses.loadingOverview")}</div>
         </div>
       </div>
     );
   }
 
-  if (phase === "callback" || phase === "syncing" || phase === "done") {
+  if (phase === "callback" || phase === "syncing") {
     return (
-      <div className="flex-1 bg-bg grid-bg flex items-center justify-center">
-        <div className="text-center animate-fade-in">
-          {phase === "done" ? (
-            <>
-              <div className="w-12 h-12 rounded-full bg-positive/10 border border-positive/20 flex items-center justify-center mx-auto mb-4">
-                <CheckIcon size={22} className="text-positive" />
-              </div>
-              <div className="text-text font-medium">{t("statuses.connected")}</div>
-              <div className="text-muted text-sm mt-1">{t("statuses.loadingOverview")}</div>
-            </>
-          ) : (
-            <>
-              <div className="flex justify-center">
-                <Spinner size={32} />
-              </div>
-              <div className="text-muted text-sm mt-4">
-                {phase === "syncing"
-                  ? syncMsg || t("statuses.fetchingTransactions")
-                  : t("statuses.creatingSession")}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+      <LoadingScreen
+        size={32}
+        label={
+          phase === "syncing"
+            ? syncMsg || t("statuses.fetchingTransactions")
+            : t("statuses.creatingSession")
+        }
+        className="bg-bg grid-bg animate-fade-in"
+      />
     );
   }
 

@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import AccountsTab from "../components/AccountsTab";
 import TransactionsTab from "../components/TransactionsTab";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
 import SpendingBreakdown from "../components/charts/SpendingBreakdown";
 import Button from "../components/ui/Button";
 import DropdownMenu, { DropdownItem, dropdownItemClass } from "../components/ui/DropdownMenu";
+import LoadingScreen from "../components/ui/LoadingScreen";
+import PassphraseDialog from "../components/ui/PassphraseDialog";
 import { useSnackbar } from "../components/ui/Snackbar";
+import Spinner from "../components/ui/Spinner";
 import {
   GoogleDriveIcon,
   HardDriveIcon,
@@ -15,29 +18,27 @@ import {
   RefreshCwIcon,
   XIcon,
 } from "../components/ui/icons";
-import PassphraseDialog from "../components/ui/PassphraseDialog";
-import Spinner from "../components/ui/Spinner";
+import { DEMO_ONLY } from "../constants";
 import { useAccounts } from "../hooks/useAccounts";
+import { useSuccessFlash } from "../hooks/useSuccessFlash";
 import { useSwipe } from "../hooks/useSwipe";
 import { useSyncState } from "../hooks/useSyncState";
 import { useTransactions } from "../hooks/useTransactions";
-import { isDemoMode } from "../lib/demoData";
-import { DEMO_ONLY } from "../constants";
 import { loadKey } from "../lib/auth";
-import { effectiveDate } from "../lib/format";
-import { getLocale } from "../lib/i18n";
-import { buildMonthlyData, buildYearlyData } from "../lib/transactionAggregation";
-import { getAllSettings, getDismissedPairs, hasSetting } from "../lib/settings";
-import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
 import { addSaveListener, BackupError, saveBackup, triggerAutosave } from "../lib/backup";
-import { useSuccessFlash } from "../hooks/useSuccessFlash";
 import {
   clearAccounts,
   clearTransactions,
   getAllTransactions,
   getEnableBankingSource,
+  setCategoryId,
 } from "../lib/data";
-import { setCategoryId } from "../lib/data";
+import { isDemoMode } from "../lib/demoData";
+import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
+import { effectiveDate } from "../lib/format";
+import { getLocale } from "../lib/i18n";
+import { getAllSettings, getDismissedPairs, hasSetting } from "../lib/settings";
+import { buildMonthlyData, buildYearlyData } from "../lib/transactionAggregation";
 
 type Tab = "categories" | "accounts" | "transactions";
 const TABS: Tab[] = ["categories", "transactions", "accounts"];
@@ -256,11 +257,7 @@ export default function Dashboard() {
   const selectedMonthBar = chartData.find((m) => m.key === activeMonth);
 
   if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <Spinner size={24} />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
