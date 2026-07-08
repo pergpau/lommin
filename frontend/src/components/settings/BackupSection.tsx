@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
 import { DownloadIcon, UploadIcon } from "../ui/icons";
-import Input from "../ui/Input";
 import Modal from "../ui/Modal";
+import PassphraseDialog from "../ui/PassphraseDialog";
 import Spinner from "../ui/Spinner";
 import { useSnackbar } from "../ui/Snackbar";
 import {
@@ -40,7 +40,6 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
   >(null);
   const [driveToken, setDriveToken] = useState<string | null>(null);
   const [driveSyncing, setDriveSyncing] = useState<"connect" | "save" | "load" | null>(null);
-  const [dialogPassphrase, setDialogPassphrase] = useState("");
   const [syncing, setSyncing] = useState<"save" | "load" | null>(null);
 
   useEffect(() => {
@@ -62,16 +61,6 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
     };
     window.addEventListener("lommin:drive-token-updated", handleTokenUpdated);
     return () => window.removeEventListener("lommin:drive-token-updated", handleTokenUpdated);
-  }, []);
-
-  const openDialog = useCallback((mode: "save" | "load" | "drive-save" | "drive-load") => {
-    setDialogPassphrase("");
-    setDialog(mode);
-  }, []);
-
-  const closeDialog = useCallback(() => {
-    setDialog(null);
-    setDialogPassphrase("");
   }, []);
 
   const changeBackupMethod = useCallback((method: "drive" | "file") => {
@@ -107,7 +96,6 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
           showSnackbar(backupErrorText(e, t("settings:snackbar.saveFailed")), "error");
       } finally {
         (isDrive ? setDriveSyncing : setSyncing)(null);
-        setDialogPassphrase("");
       }
     },
     [backupMethod, showSnackbar, t, backupErrorText],
@@ -127,7 +115,6 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
           showSnackbar(backupErrorText(e, t("settings:snackbar.loadFailed")), "error");
       } finally {
         setSyncing(null);
-        setDialogPassphrase("");
       }
     },
     [showSnackbar, t, navigate, backupErrorText],
@@ -159,8 +146,6 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
         setRestorePreview(null);
         if (e instanceof BackupError && e.kind === "drive-auth") setDriveToken(null);
         showSnackbar(backupErrorText(e, t("settings:snackbar.loadFailed")), "error");
-      } finally {
-        setDialogPassphrase("");
       }
     },
     [driveToken, showSnackbar, t, backupErrorText],
@@ -293,7 +278,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                       loading={driveSyncing === "save"}
                       disabled={!!driveSyncing || !!restorePreview}
                       onClick={() =>
-                        usePassphrase ? openDialog("drive-save") : void handleSave("")
+                        usePassphrase ? setDialog("drive-save") : void handleSave("")
                       }
                     >
                       <DownloadIcon size={13} />
@@ -304,9 +289,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                       className="flex-1 justify-center"
                       loading={driveSyncing === "load"}
                       disabled={!!driveSyncing || !!restorePreview}
-                      onClick={() =>
-                        usePassphrase ? openDialog("drive-load") : void loadDrive("")
-                      }
+                      onClick={() => (usePassphrase ? setDialog("drive-load") : void loadDrive(""))}
                     >
                       <UploadIcon size={13} />
                       {t("settings:backup.loadFromDrive")}
@@ -332,7 +315,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                   className="flex-1 justify-center"
                   loading={syncing === "save"}
                   disabled={!!syncing}
-                  onClick={() => (usePassphrase ? openDialog("save") : void handleSave(""))}
+                  onClick={() => (usePassphrase ? setDialog("save") : void handleSave(""))}
                 >
                   <DownloadIcon size={13} />
                   {t("settings:backup.saveFile")}
@@ -342,7 +325,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                   className="flex-1 justify-center"
                   loading={syncing === "load"}
                   disabled={!!syncing}
-                  onClick={() => (usePassphrase ? openDialog("load") : void loadFile(""))}
+                  onClick={() => (usePassphrase ? setDialog("load") : void loadFile(""))}
                 >
                   <UploadIcon size={13} />
                   {t("settings:backup.loadFile")}
@@ -354,46 +337,22 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
       </Card>
 
       {dialog && (
-        <Modal onClose={closeDialog} title={dialogTitle}>
-          <p className="text-xs text-muted mb-4">{dialogHint}</p>
-          <Input
-            label={t("common:dialog.passwordLabel")}
-            type="password"
-            placeholder={
-              dialog === "save" || dialog === "drive-save"
-                ? t("common:dialog.passwordPlaceholder")
-                : t("common:dialog.passwordPlaceholderRequired")
-            }
-            value={dialogPassphrase}
-            onChange={(e) => setDialogPassphrase(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                if (dialog === "save" || dialog === "drive-save") handleSave(dialogPassphrase);
-                else if (dialog === "load") loadFile(dialogPassphrase);
-                else if (dialog === "drive-load") loadDrive(dialogPassphrase);
-              }
-              if (e.key === "Escape") closeDialog();
-            }}
-            className="mb-4"
-            autoFocus
-          />
-          <div className="flex gap-2 justify-end">
-            <Button variant="ghost" onClick={closeDialog}>
-              {t("common:actions.cancel")}
-            </Button>
-            <Button
-              onClick={
-                dialog === "save" || dialog === "drive-save"
-                  ? () => handleSave(dialogPassphrase)
-                  : dialog === "load"
-                    ? () => loadFile(dialogPassphrase)
-                    : () => loadDrive(dialogPassphrase)
-              }
-            >
-              {dialogAction}
-            </Button>
-          </div>
-        </Modal>
+        <PassphraseDialog
+          title={dialogTitle}
+          hint={dialogHint}
+          actionLabel={dialogAction}
+          placeholder={
+            dialog === "save" || dialog === "drive-save"
+              ? undefined
+              : t("common:dialog.passwordPlaceholderRequired")
+          }
+          onSubmit={(passphrase) => {
+            if (dialog === "save" || dialog === "drive-save") void handleSave(passphrase);
+            else if (dialog === "load") void loadFile(passphrase);
+            else void loadDrive(passphrase);
+          }}
+          onClose={() => setDialog(null)}
+        />
       )}
 
       {restorePreview && (

@@ -14,8 +14,7 @@ import {
   RefreshCwIcon,
   XIcon,
 } from "../components/ui/icons";
-import Input from "../components/ui/Input";
-import Modal from "../components/ui/Modal";
+import PassphraseDialog from "../components/ui/PassphraseDialog";
 import Spinner from "../components/ui/Spinner";
 import { useAccounts } from "../hooks/useAccounts";
 import { useSwipe } from "../hooks/useSwipe";
@@ -65,7 +64,6 @@ export default function Dashboard() {
   const [usePassphrase, setUsePassphrase] = useState(false);
   const [dashBackupSaving, setDashBackupSaving] = useState(false);
   const [dashDialog, setDashDialog] = useState(false);
-  const [dashPassphrase, setDashPassphrase] = useState("");
   const [isDemo, setIsDemo] = useState(false);
   const [exitingDemo, setExitingDemo] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
@@ -109,7 +107,6 @@ export default function Dashboard() {
       return;
     }
     if (usePassphrase) {
-      setDashPassphrase("");
       setDashDialog(true);
     } else {
       void handleQuickSave("");
@@ -140,7 +137,6 @@ export default function Dashboard() {
         }
       } finally {
         setDashBackupSaving(false);
-        setDashPassphrase("");
       }
     },
     [backupMethod, navigate, showSnackbar, t, saveFlash],
@@ -502,30 +498,13 @@ export default function Dashboard() {
       </div>
 
       {dashDialog && (
-        <Modal onClose={() => setDashDialog(false)} title={t("dashboard:backup.dialogTitle")}>
-          <p className="text-xs text-muted mb-4">{t("dashboard:backup.dialogHint")}</p>
-          <Input
-            label={t("common:dialog.passwordLabel")}
-            type="password"
-            placeholder={t("common:dialog.passwordPlaceholder")}
-            value={dashPassphrase}
-            onChange={(e) => setDashPassphrase(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") void handleQuickSave(dashPassphrase);
-              if (e.key === "Escape") setDashDialog(false);
-            }}
-            className="mb-4"
-            autoFocus
-          />
-          <div className="flex gap-2 justify-end">
-            <Button variant="ghost" onClick={() => setDashDialog(false)}>
-              {t("common:actions.cancel")}
-            </Button>
-            <Button onClick={() => void handleQuickSave(dashPassphrase)}>
-              {t("common:actions.save")}
-            </Button>
-          </div>
-        </Modal>
+        <PassphraseDialog
+          title={t("dashboard:backup.dialogTitle")}
+          hint={t("dashboard:backup.dialogHint")}
+          actionLabel={t("common:actions.save")}
+          onSubmit={(passphrase) => void handleQuickSave(passphrase)}
+          onClose={() => setDashDialog(false)}
+        />
       )}
     </div>
   );
