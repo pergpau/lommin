@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
+import Modal from "../ui/Modal";
 import { useSnackbar } from "../ui/Snackbar";
 import { clearKey } from "../../lib/auth";
 import { clearDismissedPairs, clearDriveToken } from "../../lib/settings";
@@ -80,28 +81,17 @@ export default function DangerZone() {
       </Card>
 
       {wipeAllDialog && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-          onClick={() => setWipeAllDialog(false)}
-        >
-          <div
-            className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-sm font-semibold text-text mb-2">
-              {t("settings:danger.wipeAllTitle")}
-            </h3>
-            <p className="text-xs text-muted mb-6">{t("settings:danger.wipeAllBody")}</p>
-            <div className="flex gap-2 justify-end">
-              <Button variant="ghost" onClick={() => setWipeAllDialog(false)}>
-                {t("common:actions.cancel")}
-              </Button>
-              <Button variant="danger" onClick={wipeAll}>
-                {t("settings:danger.deleteAll")}
-              </Button>
-            </div>
+        <Modal onClose={() => setWipeAllDialog(false)} title={t("settings:danger.wipeAllTitle")}>
+          <p className="text-xs text-muted mb-6">{t("settings:danger.wipeAllBody")}</p>
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" onClick={() => setWipeAllDialog(false)}>
+              {t("common:actions.cancel")}
+            </Button>
+            <Button variant="danger" onClick={wipeAll}>
+              {t("settings:danger.deleteAll")}
+            </Button>
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );

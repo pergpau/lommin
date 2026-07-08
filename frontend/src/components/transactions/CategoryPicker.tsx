@@ -8,6 +8,7 @@ import {
   type MainCategory,
 } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
+import BottomSheet from "../ui/BottomSheet";
 
 interface CategoryPickerProps {
   currentCategoryId?: number;
@@ -64,135 +65,123 @@ export default function CategoryPicker({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <BottomSheet
+      title={t("transactions:categoryPicker.title")}
+      titleClassName="text-text"
+      onClose={onClose}
+      panelClassName="sm:max-w-lg h-[630px] max-h-[90vh]"
     >
-      <div className="bg-surface border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg h-[630px] max-h-[90vh] flex flex-col shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-          <span className="font-semibold text-text text-sm">
-            {t("transactions:categoryPicker.title")}
-          </span>
-          <button className="text-muted hover:text-text text-lg leading-none" onClick={onClose}>
-            ✕
+      {/* Type pills */}
+      <div className="flex gap-2 px-4 py-3 border-b border-border shrink-0 overflow-x-auto">
+        {TYPES.map((type) => (
+          <button
+            key={type}
+            onClick={() => pickType(type)}
+            className={`text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-colors border ${
+              activeType === type
+                ? "bg-accent/10 text-accent border-accent/30"
+                : "border-border text-muted hover:text-text hover:border-text/20"
+            }`}
+          >
+            {t("categories:types." + type)}
           </button>
-        </div>
+        ))}
+      </div>
 
-        {/* Type pills */}
-        <div className="flex gap-2 px-4 py-3 border-b border-border shrink-0 overflow-x-auto">
-          {TYPES.map((type) => (
-            <button
-              key={type}
-              onClick={() => pickType(type)}
-              className={`text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-colors border ${
-                activeType === type
-                  ? "bg-accent/10 text-accent border-accent/30"
-                  : "border-border text-muted hover:text-text hover:border-text/20"
-              }`}
-            >
-              {t("categories:types." + type)}
-            </button>
-          ))}
-        </div>
-
-        {/* Main categories + sub-categories */}
-        <div className="flex flex-1 overflow-hidden">
-          {singleMainMode ? (
-            <div className="w-full overflow-y-auto">
-              {visibleSubs.map((s) => (
+      {/* Main categories + sub-categories */}
+      <div className="flex flex-1 overflow-hidden">
+        {singleMainMode ? (
+          <div className="w-full overflow-y-auto">
+            {visibleSubs.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => onSelect(s.id)}
+                className={`w-full text-left text-sm px-4 py-2.5 transition-colors flex items-center gap-2 ${
+                  s.id === currentCategoryId
+                    ? "bg-accent/10 text-accent font-medium"
+                    : "text-text hover:bg-surface-2"
+                }`}
+              >
+                <FontAwesomeIcon
+                  icon={getCategoryIcon(s.id)}
+                  className="w-3.5 h-3.5 shrink-0"
+                  style={{ color: effectiveMain?.color }}
+                />
+                {t("categories:sub." + s.id)}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <>
+            {/* Main category list */}
+            <div className="w-1/2 border-r border-border overflow-y-auto">
+              {visibleMain.map((m) => (
                 <button
-                  key={s.id}
-                  onClick={() => onSelect(s.id)}
+                  key={m.id}
+                  onClick={() => pickMain(m.id)}
                   className={`w-full text-left text-sm px-4 py-2.5 transition-colors flex items-center gap-2 ${
-                    s.id === currentCategoryId
+                    activeMainId === m.id
                       ? "bg-accent/10 text-accent font-medium"
                       : "text-text hover:bg-surface-2"
                   }`}
                 >
                   <FontAwesomeIcon
-                    icon={getCategoryIcon(s.id)}
+                    icon={getCategoryIcon(m.id)}
                     className="w-3.5 h-3.5 shrink-0"
-                    style={{ color: effectiveMain?.color }}
+                    style={{ color: m.color }}
                   />
-                  {t("categories:sub." + s.id)}
+                  {t("categories:main." + m.id)}
                 </button>
               ))}
             </div>
-          ) : (
-            <>
-              {/* Main category list */}
-              <div className="w-1/2 border-r border-border overflow-y-auto">
-                {visibleMain.map((m) => (
+
+            {/* Sub-category list */}
+            <div className="w-1/2 overflow-y-auto">
+              {activeMain ? (
+                visibleSubs.map((s) => (
                   <button
-                    key={m.id}
-                    onClick={() => pickMain(m.id)}
+                    key={s.id}
+                    onClick={() => onSelect(s.id)}
                     className={`w-full text-left text-sm px-4 py-2.5 transition-colors flex items-center gap-2 ${
-                      activeMainId === m.id
+                      s.id === currentCategoryId
                         ? "bg-accent/10 text-accent font-medium"
                         : "text-text hover:bg-surface-2"
                     }`}
                   >
                     <FontAwesomeIcon
-                      icon={getCategoryIcon(m.id)}
+                      icon={getCategoryIcon(s.id)}
                       className="w-3.5 h-3.5 shrink-0"
-                      style={{ color: m.color }}
+                      style={{ color: activeMain?.color }}
                     />
-                    {t("categories:main." + m.id)}
+                    {t("categories:sub." + s.id)}
                   </button>
-                ))}
-              </div>
-
-              {/* Sub-category list */}
-              <div className="w-1/2 overflow-y-auto">
-                {activeMain ? (
-                  visibleSubs.map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => onSelect(s.id)}
-                      className={`w-full text-left text-sm px-4 py-2.5 transition-colors flex items-center gap-2 ${
-                        s.id === currentCategoryId
-                          ? "bg-accent/10 text-accent font-medium"
-                          : "text-text hover:bg-surface-2"
-                      }`}
-                    >
-                      <FontAwesomeIcon
-                        icon={getCategoryIcon(s.id)}
-                        className="w-3.5 h-3.5 shrink-0"
-                        style={{ color: activeMain?.color }}
-                      />
-                      {t("categories:sub." + s.id)}
-                    </button>
-                  ))
-                ) : (
-                  <div className="px-4 py-4 text-xs text-muted">
-                    {t("transactions:categoryPicker.selectMain")}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="px-4 py-3 border-t border-border shrink-0 flex justify-between items-center">
-          {currentCategoryId != null ? (
-            <button
-              className="text-xs text-muted hover:text-red-400 transition-colors"
-              onClick={() => onSelect(undefined)}
-            >
-              {t("transactions:categoryPicker.removeCategory")}
-            </button>
-          ) : (
-            <span />
-          )}
-          <button className="btn-ghost text-xs px-3 py-1.5" onClick={onClose}>
-            {t("transactions:categoryPicker.cancel")}
-          </button>
-        </div>
+                ))
+              ) : (
+                <div className="px-4 py-4 text-xs text-muted">
+                  {t("transactions:categoryPicker.selectMain")}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
-    </div>
+
+      {/* Footer */}
+      <div className="px-4 py-3 border-t border-border shrink-0 flex justify-between items-center">
+        {currentCategoryId != null ? (
+          <button
+            className="text-xs text-muted hover:text-red-400 transition-colors"
+            onClick={() => onSelect(undefined)}
+          >
+            {t("transactions:categoryPicker.removeCategory")}
+          </button>
+        ) : (
+          <span />
+        )}
+        <button className="btn-ghost text-xs px-3 py-1.5" onClick={onClose}>
+          {t("transactions:categoryPicker.cancel")}
+        </button>
+      </div>
+    </BottomSheet>
   );
 }

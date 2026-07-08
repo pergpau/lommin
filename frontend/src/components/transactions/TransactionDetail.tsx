@@ -1,6 +1,6 @@
 import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   MAIN_CATEGORY_MAP,
@@ -17,6 +17,7 @@ import {
   setExcludeFromCalculations,
 } from "../../lib/data";
 import { getAccounts, type Account, type Transaction } from "../../lib/data";
+import BottomSheet from "../ui/BottomSheet";
 import DeleteConfirmModal from "../ui/DeleteConfirmModal";
 
 interface TransactionDetailProps {
@@ -47,22 +48,6 @@ export default function TransactionDetail({
   const subCat = tx.categoryId != null ? SUB_CATEGORY_MAP[tx.categoryId] : undefined;
   const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
-
-  const [closing, setClosing] = useState(false);
-  // A running or fill-mode animation overrides inline `style.transform`, so the
-  // entrance class must be gone before the drag handlers can move the sheet.
-  const [entered, setEntered] = useState(false);
-  const dismiss = useCallback(() => {
-    if (closing) return;
-    setClosing(true);
-  }, [closing]);
-
   const sheetRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragY = useRef(0);
@@ -80,7 +65,6 @@ export default function TransactionDetail({
 
     const onStart = (e: TouchEvent) => {
       e.stopPropagation();
-      setEntered(true);
       const touch = e.touches[0];
       startY.current = touch.clientY;
       startX.current = touch.clientX;
@@ -192,40 +176,8 @@ export default function TransactionDetail({
   }, [onClose]);
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm ${closing ? "animate-backdrop-out" : "animate-backdrop-in"}`}
-      onClick={(e) => {
-        e.stopPropagation();
-        if (e.target === e.currentTarget) dismiss();
-      }}
-      onTouchStart={(e) => e.stopPropagation()}
-      onTouchEnd={(e) => e.stopPropagation()}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") dismiss();
-      }}
-      onAnimationEnd={() => {
-        if (closing) onClose();
-      }}
-    >
-      <div
-        ref={sheetRef}
-        className={`bg-surface border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] flex flex-col shadow-xl ${closing ? "animate-sheet-out" : entered ? "" : "animate-sheet-in"}`}
-        role="dialog"
-        aria-modal="true"
-        onAnimationEnd={(e) => {
-          if (e.animationName === "sheetIn") setEntered(true);
-        }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-          <span className="font-semibold text-accent text-sm">
-            {t("transactions:detail.title")}
-          </span>
-          <button className="text-muted hover:text-text text-lg leading-none" onClick={dismiss}>
-            ✕
-          </button>
-        </div>
-
+    <>
+      <BottomSheet title={t("transactions:detail.title")} onClose={onClose} sheetRef={sheetRef}>
         {/* Scrollable body */}
         <div ref={scrollRef} className="overflow-y-auto flex-1">
           {/* Hero amount */}
@@ -440,7 +392,7 @@ export default function TransactionDetail({
             />
           </label>
         </div>
-      </div>
+      </BottomSheet>
 
       <DeleteConfirmModal
         open={confirmingDelete}
@@ -453,7 +405,7 @@ export default function TransactionDetail({
           });
         }}
       />
-    </div>
+    </>
   );
 }
 

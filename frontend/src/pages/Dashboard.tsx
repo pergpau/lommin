@@ -15,6 +15,7 @@ import {
   XIcon,
 } from "../components/ui/icons";
 import Input from "../components/ui/Input";
+import Modal from "../components/ui/Modal";
 import Spinner from "../components/ui/Spinner";
 import { useAccounts } from "../hooks/useAccounts";
 import { useSwipe } from "../hooks/useSwipe";
@@ -501,41 +502,30 @@ export default function Dashboard() {
       </div>
 
       {dashDialog && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-          onClick={() => setDashDialog(false)}
-        >
-          <div
-            className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-sm font-semibold text-text mb-1">
-              {t("dashboard:backup.dialogTitle")}
-            </h3>
-            <p className="text-xs text-muted mb-4">{t("dashboard:backup.dialogHint")}</p>
-            <Input
-              label={t("common:dialog.passwordLabel")}
-              type="password"
-              placeholder={t("common:dialog.passwordPlaceholder")}
-              value={dashPassphrase}
-              onChange={(e) => setDashPassphrase(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void handleQuickSave(dashPassphrase);
-                if (e.key === "Escape") setDashDialog(false);
-              }}
-              className="mb-4"
-              autoFocus
-            />
-            <div className="flex gap-2 justify-end">
-              <Button variant="ghost" onClick={() => setDashDialog(false)}>
-                {t("common:actions.cancel")}
-              </Button>
-              <Button onClick={() => void handleQuickSave(dashPassphrase)}>
-                {t("common:actions.save")}
-              </Button>
-            </div>
+        <Modal onClose={() => setDashDialog(false)} title={t("dashboard:backup.dialogTitle")}>
+          <p className="text-xs text-muted mb-4">{t("dashboard:backup.dialogHint")}</p>
+          <Input
+            label={t("common:dialog.passwordLabel")}
+            type="password"
+            placeholder={t("common:dialog.passwordPlaceholder")}
+            value={dashPassphrase}
+            onChange={(e) => setDashPassphrase(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void handleQuickSave(dashPassphrase);
+              if (e.key === "Escape") setDashDialog(false);
+            }}
+            className="mb-4"
+            autoFocus
+          />
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" onClick={() => setDashDialog(false)}>
+              {t("common:actions.cancel")}
+            </Button>
+            <Button onClick={() => void handleQuickSave(dashPassphrase)}>
+              {t("common:actions.save")}
+            </Button>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

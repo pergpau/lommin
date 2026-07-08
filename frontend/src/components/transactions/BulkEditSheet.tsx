@@ -15,6 +15,7 @@ import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
 import type { Transaction } from "../../lib/data";
 import { effectiveDate, fmtDate } from "../../lib/format";
+import BottomSheet from "../ui/BottomSheet";
 import CategoryPicker from "./CategoryPicker";
 
 // A field is present here only when the user actually changed it. The `value`
@@ -136,23 +137,12 @@ export default function BulkEditSheet({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="bg-surface border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] min-h-[60vh] sm:min-h-0 flex flex-col shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-          <span className="font-semibold text-accent text-sm">
-            {t("transactions:bulk.editTitle", { count })}
-          </span>
-          <button className="text-muted hover:text-text text-lg leading-none" onClick={onClose}>
-            ✕
-          </button>
-        </div>
-
+    <>
+      <BottomSheet
+        title={t("transactions:bulk.editTitle", { count })}
+        onClose={onClose}
+        panelClassName="sm:max-w-md max-h-[90vh] min-h-[60vh] sm:min-h-0"
+      >
         {/* Body */}
         <div className="overflow-y-auto flex-1 divide-y divide-border">
           <FieldRow
@@ -252,7 +242,7 @@ export default function BulkEditSheet({
             </button>
           </div>
         </div>
-      </div>
+      </BottomSheet>
 
       {/* Hidden input driving the date field. */}
       <input
@@ -277,7 +267,7 @@ export default function BulkEditSheet({
           onClose={() => setPickerOpen(false)}
         />
       )}
-    </div>
+    </>
   );
 }
 

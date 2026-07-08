@@ -5,6 +5,7 @@ import Button from "../ui/Button";
 import Card from "../ui/Card";
 import { DownloadIcon, UploadIcon } from "../ui/icons";
 import Input from "../ui/Input";
+import Modal from "../ui/Modal";
 import Spinner from "../ui/Spinner";
 import { useSnackbar } from "../ui/Snackbar";
 import {
@@ -353,159 +354,142 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
       </Card>
 
       {dialog && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-          onClick={closeDialog}
-        >
-          <div
-            className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-sm font-semibold text-text mb-1">{dialogTitle}</h3>
-            <p className="text-xs text-muted mb-4">{dialogHint}</p>
-            <Input
-              label={t("common:dialog.passwordLabel")}
-              type="password"
-              placeholder={
-                dialog === "save" || dialog === "drive-save"
-                  ? t("common:dialog.passwordPlaceholder")
-                  : t("common:dialog.passwordPlaceholderRequired")
+        <Modal onClose={closeDialog} title={dialogTitle}>
+          <p className="text-xs text-muted mb-4">{dialogHint}</p>
+          <Input
+            label={t("common:dialog.passwordLabel")}
+            type="password"
+            placeholder={
+              dialog === "save" || dialog === "drive-save"
+                ? t("common:dialog.passwordPlaceholder")
+                : t("common:dialog.passwordPlaceholderRequired")
+            }
+            value={dialogPassphrase}
+            onChange={(e) => setDialogPassphrase(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (dialog === "save" || dialog === "drive-save") handleSave(dialogPassphrase);
+                else if (dialog === "load") loadFile(dialogPassphrase);
+                else if (dialog === "drive-load") loadDrive(dialogPassphrase);
               }
-              value={dialogPassphrase}
-              onChange={(e) => setDialogPassphrase(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  if (dialog === "save" || dialog === "drive-save") handleSave(dialogPassphrase);
-                  else if (dialog === "load") loadFile(dialogPassphrase);
-                  else if (dialog === "drive-load") loadDrive(dialogPassphrase);
-                }
-                if (e.key === "Escape") closeDialog();
-              }}
-              className="mb-4"
-              autoFocus
-            />
-            <div className="flex gap-2 justify-end">
-              <Button variant="ghost" onClick={closeDialog}>
-                {t("common:actions.cancel")}
-              </Button>
-              <Button
-                onClick={
-                  dialog === "save" || dialog === "drive-save"
-                    ? () => handleSave(dialogPassphrase)
-                    : dialog === "load"
-                      ? () => loadFile(dialogPassphrase)
-                      : () => loadDrive(dialogPassphrase)
-                }
-              >
-                {dialogAction}
-              </Button>
-            </div>
+              if (e.key === "Escape") closeDialog();
+            }}
+            className="mb-4"
+            autoFocus
+          />
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" onClick={closeDialog}>
+              {t("common:actions.cancel")}
+            </Button>
+            <Button
+              onClick={
+                dialog === "save" || dialog === "drive-save"
+                  ? () => handleSave(dialogPassphrase)
+                  : dialog === "load"
+                    ? () => loadFile(dialogPassphrase)
+                    : () => loadDrive(dialogPassphrase)
+              }
+            >
+              {dialogAction}
+            </Button>
           </div>
-        </div>
+        </Modal>
       )}
 
       {restorePreview && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-          onClick={() => !restorePreview.loading && setRestorePreview(null)}
+        <Modal
+          onClose={() => setRestorePreview(null)}
+          closeDisabled={restorePreview.loading}
+          title={t("settings:backup.restorePreviewTitle")}
         >
-          <div
-            className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm mx-4 shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-sm font-semibold text-text mb-3">
-              {t("settings:backup.restorePreviewTitle")}
-            </h3>
-            {restorePreview.loading ? (
-              <div className="flex justify-center py-6">
-                <Spinner size={24} />
-              </div>
-            ) : (
-              <>
-                {(() => {
-                  const { plan } = restorePreview;
-                  const localNewer = plan.freshness === "local-newer" || plan.freshness === "same";
-                  const remoteNewer =
-                    plan.freshness === "backup-newer" || plan.freshness === "same";
-                  const fmt = (ts: number) =>
-                    new Date(ts).toLocaleString("nb-NO", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                    });
-                  return (
-                    <div className="space-y-2 mb-4">
+          {restorePreview.loading ? (
+            <div className="flex justify-center py-6">
+              <Spinner size={24} />
+            </div>
+          ) : (
+            <>
+              {(() => {
+                const { plan } = restorePreview;
+                const localNewer = plan.freshness === "local-newer" || plan.freshness === "same";
+                const remoteNewer = plan.freshness === "backup-newer" || plan.freshness === "same";
+                const fmt = (ts: number) =>
+                  new Date(ts).toLocaleString("nb-NO", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  });
+                return (
+                  <div className="space-y-2 mt-2 mb-4">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted">
+                        {t("settings:backup.restorePreviewLocalLabel")}
+                      </span>
+                      {plan.localSavedAt ? (
+                        <span
+                          className={`font-medium ${localNewer ? "text-green-500" : remoteNewer ? "text-red-500" : "text-text"}`}
+                        >
+                          {fmt(plan.localSavedAt)}
+                        </span>
+                      ) : (
+                        <span className="italic text-muted">
+                          {t("settings:backup.restorePreviewNever")}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted">
+                        {t("settings:backup.restorePreviewRemoteLabel")}
+                      </span>
+                      {plan.backupSavedAt ? (
+                        <span
+                          className={`font-medium ${remoteNewer ? "text-green-500" : localNewer ? "text-red-500" : "text-text"}`}
+                        >
+                          {fmt(plan.backupSavedAt)}
+                        </span>
+                      ) : (
+                        <span className="italic text-muted">
+                          {t("settings:backup.restorePreviewNever")}
+                        </span>
+                      )}
+                    </div>
+                    <div className="border-t border-border pt-2 mt-2">
                       <div className="flex justify-between text-xs">
                         <span className="text-muted">
-                          {t("settings:backup.restorePreviewLocalLabel")}
+                          {t("settings:backup.restorePreviewFileCount")}
                         </span>
-                        {plan.localSavedAt ? (
-                          <span
-                            className={`font-medium ${localNewer ? "text-green-500" : remoteNewer ? "text-red-500" : "text-text"}`}
-                          >
-                            {fmt(plan.localSavedAt)}
-                          </span>
-                        ) : (
-                          <span className="italic text-muted">
-                            {t("settings:backup.restorePreviewNever")}
-                          </span>
-                        )}
+                        <span className="font-medium text-text">{plan.backupCount}</span>
                       </div>
-                      <div className="flex justify-between text-xs">
+                      <div className="flex justify-between text-xs mt-1">
                         <span className="text-muted">
-                          {t("settings:backup.restorePreviewRemoteLabel")}
+                          {t("settings:backup.restorePreviewLocalCount")}
                         </span>
-                        {plan.backupSavedAt ? (
-                          <span
-                            className={`font-medium ${remoteNewer ? "text-green-500" : localNewer ? "text-red-500" : "text-text"}`}
-                          >
-                            {fmt(plan.backupSavedAt)}
-                          </span>
-                        ) : (
-                          <span className="italic text-muted">
-                            {t("settings:backup.restorePreviewNever")}
-                          </span>
-                        )}
-                      </div>
-                      <div className="border-t border-border pt-2 mt-2">
-                        <div className="flex justify-between text-xs">
-                          <span className="text-muted">
-                            {t("settings:backup.restorePreviewFileCount")}
-                          </span>
-                          <span className="font-medium text-text">{plan.backupCount}</span>
-                        </div>
-                        <div className="flex justify-between text-xs mt-1">
-                          <span className="text-muted">
-                            {t("settings:backup.restorePreviewLocalCount")}
-                          </span>
-                          <span className="font-medium text-text">{plan.localCount}</span>
-                        </div>
+                        <span className="font-medium text-text">{plan.localCount}</span>
                       </div>
                     </div>
-                  );
-                })()}
-                {restorePreview.plan.warnFewerTransactions && (
-                  <div className="border border-warning/20 bg-warning/5 rounded-lg p-3 mb-4">
-                    <p className="text-xs text-warning leading-relaxed">
-                      {t("settings:backup.restorePreviewWarning")}
-                    </p>
                   </div>
-                )}
-                <div className="flex gap-2 justify-end">
-                  <Button variant="ghost" onClick={() => setRestorePreview(null)}>
-                    {t("common:actions.cancel")}
-                  </Button>
-                  <Button onClick={() => void confirmDriveRestore()}>
-                    {t("settings:backup.restorePreviewProceed")}
-                  </Button>
+                );
+              })()}
+              {restorePreview.plan.warnFewerTransactions && (
+                <div className="border border-warning/20 bg-warning/5 rounded-lg p-3 mb-4">
+                  <p className="text-xs text-warning leading-relaxed">
+                    {t("settings:backup.restorePreviewWarning")}
+                  </p>
                 </div>
-              </>
-            )}
-          </div>
-        </div>
+              )}
+              <div className="flex gap-2 justify-end">
+                <Button variant="ghost" onClick={() => setRestorePreview(null)}>
+                  {t("common:actions.cancel")}
+                </Button>
+                <Button onClick={() => void confirmDriveRestore()}>
+                  {t("settings:backup.restorePreviewProceed")}
+                </Button>
+              </div>
+            </>
+          )}
+        </Modal>
       )}
     </>
   );
