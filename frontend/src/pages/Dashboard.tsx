@@ -11,6 +11,7 @@ import LoadingScreen from "../components/ui/LoadingScreen";
 import PassphraseDialog from "../components/ui/PassphraseDialog";
 import { useSnackbar } from "../components/ui/Snackbar";
 import Spinner from "../components/ui/Spinner";
+import WarningBanner from "../components/ui/WarningBanner";
 import {
   GoogleDriveIcon,
   HardDriveIcon,
@@ -263,36 +264,32 @@ export default function Dashboard() {
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-8">
       {isDemo && (
-        <div className="bg-warning/10 border border-warning/20 rounded-xl px-4 py-3 flex items-center justify-between mb-6">
-          <span className="text-sm text-warning font-medium">{t("demo.banner")}</span>
+        <WarningBanner message={t("demo.banner")}>
           {!DEMO_ONLY && (
             <Button variant="ghost" size="sm" loading={exitingDemo} onClick={exitDemo}>
               {t("demo.exit")}
             </Button>
           )}
-        </div>
+        </WarningBanner>
       )}
       {showDuplicatesBanner && (
-        <div className="bg-warning/10 border border-warning/20 rounded-xl px-4 py-3 flex items-center justify-between gap-3 mb-6">
-          <span className="text-sm text-warning font-medium">{t("duplicates.bannerText")}</span>
-          <div className="flex items-center gap-1 shrink-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="border border-warning/40 text-warning hover:text-warning hover:bg-warning/10"
-              onClick={() => navigate("/duplicates")}
-            >
-              {t("duplicates.bannerAction")}
-            </Button>
-            <button
-              onClick={() => setShowDuplicatesBanner(false)}
-              className="p-1.5 text-warning/60 hover:text-warning transition-colors"
-              aria-label={t("common:actions.close")}
-            >
-              <XIcon size={14} />
-            </button>
-          </div>
-        </div>
+        <WarningBanner message={t("duplicates.bannerText")}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="border border-warning/40 text-warning hover:text-warning hover:bg-warning/10"
+            onClick={() => navigate("/duplicates")}
+          >
+            {t("duplicates.bannerAction")}
+          </Button>
+          <button
+            onClick={() => setShowDuplicatesBanner(false)}
+            className="p-1.5 text-warning/60 hover:text-warning transition-colors"
+            aria-label={t("common:actions.close")}
+          >
+            <XIcon size={14} />
+          </button>
+        </WarningBanner>
       )}
       <div className="flex items-center justify-between mb-8">
         <div>
