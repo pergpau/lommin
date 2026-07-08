@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import type { Account, Transaction } from "../lib/data";
 import { fmtAmount } from "../lib/format";
 import { getLocale } from "../lib/i18n";
+import Badge from "./ui/Badge";
 import Button from "./ui/Button";
 import { AlertCircleIcon } from "./ui/icons";
 import Spinner from "./ui/Spinner";
@@ -24,6 +25,31 @@ function fmtSyncTime(ts?: number): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function AccountBadges({
+  isConnected,
+  isImported,
+  isShared,
+  ownershipShare,
+}: {
+  isConnected: boolean;
+  isImported: boolean;
+  isShared: boolean;
+  ownershipShare?: number;
+}) {
+  const { t } = useTranslation(["components", "common"]);
+  return (
+    <>
+      {isConnected && <Badge tone="positive">{t("accountCard.connected")}</Badge>}
+      {isImported && <Badge tone="accent">{t("accountCard.importedFromSpiir")}</Badge>}
+      {isShared && (
+        <Badge tone="warning">
+          {t("common:shared", { pct: Math.round(ownershipShare! * 100) })}
+        </Badge>
+      )}
+    </>
+  );
 }
 
 export default function AccountCard({
@@ -62,9 +88,7 @@ export default function AccountCard({
         )}
         {isConnected && (
           <div className="mb-2">
-            <span className="inline-flex items-center text-xs text-positive bg-positive/10 border border-positive/20 rounded px-1.5 py-0.5 leading-none">
-              {t("accountCard.connected")}
-            </span>
+            <Badge tone="positive">{t("accountCard.connected")}</Badge>
           </div>
         )}
         {isRateLimit ? (
@@ -111,21 +135,12 @@ export default function AccountCard({
         )}
         <div className="h-3.5 w-24 rounded bg-muted/20 animate-pulse mt-0.5" />
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          {isConnected && (
-            <span className="inline-flex items-center text-xs text-positive bg-positive/10 border border-positive/20 rounded px-1.5 py-0.5 leading-none">
-              {t("accountCard.connected")}
-            </span>
-          )}
-          {isImported && (
-            <span className="inline-flex items-center text-xs text-accent/80 bg-accent/8 border border-accent/20 rounded px-1.5 py-0.5 leading-none">
-              {t("accountCard.importedFromSpiir")}
-            </span>
-          )}
-          {isShared && (
-            <span className="inline-flex items-center text-xs text-warning/80 bg-warning/8 border border-warning/20 rounded px-1.5 py-0.5 leading-none">
-              {t("common:shared", { pct: Math.round(acc.ownershipShare! * 100) })}
-            </span>
-          )}
+          <AccountBadges
+            isConnected={isConnected}
+            isImported={isImported}
+            isShared={isShared}
+            ownershipShare={acc.ownershipShare}
+          />
         </div>
       </div>
     );
@@ -157,21 +172,12 @@ export default function AccountCard({
         {t("accountCard.transactions", { count: txns.length })}
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        {isConnected && (
-          <span className="inline-flex items-center text-xs text-positive bg-positive/10 border border-positive/20 rounded px-1.5 py-0.5 leading-none">
-            {t("accountCard.connected")}
-          </span>
-        )}
-        {isImported && (
-          <span className="inline-flex items-center text-xs text-accent/80 bg-accent/8 border border-accent/20 rounded px-1.5 py-0.5 leading-none">
-            {t("accountCard.importedFromSpiir")}
-          </span>
-        )}
-        {isShared && (
-          <span className="inline-flex items-center text-xs text-warning/80 bg-warning/8 border border-warning/20 rounded px-1.5 py-0.5 leading-none">
-            {t("common:shared", { pct: Math.round(acc.ownershipShare! * 100) })}
-          </span>
-        )}
+        <AccountBadges
+          isConnected={isConnected}
+          isImported={isImported}
+          isShared={isShared}
+          ownershipShare={acc.ownershipShare}
+        />
         {isConnected && (
           <span className="text-xs text-muted">
             {syncTime

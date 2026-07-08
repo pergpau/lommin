@@ -19,6 +19,7 @@ import { useTransactions } from "../hooks/useTransactions";
 import { useSyncState } from "../hooks/useSyncState";
 import { useSuccessFlash } from "../hooks/useSuccessFlash";
 import LoadingScreen from "../components/ui/LoadingScreen";
+import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import DropdownMenu, { DropdownItem } from "../components/ui/DropdownMenu";
 import { useSnackbar } from "../components/ui/Snackbar";
@@ -233,14 +234,14 @@ export default function AccountPage() {
           )}
           <div className="flex items-center gap-1.5 mt-0.5">
             {isConnected && (
-              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-positive/10 text-positive border border-positive/20 leading-none">
+              <Badge tone="positive" size="xs">
                 {t("connectedBadge")}
-              </span>
+              </Badge>
             )}
             {account?.ownershipShare != null && (
-              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-warning/10 text-warning border border-warning/20 leading-none">
+              <Badge tone="warning" size="xs">
                 {t("common:shared", { pct: Math.round(account.ownershipShare * 100) })}
-              </span>
+              </Badge>
             )}
           </div>
         </div>
