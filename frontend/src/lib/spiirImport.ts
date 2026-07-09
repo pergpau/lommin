@@ -61,16 +61,16 @@ const SPIIR_CATEGORY_MAP: Record<number, number> = {
   140: 140, // Ferieaktiviteter
   141: 141, // Reiseforsikring
 
-  // --- Faste utgifter ---
+  // --- Basisutgifter ---
   134: 142, // Apotek
   142: 152, // Underholdsbidrag
   143: 151, // Barnehage & SFO
-  144: 143, // Fagforening & Dagpengeforsikring
+  144: 143, // Fagforening
   145: 144, // Livsforsikring
   146: 145, // Helseforsikring
   148: 146, // TV & Strømming
   149: 147, // Telefon & Internett
-  153: 148, // Legespesialist
+  153: 148, // Lege
   154: 149, // Briller & Linser
   189: 150, // Utdanning
   191: 153, // Medlemskap

@@ -147,7 +147,7 @@ export const CATEGORY_ICONS: Record<number, IconDefinition> = {
   140: faMap,
   141: faShield,
 
-  // ── Faste utgifter ─────────────────────────────────────
+  // ── Basisutgifter ─────────────────────────────────────
   16: faCalendarCheck,
   142: faPills,
   143: faFileContract,
