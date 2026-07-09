@@ -9,20 +9,26 @@ import {
   getDriveBackupModifiedTime,
   loadBackupFromDrive,
   saveBackupToDrive,
+  silentReauth,
 } from "./googleDrive";
 import {
   type AppSettings,
   clearDriveToken,
   getAllSettings,
+  getDriveAccountEmail,
   getDriveToken,
   getLastBackupHash,
   getSetting,
   getSyncedSettings,
   hasDriveTokenStored,
+  persistDriveToken,
+  setDriveAccountEmail,
   setLastBackupHash,
   setSetting,
 } from "./settings";
 import { exportAll, getAllTransactions, importAll } from "./store";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
 export type BackupErrorKind =
   | "cancelled" // user closed the file picker — UI should stay silent
@@ -79,6 +85,22 @@ const fileTarget: BackupTarget = {
   },
 };
 
+// Attempts a silent (no popup, no user interaction) token renewal using the
+// last-known account as a login_hint. Returns the fresh token, or null if
+// silent renewal isn't possible (no active Google session, revoked consent,
+// ambiguous multi-account session, etc.) — callers fall back to the visible
+// reconnect modal in that case.
+async function trySilentReauth(): Promise<string | null> {
+  if (!GOOGLE_CLIENT_ID) return null;
+  const email = await getDriveAccountEmail();
+  const result = await silentReauth(GOOGLE_CLIENT_ID, email);
+  if (!result) return null;
+  await persistDriveToken(result.token, result.expiresIn);
+  if (result.email) await setDriveAccountEmail(result.email);
+  window.dispatchEvent(new Event("lommin:drive-token-updated"));
+  return result.token;
+}
+
 async function withDriveErrors<T>(fn: (token: string) => Promise<T>): Promise<T> {
   const stored = await getDriveToken();
   if (!stored) throw new BackupError("drive-not-connected");
@@ -86,6 +108,17 @@ async function withDriveErrors<T>(fn: (token: string) => Promise<T>): Promise<T>
     return await fn(stored.token);
   } catch (e) {
     if (e instanceof DriveAuthError) {
+      const fresh = await trySilentReauth();
+      if (fresh) {
+        try {
+          return await fn(fresh);
+        } catch (e2) {
+          if (!(e2 instanceof DriveAuthError)) throw e2;
+          void clearDriveToken();
+          window.dispatchEvent(new Event("lommin:drive-auth-expired"));
+          throw new BackupError("drive-auth", e2.message, { cause: e2 });
+        }
+      }
       void clearDriveToken();
       window.dispatchEvent(new Event("lommin:drive-auth-expired"));
       throw new BackupError("drive-auth", e.message, { cause: e });
@@ -317,15 +350,23 @@ export function decideSyncAction(
   return "pull";
 }
 
-export async function assessDriveSync(): Promise<SyncAssessment> {
+export async function assessDriveSync(hooks?: {
+  onSilentReauthStart?: () => void;
+}): Promise<SyncAssessment> {
   const [settings, stored] = await Promise.all([getAllSettings(), getDriveToken()]);
-  const token = { has: !!stored, had: !!stored || (await hasDriveTokenStored()) };
+  let token = { has: !!stored, had: !!stored || (await hasDriveTokenStored()) };
 
   // Decide without the remote timestamp first, so gated states skip the fetch.
-  const action = decideSyncAction(settings, token, null);
+  let action = decideSyncAction(settings, token, null);
   if (action === "reauth-needed") {
-    window.dispatchEvent(new Event("lommin:drive-auth-expired"));
-    return { action };
+    hooks?.onSilentReauthStart?.();
+    const fresh = await trySilentReauth();
+    if (!fresh) {
+      window.dispatchEvent(new Event("lommin:drive-auth-expired"));
+      return { action: "reauth-needed" };
+    }
+    token = { has: true, had: true };
+    action = decideSyncAction(settings, token, null);
   }
   if (action === "disabled" || action === "push") return { action };
 

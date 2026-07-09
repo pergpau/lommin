@@ -251,6 +251,40 @@ export async function clearDriveToken(): Promise<void> {
   });
 }
 
+// Kept independent of the token lifecycle (not cleared by clearDriveToken) —
+// it's the login_hint used by the *next* silent reauth attempt, so it must
+// outlive the token it was captured alongside. Only an explicit "Disconnect"
+// clears it.
+export async function getDriveAccountEmail(): Promise<string | null> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const req = tx.objectStore(STORE).get("driveAccountEmail");
+    req.onsuccess = () => resolve((req.result?.v as string | undefined) ?? null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function setDriveAccountEmail(email: string): Promise<void> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).put({ k: "driveAccountEmail", v: email });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function clearDriveAccountEmail(): Promise<void> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).delete("driveAccountEmail");
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 export async function getLastBackupHash(): Promise<string | null> {
   const db = await openDb();
   return new Promise((resolve, reject) => {

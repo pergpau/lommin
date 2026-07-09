@@ -20,6 +20,7 @@
   },
   "sync": {
     "syncing": "Loading data from Google Drive",
+    "reconnecting": "Renewing Google Drive access…",
     "done": "Google Drive data loaded",
     "error": "Google Drive data load failed"
   },

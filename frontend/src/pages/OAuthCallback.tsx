@@ -11,6 +11,7 @@ export default function OAuthCallback() {
     const params = new URLSearchParams(hash);
     const accessToken = params.get("access_token");
     const error = params.get("error");
+    const state = params.get("state") ?? undefined;
 
     const expiresIn = params.get("expires_in");
     const channel = new BroadcastChannel(GOOGLE_OAUTH_CHANNEL);
@@ -18,10 +19,11 @@ export default function OAuthCallback() {
       channel.postMessage({
         access_token: accessToken,
         expires_in: expiresIn ? Number(expiresIn) : 3600,
+        state,
       });
       setStatus("ok");
     } else {
-      channel.postMessage({ error: error ?? "Ukjent feil" });
+      channel.postMessage({ error: error ?? "Ukjent feil", state });
       setStatus("error");
     }
     channel.close();

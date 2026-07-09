@@ -20,6 +20,7 @@
   },
   "sync": {
     "syncing": "Henter data fra Google Drive",
+    "reconnecting": "Fornyer tilgang til Google Drive…",
     "done": "Google Drive-data lastet inn",
     "error": "Datahenting fra Google Drive feilet"
   },

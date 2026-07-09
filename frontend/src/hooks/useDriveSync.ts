@@ -9,6 +9,7 @@ import {
   type RestorePlan,
   triggerAutosave,
 } from "../lib/backup";
+import { isOAuthCallbackContext } from "../lib/googleDrive";
 
 export function useDriveSync() {
   const { showSnackbar, hideSnackbar } = useSnackbar();
@@ -28,12 +29,20 @@ export function useDriveSync() {
   );
 
   const attemptSync = useCallback(async () => {
-    if (window.opener) return;
+    if (isOAuthCallbackContext()) return;
     if (inFlight.current || pendingRef.current) return;
     inFlight.current = true;
 
+    let showedReconnecting = false;
     try {
-      const assessment = await assessDriveSync();
+      const assessment = await assessDriveSync({
+        onSilentReauthStart: () => {
+          showedReconnecting = true;
+          showSnackbar(t("sync.reconnecting"), "info", null);
+        },
+      });
+      if (showedReconnecting && assessment.action !== "pull") hideSnackbar();
+
       if (assessment.action === "push") {
         void triggerAutosave();
         return;

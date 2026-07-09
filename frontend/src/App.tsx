@@ -10,6 +10,7 @@ import { DEMO_ONLY } from "./constants";
 import { useDriveSync } from "./hooks/useDriveSync";
 import { loadKey } from "./lib/auth";
 import { getAccounts } from "./lib/data";
+import { isOAuthCallbackContext } from "./lib/googleDrive";
 import { seedDemoData } from "./lib/demoData";
 import Account from "./pages/Account";
 import Connect from "./pages/Connect";
@@ -78,7 +79,7 @@ function AppContent() {
 
   return (
     <>
-      {!DEMO_ONLY && !window.opener && <DriveReconnectModal />}
+      {!DEMO_ONLY && !isOAuthCallbackContext() && <DriveReconnectModal />}
       {!DEMO_ONLY && pendingRestore && (
         <DriveRestoreWarningModal
           backupCount={pendingRestore.backupCount}

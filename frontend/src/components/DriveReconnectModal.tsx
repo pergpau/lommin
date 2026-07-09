@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "./ui/Button";
 import Modal from "./ui/Modal";
-import { clearDriveToken, persistDriveToken } from "../lib/settings";
+import { clearDriveToken, persistDriveToken, setDriveAccountEmail } from "../lib/settings";
 import { signInWithGoogle } from "../lib/googleDrive";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
@@ -30,8 +30,9 @@ export default function DriveReconnectModal() {
     setConnecting(true);
     setError(null);
     try {
-      const { token, expiresIn } = await signInWithGoogle(GOOGLE_CLIENT_ID);
+      const { token, expiresIn, email } = await signInWithGoogle(GOOGLE_CLIENT_ID);
       await persistDriveToken(token, expiresIn);
+      if (email) await setDriveAccountEmail(email);
       window.dispatchEvent(new Event("lommin:drive-token-updated"));
       setOpen(false);
     } catch (e) {

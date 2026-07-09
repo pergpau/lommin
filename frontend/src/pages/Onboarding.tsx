@@ -23,7 +23,13 @@ import { applyRestore, BackupError, loadBackup } from "../lib/backup";
 import { getAccounts } from "../lib/data";
 import { seedDemoData } from "../lib/demoData";
 import { signInWithGoogle } from "../lib/googleDrive";
-import { DEFAULT_PROXY_URL, getSetting, persistDriveToken, setSetting } from "../lib/settings";
+import {
+  DEFAULT_PROXY_URL,
+  getSetting,
+  persistDriveToken,
+  setDriveAccountEmail,
+  setSetting,
+} from "../lib/settings";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
@@ -443,8 +449,9 @@ function StepRestoreDrive({ navigate }: { navigate: ReturnType<typeof useNavigat
     setDriveState("connecting");
     setDriveMsg("");
     try {
-      const { token: tok, expiresIn } = await signInWithGoogle(GOOGLE_CLIENT_ID);
+      const { token: tok, expiresIn, email } = await signInWithGoogle(GOOGLE_CLIENT_ID);
       await persistDriveToken(tok, expiresIn);
+      if (email) await setDriveAccountEmail(email);
       setDriveToken(tok);
       setDriveState("idle");
     } catch (e) {

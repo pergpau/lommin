@@ -3,8 +3,16 @@ import { decryptStore, encryptStore } from "./cryptoFile";
 const DRIVE_API = "https://www.googleapis.com/drive/v3";
 const DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3";
 const BACKUP_FILE_NAME = "lommin-backup.enc";
-const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.appdata";
+const SCOPES = "https://www.googleapis.com/auth/drive.appdata email";
+const SILENT_REAUTH_TIMEOUT_MS = 8_000;
 export const GOOGLE_OAUTH_CHANNEL = "google-oauth";
+
+// True inside the OAuth popup/hidden-iframe that IS the redirect_uri target —
+// used to stop the app instance loaded there from running its own background
+// sync (which would otherwise recurse: iframe spawns iframe spawns iframe).
+export function isOAuthCallbackContext(): boolean {
+  return !!window.opener || window.location.pathname === "/oauth/google";
+}
 
 export class DriveAuthError extends Error {
   constructor() {
@@ -78,54 +86,144 @@ function buildMultipartBody(metadata: string, fileBytes: Uint8Array, boundary: s
   return out;
 }
 
-export async function signInWithGoogle(
-  clientId: string,
-): Promise<{ token: string; expiresIn: number }> {
-  const redirectUri = `${window.location.origin}/oauth/google`;
+function buildAuthUrl(clientId: string, requestId: string, extra?: Record<string, string>): string {
   const params = new URLSearchParams({
     client_id: clientId,
-    redirect_uri: redirectUri,
+    redirect_uri: `${window.location.origin}/oauth/google`,
     response_type: "token",
-    scope: DRIVE_SCOPE,
+    scope: SCOPES,
+    state: requestId,
+    ...extra,
   });
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+
+// state must match the requestId that initiated this flow — the channel is
+// origin-wide, so without this a concurrent popup/iframe's response would
+// otherwise resolve the wrong caller's promise. See silentReauth for why
+// concurrent flows are common now.
+type OAuthMessage = { access_token?: string; expires_in?: number; error?: string; state?: string };
+
+function parseOAuthMessage(
+  data: OAuthMessage | undefined,
+  requestId: string,
+): { ok: true; token: string; expiresIn: number } | { ok: false; error: string } | null {
+  if (data?.state !== requestId) return null;
+  if (data.error) return { ok: false, error: data.error };
+  return { ok: true, token: data.access_token!, expiresIn: data.expires_in ?? 3600 };
+}
+
+async function fetchAccountEmail(token: string): Promise<string | null> {
+  try {
+    const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { email?: string };
+    return typeof data.email === "string" ? data.email : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function signInWithGoogle(
+  clientId: string,
+): Promise<{ token: string; expiresIn: number; email: string | null }> {
+  const requestId = crypto.randomUUID();
   const popup = window.open(
-    `https://accounts.google.com/o/oauth2/v2/auth?${params}`,
+    buildAuthUrl(clientId, requestId),
     "google-auth",
     "width=500,height=600,popup=1",
   );
   if (!popup) throw new Error("Popup ble blokkert. Tillat popups for denne siden.");
 
-  return new Promise<{ token: string; expiresIn: number }>((resolve, reject) => {
-    const channel = new BroadcastChannel(GOOGLE_OAUTH_CHANNEL);
-    let done = false;
+  const { token, expiresIn } = await new Promise<{ token: string; expiresIn: number }>(
+    (resolve, reject) => {
+      const channel = new BroadcastChannel(GOOGLE_OAUTH_CHANNEL);
+      let done = false;
 
-    const finish = (token?: string, expiresIn?: number, err?: string) => {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      clearInterval(pollClosed);
-      channel.close();
-      if (err) reject(new Error(err));
-      else resolve({ token: token!, expiresIn: expiresIn ?? 3600 });
-    };
+      const finish = (result?: { token: string; expiresIn: number }, err?: string) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        clearInterval(pollClosed);
+        channel.close();
+        if (err) reject(new Error(err));
+        else resolve(result!);
+      };
 
-    const timer = setTimeout(
-      () => finish(undefined, undefined, "Autentisering timed out."),
-      120_000,
-    );
+      const timer = setTimeout(() => finish(undefined, "Autentisering timed out."), 120_000);
 
-    const pollClosed = setInterval(() => {
-      if (popup.closed)
-        setTimeout(() => finish(undefined, undefined, "Autentisering avbrutt."), 500);
-    }, 500);
+      const pollClosed = setInterval(() => {
+        if (popup.closed) setTimeout(() => finish(undefined, "Autentisering avbrutt."), 500);
+      }, 500);
 
-    channel.onmessage = (
-      e: MessageEvent<{ access_token?: string; expires_in?: number; error?: string }>,
-    ) => {
-      if (e.data?.error) finish(undefined, undefined, e.data.error);
-      else finish(e.data?.access_token, e.data?.expires_in);
-    };
+      channel.onmessage = (e: MessageEvent<OAuthMessage>) => {
+        const parsed = parseOAuthMessage(e.data, requestId);
+        if (!parsed) return;
+        if (parsed.ok) finish({ token: parsed.token, expiresIn: parsed.expiresIn });
+        else finish(undefined, parsed.error);
+      };
+    },
+  );
+
+  return { token, expiresIn, email: await fetchAccountEmail(token) };
+}
+
+// Silent renewal: re-run the same auth request with prompt=none in a hidden
+// iframe instead of a popup. If the browser still has an active Google
+// session and consent was already granted, Google responds with a fresh
+// token with no visible UI. Never throws — any failure (no active session,
+// consent revoked, ambiguous multi-account session, timeout) resolves to
+// null, which callers treat as "fall back to the visible reconnect flow".
+export async function silentReauth(
+  clientId: string,
+  loginHint?: string | null,
+): Promise<{ token: string; expiresIn: number; email: string | null } | null> {
+  const requestId = crypto.randomUUID();
+  const url = buildAuthUrl(clientId, requestId, {
+    prompt: "none",
+    ...(loginHint ? { login_hint: loginHint } : {}),
   });
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-hidden", "true");
+  Object.assign(iframe.style, {
+    position: "absolute",
+    width: "0",
+    height: "0",
+    border: "0",
+    opacity: "0",
+    pointerEvents: "none",
+  });
+  iframe.src = url;
+  document.body.appendChild(iframe);
+
+  try {
+    const result = await new Promise<{ token: string; expiresIn: number } | null>((resolve) => {
+      const channel = new BroadcastChannel(GOOGLE_OAUTH_CHANNEL);
+      let done = false;
+
+      const finish = (v: { token: string; expiresIn: number } | null) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        channel.close();
+        resolve(v);
+      };
+
+      const timer = setTimeout(() => finish(null), SILENT_REAUTH_TIMEOUT_MS);
+
+      channel.onmessage = (e: MessageEvent<OAuthMessage>) => {
+        const parsed = parseOAuthMessage(e.data, requestId);
+        if (!parsed) return;
+        finish(parsed.ok ? { token: parsed.token, expiresIn: parsed.expiresIn } : null);
+      };
+    });
+    if (!result) return null;
+    return { ...result, email: await fetchAccountEmail(result.token) };
+  } finally {
+    iframe.remove();
+  }
 }
 
 export async function saveBackupToDrive(

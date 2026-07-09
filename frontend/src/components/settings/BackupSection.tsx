@@ -17,11 +17,13 @@ import {
 } from "../../lib/backup";
 import { signInWithGoogle } from "../../lib/googleDrive";
 import {
+  clearDriveAccountEmail,
   clearDriveToken,
   getDriveToken,
   getSetting,
   hasSetting,
   persistDriveToken,
+  setDriveAccountEmail,
   setSetting,
 } from "../../lib/settings";
 
@@ -124,8 +126,9 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
     if (!GOOGLE_CLIENT_ID) return;
     setDriveSyncing("connect");
     try {
-      const { token, expiresIn } = await signInWithGoogle(GOOGLE_CLIENT_ID);
+      const { token, expiresIn, email } = await signInWithGoogle(GOOGLE_CLIENT_ID);
       await persistDriveToken(token, expiresIn);
+      if (email) await setDriveAccountEmail(email);
       setDriveToken(token);
     } catch (e) {
       showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.connectFailed"), "error");
@@ -300,6 +303,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                       onClick={() => {
                         setDriveToken(null);
                         void clearDriveToken();
+                        void clearDriveAccountEmail();
                       }}
                     >
                       {t("common:actions.disconnect")}
