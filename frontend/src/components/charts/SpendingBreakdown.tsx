@@ -312,28 +312,26 @@ export default function SpendingBreakdown({
     }
 
     const subTxns = pool.filter((tx) => mainIdOf(tx) === mainId);
-    const subMap = new Map<number, number>();
-    for (const tx of subTxns) {
-      if (tx.categoryId != null) {
-        const subType = SUB_CATEGORY_MAP[tx.categoryId]?.type;
-        const amt = amountOf(tx);
-        const delta = subType === "income" ? amt : -amt;
-        subMap.set(tx.categoryId, (subMap.get(tx.categoryId) ?? 0) + delta);
-      }
-    }
-    const subRows = [...subMap.entries()]
-      .map(([subId, total]) => ({ subId, total }))
-      .sort((a, b) => b.total - a.total);
-    const subTotal = subRows.reduce((sum, r) => sum + r.total, 0);
+    const sign = mainType(mainId) === "income" ? 1 : -1;
+    const allSubRows = buildSubRows(pool, mainId as number, sign, amountOf).sort(
+      (a, b) => b.total - a.total,
+    );
+    const subRows = showAll ? allSubRows : allSubRows.filter((r) => r.count > 0);
+    const subTotal = allSubRows.reduce((sum, r) => sum + r.total, 0);
 
     return (
       <div>
-        <button
-          className="flex items-center gap-1.5 text-sm text-muted hover:text-text mb-4 transition-colors"
-          onClick={() => setView({ level: "main" })}
-        >
-          {t("charts:breakdown.back")}
-        </button>
+        <div className="flex items-center justify-between mb-4">
+          <button
+            className="flex items-center gap-1.5 text-sm text-muted hover:text-text transition-colors"
+            onClick={() => setView({ level: "main" })}
+          >
+            {t("charts:breakdown.back")}
+          </button>
+          <button onClick={() => setShowAll((v) => !v)} className={pillClass(showAll)}>
+            {t("charts:breakdown.showAll")}
+          </button>
+        </div>
         <div className="card overflow-hidden mb-6">
           <div
             className="px-4 py-3 border-b border-border flex items-center gap-2"
@@ -351,7 +349,7 @@ export default function SpendingBreakdown({
             </span>
           </div>
           <div className="divide-y divide-border">
-            {subRows.map(({ subId, total }) => {
+            {subRows.map(({ subId, total, count }) => {
               const s = subMeta(subId);
               const pct = subTotal > 0 ? (total / subTotal) * 100 : 0;
               return (
@@ -378,7 +376,7 @@ export default function SpendingBreakdown({
                   </span>
                   <span className="text-sm text-text flex-1 truncate">{getSubName(subId, t)}</span>
                   <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
-                    {pct.toFixed(0)}%
+                    {count > 0 ? `${pct.toFixed(0)}%` : ""}
                   </span>
                   <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
                     {fmtAmount(total, undefined, 0)} kr
