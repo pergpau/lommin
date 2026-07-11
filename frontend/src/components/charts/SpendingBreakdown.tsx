@@ -495,9 +495,14 @@ export default function SpendingBreakdown({
   const sparingColor = MAIN_CATEGORY_MAP[20]?.color ?? "#8b3eb8";
   const excludedColor = MAIN_CATEGORY_MAP[10]?.color ?? "#6b7280";
 
+  const hasExpense = showAll || expenseRows.some((r) => r.count > 0);
+  const hasIncome = showAll || inntektSubRows.some((r) => r.count > 0);
+  const hasSaving = showAll || sparingSubRows.some((r) => r.count > 0);
+  const hasExcluded = showAll || excludedSubRows.some((r) => r.count > 0);
+
   return (
     <div className="flex flex-col gap-6">
-      {visibleExpenseRows.length > 0 && (
+      {hasExpense && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
@@ -513,7 +518,7 @@ export default function SpendingBreakdown({
         </div>
       )}
 
-      {visibleIncomeRows.length > 0 && (
+      {hasIncome && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
@@ -528,37 +533,33 @@ export default function SpendingBreakdown({
         </div>
       )}
 
-      {sparingSubRows.length > 0 && (
+      {hasSaving && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
               {t("charts:breakdown.saving")}
             </h3>
           </div>
-          {visibleSparingSubs.length > 0 && (
-            <div className="card overflow-hidden">
-              <div className="divide-y divide-border">
-                {renderSubRows(visibleSparingSubs, sparingColor, sparingSectionTotal)}
-              </div>
+          <div className="card overflow-hidden">
+            <div className="divide-y divide-border">
+              {renderSubRows(visibleSparingSubs, sparingColor, sparingSectionTotal)}
             </div>
-          )}
+          </div>
         </div>
       )}
 
-      {excludedSubRows.length > 0 && (
+      {hasExcluded && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
               {t("charts:breakdown.excluded")}
             </h3>
           </div>
-          {visibleExcludedSubs.length > 0 && (
-            <div className="card overflow-hidden">
-              <div className="divide-y divide-border">
-                {renderSubRows(visibleExcludedSubs, excludedColor, excludedSectionTotal, true)}
-              </div>
+          <div className="card overflow-hidden">
+            <div className="divide-y divide-border">
+              {renderSubRows(visibleExcludedSubs, excludedColor, excludedSectionTotal, true)}
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>
