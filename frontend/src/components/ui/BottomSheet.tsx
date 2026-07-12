@@ -36,6 +36,14 @@ export default function BottomSheet({
     };
   }, []);
 
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") dismiss();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   // Native listener: drag handlers on the panel may stopPropagation, which
   // would keep a delegated React handler from ever firing.
   useEffect(() => {
@@ -55,9 +63,6 @@ export default function BottomSheet({
       }}
       onTouchStart={(e) => e.stopPropagation()}
       onTouchEnd={(e) => e.stopPropagation()}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") dismiss();
-      }}
       onAnimationEnd={() => {
         if (closing) onClose();
       }}

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 interface ModalProps {
   onClose: () => void;
@@ -20,6 +20,14 @@ export default function Modal({
   panelClassName = "max-w-sm p-6",
   children,
 }: ModalProps) {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !closeDisabled) onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose, closeDisabled]);
+
   return (
     <div
       className={
