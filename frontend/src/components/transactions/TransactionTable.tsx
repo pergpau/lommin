@@ -12,6 +12,7 @@ import {
   batchSetCustomDate,
   batchSetExcludeFromCalculations,
 } from "../../lib/data";
+import { effectiveDate, fmtDate } from "../../lib/format";
 import DeleteConfirmModal from "../ui/DeleteConfirmModal";
 import SearchInput from "../ui/SearchInput";
 import BulkActionBar from "./BulkActionBar";
@@ -70,7 +71,8 @@ export default function TransactionTable({
         const q = search.toLowerCase();
         return (
           (tx.description ?? "").toLowerCase().includes(q) ||
-          String(Math.abs(tx.amount)).includes(q)
+          String(Math.abs(tx.amount)).includes(q) ||
+          fmtDate(effectiveDate(tx)).toLowerCase().includes(q)
         );
       })
     : transactions;
