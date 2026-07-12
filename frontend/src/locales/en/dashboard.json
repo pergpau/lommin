@@ -6,6 +6,10 @@
     "banner": "You are in demo mode — no real data is connected",
     "exit": "Exit demo"
   },
+  "view": {
+    "personal": "Personal",
+    "shared": "Shared"
+  },
   "tabs": {
     "categories": "Categories",
     "transactions": "Transactions",

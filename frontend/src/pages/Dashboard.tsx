@@ -43,6 +43,7 @@ import { buildMonthlyData, buildYearlyData } from "../lib/transactionAggregation
 
 type Tab = "categories" | "accounts" | "transactions";
 const TABS: Tab[] = ["categories", "transactions", "accounts"];
+type DashboardView = "personal" | "shared";
 
 export default function Dashboard() {
   const { t } = useTranslation(["dashboard", "common"]);
@@ -168,7 +169,15 @@ export default function Dashboard() {
       : stateTab && TABS.includes(stateTab)
         ? stateTab
         : defaultTab;
-  const setTab = useCallback((t: Tab) => setSearchParams({ tab: t }), [setSearchParams]);
+  const setTab = useCallback(
+    (t: Tab) =>
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("tab", t);
+        return next;
+      }),
+    [setSearchParams],
+  );
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   const categoryGoBackRef = useRef<(() => boolean) | null>(null);
   const swipeRef = useSwipe<HTMLDivElement>({
@@ -209,6 +218,31 @@ export default function Dashboard() {
     return map;
   }, [accounts]);
 
+  const sharedAccounts = useMemo(
+    () => accounts.filter((acc) => acc.ownershipShare != null),
+    [accounts],
+  );
+  const hasShared = sharedAccounts.length > 0;
+  const view: DashboardView =
+    searchParams.get("view") === "shared" && hasShared ? "shared" : "personal";
+  const setView = useCallback(
+    (v: DashboardView) =>
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        if (v === "shared") next.set("view", "shared");
+        else next.delete("view");
+        return next;
+      }),
+    [setSearchParams],
+  );
+
+  const scopedAccounts = view === "shared" ? sharedAccounts : accounts;
+  const scopedTransactions = useMemo(() => {
+    if (view !== "shared") return transactions;
+    const sharedUids = new Set(sharedAccounts.map((acc) => acc.uid));
+    return transactions.filter((tx) => sharedUids.has(tx.accountUid));
+  }, [transactions, view, sharedAccounts]);
+
   const scaledTransactions = useMemo(() => {
     if (shareMap.size === 0) return transactions;
     return transactions.map((tx) => {
@@ -218,13 +252,14 @@ export default function Dashboard() {
     });
   }, [transactions, shareMap]);
 
+  const chartTransactions = view === "shared" ? scopedTransactions : scaledTransactions;
   const monthlyData = useMemo<MonthBar[]>(
-    () => buildMonthlyData(scaledTransactions),
-    [scaledTransactions],
+    () => buildMonthlyData(chartTransactions),
+    [chartTransactions],
   );
   const yearlyData = useMemo<MonthBar[]>(
-    () => buildYearlyData(scaledTransactions),
-    [scaledTransactions],
+    () => buildYearlyData(chartTransactions),
+    [chartTransactions],
   );
 
   const chartData = chartMode === "month" ? monthlyData : yearlyData;
@@ -235,24 +270,24 @@ export default function Dashboard() {
 
   const txByAccount = useMemo(() => {
     const map = new Map<string, typeof transactions>();
-    for (const tx of transactions) {
+    for (const tx of scopedTransactions) {
       const list = map.get(tx.accountUid) ?? [];
       list.push(tx);
       map.set(tx.accountUid, list);
     }
     return map;
-  }, [transactions]);
+  }, [scopedTransactions]);
 
   const recent = useMemo(
     () =>
-      [...transactions]
+      [...scopedTransactions]
         .filter((tx) => {
           if (!activeMonth) return true;
           const date = effectiveDate(tx);
           return date ? date.startsWith(activeMonth) : false;
         })
         .sort((a, b) => (effectiveDate(b) ?? "").localeCompare(effectiveDate(a) ?? "")),
-    [transactions, activeMonth],
+    [scopedTransactions, activeMonth],
   );
 
   const selectedMonthBar = chartData.find((m) => m.key === activeMonth);
@@ -295,7 +330,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-xl font-semibold">{t("title")}</h1>
           <p className="text-muted text-sm mt-0.5">
-            {t("subtitle", { count: accounts.length, txCount: transactions.length })}
+            {t("subtitle", { count: scopedAccounts.length, txCount: scopedTransactions.length })}
           </p>
         </div>
         {/* Desktop actions */}
@@ -386,6 +421,22 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {hasShared && (
+        <div className="flex mb-6">
+          <div className="flex rounded-lg overflow-hidden border border-border text-xs font-medium shrink-0">
+            {(["personal", "shared"] as const).map((v) => (
+              <button
+                key={v}
+                className={`px-3 py-1 transition-colors ${view === v ? "bg-accent text-white" : "text-muted hover:text-text"}`}
+                onClick={() => setView(v)}
+              >
+                {t("view." + v)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {chartData.length > 0 && (
         <div className="mb-8">
           <MonthlyChart
@@ -448,13 +499,13 @@ export default function Dashboard() {
             }}
             onMutated={refresh}
             goBackRef={categoryGoBackRef}
-            shareMap={shareMap}
+            shareMap={view === "personal" ? shareMap : undefined}
           />
         )}
 
         {tab === "accounts" && (
           <AccountsTab
-            accounts={accounts}
+            accounts={scopedAccounts}
             txByAccount={txByAccount}
             syncingAccountUids={syncingAccountUids}
             failedAccounts={failedAccounts}
@@ -478,7 +529,7 @@ export default function Dashboard() {
                 : undefined
             }
             refresh={refresh}
-            shareMap={shareMap}
+            shareMap={view === "personal" ? shareMap : undefined}
           />
         )}
       </div>

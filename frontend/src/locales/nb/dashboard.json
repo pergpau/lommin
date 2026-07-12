@@ -6,6 +6,10 @@
     "banner": "Du er i demomodus — ingen ekte data er tilkoblet",
     "exit": "Avslutt demo"
   },
+  "view": {
+    "personal": "Personlig",
+    "shared": "Felles"
+  },
   "tabs": {
     "categories": "Kategorier",
     "transactions": "Transaksjoner",
