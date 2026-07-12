@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useOverlayLayer } from "../../hooks/useOverlayLayer";
 
 interface BottomSheetProps {
   title: ReactNode;
@@ -28,21 +29,7 @@ export default function BottomSheet({
 
   const dismiss = () => setClosing(true);
 
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") dismiss();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
+  useOverlayLayer(dismiss);
 
   // Native listener: drag handlers on the panel may stopPropagation, which
   // would keep a delegated React handler from ever firing.
