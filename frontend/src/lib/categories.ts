@@ -83,6 +83,7 @@ export const MAIN_CATEGORIES: MainCategory[] = [
       { id: 128, name: "Kollektivtransport", type: "expense", mainCategoryId: 13 },
       { id: 129, name: "Taxi", type: "expense", mainCategoryId: 13 },
       { id: 130, name: "Parkering", type: "expense", mainCategoryId: 13 },
+      { id: 186, name: "Bompenger", type: "expense", mainCategoryId: 13 },
       { id: 131, name: "Garasje & Bildeler", type: "expense", mainCategoryId: 13 },
       { id: 132, name: "Annen transport", type: "expense", mainCategoryId: 13 },
     ],

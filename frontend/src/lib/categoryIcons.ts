@@ -33,6 +33,7 @@ import {
   faBus,
   faTaxi,
   faSquareParking,
+  faRoad,
   faScrewdriverWrench,
   faBicycle,
   faCartShopping,
@@ -129,6 +130,7 @@ export const CATEGORY_ICONS: Record<number, IconDefinition> = {
   128: faBus,
   129: faTaxi,
   130: faSquareParking,
+  186: faRoad,
   131: faScrewdriverWrench,
   132: faBicycle,
 
