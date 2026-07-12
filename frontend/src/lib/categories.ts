@@ -142,7 +142,7 @@ export const MAIN_CATEGORIES: MainCategory[] = [
       { id: 158, name: "Møbler & Interiør", type: "expense", mainCategoryId: 17 },
       { id: 159, name: "Elektronikk & Data", type: "expense", mainCategoryId: 17 },
       { id: 160, name: "Spill & Leketøy", type: "expense", mainCategoryId: 17 },
-      { id: 161, name: "Hobby & Sportsutstyr", type: "expense", mainCategoryId: 17 },
+      { id: 161, name: "Hobby", type: "expense", mainCategoryId: 17 },
       { id: 162, name: "Frisør & Personlig pleie", type: "expense", mainCategoryId: 17 },
       { id: 163, name: "Film, Musikk & Bøker", type: "expense", mainCategoryId: 17 },
       { id: 164, name: "Kino, Konserter & Underholdning", type: "expense", mainCategoryId: 17 },
