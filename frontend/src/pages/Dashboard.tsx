@@ -44,6 +44,7 @@ import { buildMonthlyData, buildYearlyData } from "../lib/transactionAggregation
 type Tab = "categories" | "accounts" | "transactions";
 const TABS: Tab[] = ["categories", "transactions", "accounts"];
 type DashboardView = "personal" | "shared";
+const VIEW_STORAGE_KEY = "dashboardView";
 
 export default function Dashboard() {
   const { t } = useTranslation(["dashboard", "common"]);
@@ -223,16 +224,26 @@ export default function Dashboard() {
     [accounts],
   );
   const hasShared = sharedAccounts.length > 0;
+  const paramView = searchParams.get("view");
   const view: DashboardView =
-    searchParams.get("view") === "shared" && hasShared ? "shared" : "personal";
+    hasShared &&
+    (paramView === "shared" ||
+      (paramView == null && sessionStorage.getItem(VIEW_STORAGE_KEY) === "shared"))
+      ? "shared"
+      : "personal";
   const setView = useCallback(
-    (v: DashboardView) =>
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        if (v === "shared") next.set("view", "shared");
-        else next.delete("view");
-        return next;
-      }),
+    (v: DashboardView) => {
+      sessionStorage.setItem(VIEW_STORAGE_KEY, v);
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (v === "shared") next.set("view", "shared");
+          else next.delete("view");
+          return next;
+        },
+        { replace: true },
+      );
+    },
     [setSearchParams],
   );
 
