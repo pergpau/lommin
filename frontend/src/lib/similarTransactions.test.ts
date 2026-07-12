@@ -73,7 +73,7 @@ describe("findSimilarUncategorized", () => {
 
   it("returns empty when no creditorName, no BBAN, and no rule match", () => {
     const source = tx({ id: "1", description: "something random" });
-    const all = [source, tx({ id: "2", description: "also random" })];
+    const all = [source, tx({ id: "2", description: "totally unrelated" })];
     expect(findSimilarUncategorized(source, all)).toEqual([]);
   });
 
@@ -130,8 +130,32 @@ describe("findSimilarUncategorized", () => {
   });
 
   it("skips ambiguous FINANCIAL INST BTC codes", () => {
-    const source = tx({ id: "1", bankTransactionCode: "FINANCIAL INST SERVICES" });
+    const source = tx({ id: "1", bankTransactionCode: "FINANCIAL INST SERVICES", description: "" });
     const all = [source, tx({ id: "2", bankTransactionCode: "FINANCIAL INST SERVICES" })];
     expect(findSimilarUncategorized(source, all)).toEqual([]);
+  });
+
+  it("matches by description word overlap when nothing else matches", () => {
+    const source = tx({ id: "1", description: "2869 COOP PRIX HOYBRATEN OSLO NO" });
+    const all = [
+      source,
+      tx({ id: "2", description: "3312 COOP PRIX MAJORSTUEN OSLO NO" }),
+      tx({ id: "3", description: "RUTER OSLO NO" }),
+    ];
+    const result = findSimilarUncategorized(source, all);
+    expect(result.map((t) => t.id)).toEqual(["2"]);
+  });
+
+  it("does not match on a single shared word that is exactly half the words", () => {
+    const source = tx({ id: "1", description: "RUTER OSLO NO" });
+    const all = [source, tx({ id: "2", description: "KIWI OSLO NO" })];
+    expect(findSimilarUncategorized(source, all)).toEqual([]);
+  });
+
+  it("matches identical single-word descriptions via word overlap", () => {
+    const source = tx({ id: "1", description: "Spotify" });
+    const all = [source, tx({ id: "2", description: "Spotify" })];
+    const result = findSimilarUncategorized(source, all);
+    expect(result.map((t) => t.id)).toEqual(["2"]);
   });
 });
