@@ -33,15 +33,8 @@ export function useDriveSync() {
     if (inFlight.current || pendingRef.current) return;
     inFlight.current = true;
 
-    let showedReconnecting = false;
     try {
-      const assessment = await assessDriveSync({
-        onSilentReauthStart: () => {
-          showedReconnecting = true;
-          showSnackbar(t("sync.reconnecting"), "info", null);
-        },
-      });
-      if (showedReconnecting && assessment.action !== "pull") hideSnackbar();
+      const assessment = await assessDriveSync();
 
       if (assessment.action === "push") {
         void triggerAutosave();

@@ -350,16 +350,13 @@ export function decideSyncAction(
   return "pull";
 }
 
-export async function assessDriveSync(hooks?: {
-  onSilentReauthStart?: () => void;
-}): Promise<SyncAssessment> {
+export async function assessDriveSync(): Promise<SyncAssessment> {
   const [settings, stored] = await Promise.all([getAllSettings(), getDriveToken()]);
   let token = { has: !!stored, had: !!stored || (await hasDriveTokenStored()) };
 
   // Decide without the remote timestamp first, so gated states skip the fetch.
   let action = decideSyncAction(settings, token, null);
   if (action === "reauth-needed") {
-    hooks?.onSilentReauthStart?.();
     const fresh = await trySilentReauth();
     if (!fresh) {
       window.dispatchEvent(new Event("lommin:drive-auth-expired"));
