@@ -51,4 +51,25 @@ describe("guessCategory", () => {
   it("ignores ambiguous FINANCIAL INST codes", () => {
     expect(guessCategory(tx({ bankTransactionCode: "FINANCIAL INST" }))).toBeUndefined();
   });
+
+  it("lets a detected transfer override a matching rule", () => {
+    const transferIds = new Set(["x"]);
+    expect(
+      guessCategory(tx({ description: "KIWI MAJORSTUEN" }), undefined, undefined, transferIds),
+    ).toBe(100);
+  });
+
+  it("lets a detected transfer override creditor and bban history", () => {
+    const creditorHistory = new Map([["FOOBAR", 999]]);
+    const bbanHistory = new Map([["A→B", 999]]);
+    const transferIds = new Set(["x"]);
+    expect(
+      guessCategory(
+        tx({ creditorName: "FOOBAR", from_bban: "A", to_bban: "B" }),
+        creditorHistory,
+        bbanHistory,
+        transferIds,
+      ),
+    ).toBe(100);
+  });
 });

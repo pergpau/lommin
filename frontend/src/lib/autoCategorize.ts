@@ -183,7 +183,9 @@ export function guessCategory(
   tx: Transaction,
   creditorHistory?: Map<string, number>,
   bbanHistory?: Map<string, number>,
+  transferIds?: Set<string>,
 ): number | undefined {
+  if (transferIds?.has(tx.id)) return 100;
   const id = resolveCategory(tx, creditorHistory, bbanHistory);
   return id !== undefined && SUB_CATEGORY_MAP[id]?.type === "exclude" ? undefined : id;
 }
