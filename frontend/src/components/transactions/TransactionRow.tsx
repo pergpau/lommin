@@ -19,6 +19,23 @@ type TransactionRowProps = {
 const LONG_PRESS_MS = 500;
 const MOVE_CANCEL_PX = 10;
 
+type RowBadgeTone = "warning" | "yellow";
+
+const ROW_BADGE_TONE: Record<RowBadgeTone, string> = {
+  warning: "text-warning border-warning/20",
+  yellow: "text-yellow-600 border-yellow-400/30",
+};
+
+function RowBadge({ tone, children }: { tone: RowBadgeTone; children: React.ReactNode }) {
+  return (
+    <span
+      className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded border leading-none tabular-nums ${ROW_BADGE_TONE[tone]}`}
+    >
+      {children}
+    </span>
+  );
+}
+
 export default function TransactionRow({
   transaction: tx,
   onClick,
@@ -32,6 +49,7 @@ export default function TransactionRow({
   const { t } = useTranslation(["transactions", "common"]);
   const subCat = tx.categoryId != null ? SUB_CATEGORY_MAP[tx.categoryId] : undefined;
   const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
+  const sharePct = ownershipShare != null ? Math.round(ownershipShare * 100) : undefined;
 
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startPos = useRef<{ x: number; y: number } | null>(null);
@@ -75,7 +93,7 @@ export default function TransactionRow({
 
   return (
     <div
-      className={`px-4 py-3 flex items-center gap-3 transition-colors cursor-pointer ${
+      className={`relative px-4 py-3 flex items-center gap-3 transition-colors cursor-pointer ${
         selected ? "bg-accent/10 hover:bg-accent/15" : "hover:bg-surface-2"
       }`}
       onClick={handleActivate}
@@ -89,6 +107,9 @@ export default function TransactionRow({
       onTouchEnd={clearLongPress}
       onTouchCancel={clearLongPress}
     >
+      {sharePct != null && (
+        <div className="absolute inset-y-0 left-0 w-[3px] bg-warning/50 rounded-l" />
+      )}
       {selectMode ? (
         <CategoryBadge categoryId={tx.categoryId} />
       ) : (
@@ -104,11 +125,8 @@ export default function TransactionRow({
             {tx.description || "—"}
             {tx.status === "PNDG" ? " " + t("row.pending") : ""}
           </span>
-          {tx.excludeFromCalculations && (
-            <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-yellow-400/15 text-yellow-600 border border-yellow-400/30 leading-none">
-              Ekskludert
-            </span>
-          )}
+          {sharePct != null && <RowBadge tone="warning">{sharePct}%</RowBadge>}
+          {tx.excludeFromCalculations && <RowBadge tone="yellow">Ekskludert</RowBadge>}
         </div>
         {subCat && mainCat ? (
           <div
@@ -126,17 +144,10 @@ export default function TransactionRow({
         )}
       </div>
       <div className="flex flex-col items-end shrink-0">
-        <div className="flex items-center gap-1.5">
-          {ownershipShare != null && (
-            <span className="text-[10px] font-medium px-1 py-0.5 rounded bg-warning/10 text-warning border border-warning/20 leading-none tabular-nums">
-              {t("common:shared", { pct: Math.round(ownershipShare * 100) })}
-            </span>
-          )}
-          <span className={`mono text-sm font-medium tabular-nums ${amountClass(tx)}`}>
-            {tx.amount >= 0 ? "+" : ""}
-            {fmtAmount(tx.amount, tx.currency)}
-          </span>
-        </div>
+        <span className={`mono text-sm font-medium tabular-nums ${amountClass(tx)}`}>
+          {tx.amount >= 0 ? "+" : ""}
+          {fmtAmount(tx.amount, tx.currency)}
+        </span>
         <div className="text-xs text-muted mt-0.5">{fmtDate(effectiveDate(tx))}</div>
       </div>
       {selectMode && (
