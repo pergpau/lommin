@@ -60,4 +60,12 @@ describe("detectTransfers", () => {
     const result = detectTransfers([out, in1, in2]);
     expect(result.size).toBe(2);
   });
+
+  it("maps each matched transaction to its partner's id", () => {
+    const out = tx({ id: "a", accountUid: "acc-a", amount: -1000, bookingDate: "2024-01-01" });
+    const inn = tx({ id: "b", accountUid: "acc-b", amount: 1000, bookingDate: "2024-01-01" });
+    const result = detectTransfers([out, inn]);
+    expect(result.get("a")).toBe("b");
+    expect(result.get("b")).toBe("a");
+  });
 });

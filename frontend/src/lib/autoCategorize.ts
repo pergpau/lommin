@@ -183,7 +183,7 @@ export function guessCategory(
   tx: Transaction,
   creditorHistory?: Map<string, number>,
   bbanHistory?: Map<string, number>,
-  transferIds?: Set<string>,
+  transferIds?: Set<string> | Map<string, string>,
 ): number | undefined {
   if (transferIds?.has(tx.id)) return 100;
   const id = resolveCategory(tx, creditorHistory, bbanHistory);

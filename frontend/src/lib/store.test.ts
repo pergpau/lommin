@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { shouldTagAsTransfer } from "./store";
 import { normalizeForMatch } from "./types";
 
 describe("normalizeForMatch", () => {
@@ -26,5 +27,24 @@ describe("normalizeForMatch", () => {
 
   it("lowercases and trims", () => {
     expect(normalizeForMatch("  REMA 1000  ")).toBe("rema 1000");
+  });
+});
+
+describe("shouldTagAsTransfer", () => {
+  it("tags an uncategorized transaction", () => {
+    expect(shouldTagAsTransfer(undefined, undefined)).toBe(true);
+  });
+
+  it("overrides an existing category when the partner is confirmed a transfer", () => {
+    expect(shouldTagAsTransfer(5, 100)).toBe(true);
+  });
+
+  it("leaves an already-tagged transfer alone", () => {
+    expect(shouldTagAsTransfer(100, undefined)).toBe(false);
+  });
+
+  it("does not override an unconfirmed category when the partner isn't a transfer either", () => {
+    expect(shouldTagAsTransfer(5, 7)).toBe(false);
+    expect(shouldTagAsTransfer(5, undefined)).toBe(false);
   });
 });

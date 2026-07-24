@@ -2,11 +2,11 @@ import type { Transaction } from "./types";
 
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
-// Returns IDs of transactions that are internal transfers between tracked accounts.
-// Matching criteria: different accounts, same currency, same absolute amount (±0.001),
-// opposite signs, booking dates within 3 days of each other. Greedy — each transaction
-// is matched at most once.
-export function detectTransfers(transactions: Transaction[]): Set<string> {
+// Returns a map of transaction id -> matched partner's id, for transactions that are
+// internal transfers between tracked accounts. Matching criteria: different accounts,
+// same currency, same absolute amount (±0.001), opposite signs, booking dates within
+// 3 days of each other. Greedy — each transaction is matched at most once.
+export function detectTransfers(transactions: Transaction[]): Map<string, string> {
   const buckets = new Map<string, Transaction[]>();
   for (const t of transactions) {
     const key = `${t.currency}::${Math.round(Math.abs(t.amount) * 100)}`;
@@ -15,7 +15,7 @@ export function detectTransfers(transactions: Transaction[]): Set<string> {
     buckets.set(key, bucket);
   }
 
-  const transferIds = new Set<string>();
+  const transferPairs = new Map<string, string>();
   const matched = new Set<string>();
 
   for (const bucket of buckets.values()) {
@@ -34,8 +34,8 @@ export function detectTransfers(transactions: Transaction[]): Set<string> {
         if (!isFinite(aTime) || !isFinite(bTime)) continue;
         if (Math.abs(aTime - bTime) > THREE_DAYS_MS) continue;
 
-        transferIds.add(a.id);
-        transferIds.add(b.id);
+        transferPairs.set(a.id, b.id);
+        transferPairs.set(b.id, a.id);
         matched.add(a.id);
         matched.add(b.id);
         break;
@@ -43,5 +43,5 @@ export function detectTransfers(transactions: Transaction[]): Set<string> {
     }
   }
 
-  return transferIds;
+  return transferPairs;
 }

@@ -138,12 +138,26 @@ export async function getAllTransactions(): Promise<Transaction[]> {
   return (await db()).getAll("transactions");
 }
 
-export async function tagTransferCategory(transferIds: Set<string>): Promise<void> {
+// A transaction should be (re-)tagged as a transfer if it's uncategorized, or if its
+// detected transfer partner has already been confirmed as one (categoryId 100) — even
+// if this transaction currently holds some other, unconfirmed auto-guessed category.
+export function shouldTagAsTransfer(
+  categoryId: number | undefined,
+  partnerCategoryId: number | undefined,
+): boolean {
+  return categoryId === undefined || (categoryId !== 100 && partnerCategoryId === 100);
+}
+
+export async function tagTransferCategory(transferPairs: Map<string, string>): Promise<void> {
   const d = await db();
   const all = await d.getAll("transactions");
+  const byId = new Map(all.map((t) => [t.id, t]));
   const tx = d.transaction("transactions", "readwrite");
   for (const t of all) {
-    if (transferIds.has(t.id) && t.categoryId === undefined) {
+    const partnerId = transferPairs.get(t.id);
+    if (!partnerId) continue;
+    const partner = byId.get(partnerId);
+    if (shouldTagAsTransfer(t.categoryId, partner?.categoryId)) {
       await tx.store.put({ ...t, categoryId: 100 });
     }
   }
