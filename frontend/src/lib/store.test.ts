@@ -32,19 +32,14 @@ describe("normalizeForMatch", () => {
 
 describe("shouldTagAsTransfer", () => {
   it("tags an uncategorized transaction", () => {
-    expect(shouldTagAsTransfer(undefined, undefined)).toBe(true);
+    expect(shouldTagAsTransfer(undefined)).toBe(true);
   });
 
-  it("overrides an existing category when the partner is confirmed a transfer", () => {
-    expect(shouldTagAsTransfer(5, 100)).toBe(true);
+  it("does not override an existing category", () => {
+    expect(shouldTagAsTransfer(5)).toBe(false);
   });
 
   it("leaves an already-tagged transfer alone", () => {
-    expect(shouldTagAsTransfer(100, undefined)).toBe(false);
-  });
-
-  it("does not override an unconfirmed category when the partner isn't a transfer either", () => {
-    expect(shouldTagAsTransfer(5, 7)).toBe(false);
-    expect(shouldTagAsTransfer(5, undefined)).toBe(false);
+    expect(shouldTagAsTransfer(100)).toBe(false);
   });
 });
