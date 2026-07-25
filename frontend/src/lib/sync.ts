@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import { guessCategory } from "./autoCategorize";
+import { bbanKey, guessCategory } from "./autoCategorize";
 import {
   fetchAllTransactions,
   fetchBalance,
@@ -8,6 +8,7 @@ import {
 } from "./enableBanking";
 import { getSetting } from "./settings";
 import {
+  getAccounts,
   getAllTransactions,
   getEnableBankingSource,
   getSyncCursor,
@@ -126,13 +127,17 @@ export async function syncAccounts(
   // different accounts, in the same operation) is still recognized and takes priority
   // over creditor/bban history and rule matching.
   const existing = await getAllTransactions();
+  const ownBbans = new Set(
+    (await getAccounts()).map((a) => a.bban).filter((b): b is string => !!b),
+  );
   const creditorHistory = new Map<string, number>();
   const bbanHistory = new Map<string, number>();
   for (const t of existing) {
     if (t.creditorName && t.categoryId !== undefined)
       creditorHistory.set(t.creditorName, t.categoryId);
-    if (t.categoryId !== undefined && (t.to_bban || t.from_bban)) {
-      bbanHistory.set(`${t.from_bban ?? ""}→${t.to_bban ?? ""}`, t.categoryId);
+    if (t.categoryId !== undefined) {
+      const key = bbanKey(t, ownBbans);
+      if (key) bbanHistory.set(key, t.categoryId);
     }
   }
   const allNewTxns = ok.flatMap((r) => r.fetched.txns);
@@ -142,7 +147,8 @@ export async function syncAccounts(
     const { txns, balance } = fetched;
     const categorized = txns.map((tx) => ({
       ...tx,
-      categoryId: tx.categoryId ?? guessCategory(tx, creditorHistory, bbanHistory, transferIds),
+      categoryId:
+        tx.categoryId ?? guessCategory(tx, creditorHistory, bbanHistory, transferIds, ownBbans),
     }));
     inserted += await upsertTransactions(categorized);
 

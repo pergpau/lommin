@@ -101,9 +101,14 @@ const DESCRIPTION_RULES: Array<[RegExp, number]> = [
   [/\b(kanpla|compass)\b/i, 155],
 ];
 
-function bbanKey(tx: Transaction): string | undefined {
-  if (!tx.to_bban && !tx.from_bban) return undefined;
-  return `${tx.from_bban ?? ""}→${tx.to_bban ?? ""}`;
+// A bban side that is one of the user's own accounts is not an identifying
+// counterparty — e.g. bills paid from the same account all share that debtor —
+// so it's dropped from the key. A key with no counterparty left is useless.
+export function bbanKey(tx: Transaction, ownBbans?: ReadonlySet<string>): string | undefined {
+  const from = tx.from_bban && !ownBbans?.has(tx.from_bban) ? tx.from_bban : undefined;
+  const to = tx.to_bban && !ownBbans?.has(tx.to_bban) ? tx.to_bban : undefined;
+  if (!from && !to) return undefined;
+  return `${from ?? ""}→${to ?? ""}`;
 }
 
 interface RuleSet {
@@ -153,6 +158,7 @@ function resolveCategory(
   tx: Transaction,
   creditorHistory?: Map<string, number>,
   bbanHistory?: Map<string, number>,
+  ownBbans?: ReadonlySet<string>,
 ): number | undefined {
   if (tx.creditDebit === "CRDT") {
     const desc = tx.description.toLowerCase();
@@ -164,7 +170,7 @@ function resolveCategory(
     return creditorHistory.get(tx.creditorName)!;
   }
 
-  const key = bbanKey(tx);
+  const key = bbanKey(tx, ownBbans);
   if (key && bbanHistory?.has(key)) {
     return bbanHistory.get(key)!;
   }
@@ -184,8 +190,9 @@ export function guessCategory(
   creditorHistory?: Map<string, number>,
   bbanHistory?: Map<string, number>,
   transferIds?: Set<string> | Map<string, string>,
+  ownBbans?: ReadonlySet<string>,
 ): number | undefined {
   if (transferIds?.has(tx.id)) return 100;
-  const id = resolveCategory(tx, creditorHistory, bbanHistory);
+  const id = resolveCategory(tx, creditorHistory, bbanHistory, ownBbans);
   return id !== undefined && SUB_CATEGORY_MAP[id]?.type === "exclude" ? undefined : id;
 }

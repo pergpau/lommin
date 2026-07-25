@@ -59,6 +59,30 @@ describe("guessCategory", () => {
     ).toBe(100);
   });
 
+  it("ignores bban history when the debtor is one of the user's own accounts", () => {
+    // A bill paid from the user's own account (from_bban = own, no creditor account).
+    // The debtor side alone must not reuse the last bill's category.
+    const bbanHistory = new Map([["OWN→", 999]]);
+    const ownBbans = new Set(["OWN"]);
+    expect(
+      guessCategory(tx({ from_bban: "OWN" }), undefined, bbanHistory, undefined, ownBbans),
+    ).toBeUndefined();
+  });
+
+  it("still matches bban history on the counterparty when the debtor is an own account", () => {
+    const bbanHistory = new Map([["→PAYEE", 555]]);
+    const ownBbans = new Set(["OWN"]);
+    expect(
+      guessCategory(
+        tx({ from_bban: "OWN", to_bban: "PAYEE" }),
+        undefined,
+        bbanHistory,
+        undefined,
+        ownBbans,
+      ),
+    ).toBe(555);
+  });
+
   it("lets a detected transfer override creditor and bban history", () => {
     const creditorHistory = new Map([["FOOBAR", 999]]);
     const bbanHistory = new Map([["A→B", 999]]);
