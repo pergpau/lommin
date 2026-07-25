@@ -6,6 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Lommin** — a privacy-first, self-hosted personal spending tracker that connects to [Enable Banking](https://enablebanking.com/). No shared backend; all sensitive data stays on-device. The app is a static SPA deployed by the user to any static host; the only server-side component is a stateless CORS proxy (f.ex. Cloudflare Worker) also deployed by the user.
 
+## Code Navigation Guidelines
+
+- Always prefer LSP tools (like finding definitions or references) over text pattern grepping.
+- Only fall back to Grep searches for comments, configuration files, or plain text strings.
+
 ## Repository layout
 
 ```
