@@ -8,8 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Code Navigation Guidelines
 
-- Always prefer LSP tools (like finding definitions or references) over text pattern grepping.
-- Only fall back to Grep searches for comments, configuration files, or plain text strings.
+When tracing where a symbol is defined or finding all references to it, use LSP (goToDefinition, findReferences, hover) instead of Grep. LSP gives exact results; Grep gives text matches.
+
+Use Grep/Glob for discovery (finding files, searching patterns). Use LSP for understanding (definitions, references, type info).
+
+After locating a file with Grep/Glob, use LSP to navigate within it rather than reading the whole file.
 
 ## Repository layout
 
