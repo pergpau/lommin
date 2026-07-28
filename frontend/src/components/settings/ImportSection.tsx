@@ -5,6 +5,7 @@ import CsvImportPanel from "../CsvImport";
 import SpiirImportPanel from "../SpiirImport";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
+import Checkbox from "../ui/Checkbox";
 import { detectDuplicatePairs, filterVisiblePairs } from "../../lib/duplicates";
 import { getDismissedPairs } from "../../lib/settings";
 import { getAllTransactions, type Transaction } from "../../lib/data";
@@ -36,28 +37,22 @@ export default function ImportSection({ highlightedHash }: { highlightedHash: st
         <h2 className="text-sm font-semibold text-text mb-3">{t("settings:import.title")}</h2>
 
         <div className="flex gap-4 mb-4">
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="radio"
-              name="importSource"
-              value="spiir"
-              checked={importSource === "spiir"}
-              onChange={() => setImportSource("spiir")}
-              className="w-4 h-4 accent-accent"
-            />
-            <span className="text-xs text-text">{t("settings:import.sourceSpiir")}</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="radio"
-              name="importSource"
-              value="own"
-              checked={importSource === "own"}
-              onChange={() => setImportSource("own")}
-              className="w-4 h-4 accent-accent"
-            />
-            <span className="text-xs text-text">{t("settings:import.sourceOwn")}</span>
-          </label>
+          <Checkbox
+            type="radio"
+            name="importSource"
+            value="spiir"
+            checked={importSource === "spiir"}
+            onChange={() => setImportSource("spiir")}
+            label={t("settings:import.sourceSpiir")}
+          />
+          <Checkbox
+            type="radio"
+            name="importSource"
+            value="own"
+            checked={importSource === "own"}
+            onChange={() => setImportSource("own")}
+            label={t("settings:import.sourceOwn")}
+          />
         </div>
 
         {importSource === "spiir" ? (

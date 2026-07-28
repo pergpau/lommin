@@ -21,6 +21,7 @@ import { useSuccessFlash } from "../hooks/useSuccessFlash";
 import LoadingScreen from "../components/ui/LoadingScreen";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
+import Checkbox from "../components/ui/Checkbox";
 import DropdownMenu, { DropdownItem } from "../components/ui/DropdownMenu";
 import { useSnackbar } from "../components/ui/Snackbar";
 import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
@@ -52,18 +53,15 @@ function ShareSlider({
 
   return (
     <div className="px-4 py-2">
-      <label className="flex items-center gap-2 cursor-pointer select-none">
-        <input
-          type="checkbox"
-          checked={account?.ownershipShare != null}
-          onChange={(e) => {
-            if (!account) return;
-            onSave({ ...account, ownershipShare: e.target.checked ? 0.5 : undefined });
-          }}
-          className="w-4 h-4 accent-accent"
-        />
-        <span className="text-sm text-text">{t("sharedAccount")}</span>
-      </label>
+      <Checkbox
+        checked={account?.ownershipShare != null}
+        onChange={(e) => {
+          if (!account) return;
+          onSave({ ...account, ownershipShare: e.target.checked ? 0.5 : undefined });
+        }}
+        label={t("sharedAccount")}
+        textClassName="text-sm text-text"
+      />
       {share != null && (
         <div className="mt-2 px-0">
           <div className="text-xs text-muted mb-1">

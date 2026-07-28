@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
+import Checkbox from "../ui/Checkbox";
 import { DownloadIcon, UploadIcon } from "../ui/icons";
 import Modal from "../ui/Modal";
 import PassphraseDialog from "../ui/PassphraseDialog";
@@ -201,43 +202,33 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
 
         <div className="space-y-4">
           <div className="flex gap-4">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="radio"
-                name="backupMethod"
-                value="drive"
-                checked={backupMethod === "drive"}
-                onChange={() => changeBackupMethod("drive")}
-                className="w-4 h-4 accent-accent"
-              />
-              <span className="text-xs text-text">{t("settings:backup.methodDrive")}</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="radio"
-                name="backupMethod"
-                value="file"
-                checked={backupMethod === "file"}
-                onChange={() => changeBackupMethod("file")}
-                className="w-4 h-4 accent-accent"
-              />
-              <span className="text-xs text-text">{t("settings:backup.methodFile")}</span>
-            </label>
+            <Checkbox
+              type="radio"
+              name="backupMethod"
+              value="drive"
+              checked={backupMethod === "drive"}
+              onChange={() => changeBackupMethod("drive")}
+              label={t("settings:backup.methodDrive")}
+            />
+            <Checkbox
+              type="radio"
+              name="backupMethod"
+              value="file"
+              checked={backupMethod === "file"}
+              onChange={() => changeBackupMethod("file")}
+              label={t("settings:backup.methodFile")}
+            />
           </div>
 
           {(backupMethod === "file" || (backupMethod === "drive" && !!driveToken)) && (
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={usePassphrase}
-                onChange={(e) => {
-                  setUsePassphrase(e.target.checked);
-                  void setSetting("usePassphrase", e.target.checked);
-                }}
-                className="w-4 h-4 accent-accent"
-              />
-              <span className="text-xs text-text">{t("settings:backup.usePassword")}</span>
-            </label>
+            <Checkbox
+              checked={usePassphrase}
+              onChange={(e) => {
+                setUsePassphrase(e.target.checked);
+                void setSetting("usePassphrase", e.target.checked);
+              }}
+              label={t("settings:backup.usePassword")}
+            />
           )}
 
           {backupMethod === "drive" ? (
@@ -253,28 +244,17 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                 </Button>
               ) : (
                 <div className="flex flex-col gap-3">
-                  <label
-                    className={`flex items-start gap-2 cursor-pointer${usePassphrase ? " opacity-50" : ""}`}
-                  >
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 accent-accent mt-0.5 shrink-0"
-                      checked={driveAutosave && !usePassphrase}
-                      disabled={usePassphrase}
-                      onChange={(e) => {
-                        setDriveAutosave(e.target.checked);
-                        void setSetting("driveAutosave", e.target.checked);
-                      }}
-                    />
-                    <span className="text-xs text-text leading-snug">
-                      {t("settings:backup.autoSave")}
-                      {usePassphrase && (
-                        <span className="block text-muted mt-0.5">
-                          {t("settings:backup.notAvailableWithPassword")}
-                        </span>
-                      )}
-                    </span>
-                  </label>
+                  <Checkbox
+                    align="start"
+                    checked={driveAutosave && !usePassphrase}
+                    disabled={usePassphrase}
+                    onChange={(e) => {
+                      setDriveAutosave(e.target.checked);
+                      void setSetting("driveAutosave", e.target.checked);
+                    }}
+                    label={t("settings:backup.autoSave")}
+                    hint={usePassphrase ? t("settings:backup.notAvailableWithPassword") : undefined}
+                  />
                   <div className="flex gap-2 flex-wrap">
                     <Button
                       className="flex-1 justify-center"
