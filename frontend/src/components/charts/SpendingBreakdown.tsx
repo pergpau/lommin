@@ -9,6 +9,7 @@ import { getCategoryIcon } from "../../lib/categoryIcons";
 import CategoryChip from "../transactions/CategoryChip";
 import type { Transaction } from "../../lib/data";
 import { fmtAmount } from "../../lib/format";
+import EmptyState from "../ui/EmptyState";
 import TransactionTable from "../transactions/TransactionTable";
 
 type SectionType = "expense" | "income" | "saving";
@@ -220,11 +221,7 @@ export default function SpendingBreakdown({
   );
 
   if (eligible.length === 0 && excludedPool.length === 0) {
-    return (
-      <div className="card p-10 text-center text-muted text-sm">
-        {t("charts:breakdown.noTransactions")}
-      </div>
-    );
+    return <EmptyState message={t("charts:breakdown.noTransactions")} />;
   }
 
   // ── Level 2: transaction list ──

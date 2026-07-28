@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import TransactionTable from "./transactions/TransactionTable";
+import EmptyState from "./ui/EmptyState";
 import type { Transaction } from "../lib/data";
 import { setCategoryId } from "../lib/data";
 
@@ -14,9 +15,7 @@ export default function TransactionsTab({ transactions, subtitle, refresh, share
   const { t } = useTranslation("dashboard");
 
   if (transactions.length === 0) {
-    return (
-      <div className="card p-10 text-center text-muted text-sm">{t("noTransactionsThisMonth")}</div>
-    );
+    return <EmptyState message={t("noTransactionsThisMonth")} />;
   }
 
   return (

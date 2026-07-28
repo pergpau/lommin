@@ -13,6 +13,7 @@ import {
   batchSetExcludeFromCalculations,
 } from "../../lib/data";
 import { effectiveDate, fmtDate } from "../../lib/format";
+import EmptyState from "../ui/EmptyState";
 import DeleteConfirmModal from "../ui/DeleteConfirmModal";
 import SearchInput from "../ui/SearchInput";
 import BulkActionBar from "./BulkActionBar";
@@ -145,7 +146,7 @@ export default function TransactionTable({
   }
 
   if (transactions.length === 0) {
-    return <div className="card p-10 text-center text-muted text-sm">{t("table.empty")}</div>;
+    return <EmptyState message={t("table.empty")} />;
   }
 
   return (
@@ -199,7 +200,7 @@ export default function TransactionTable({
         </div>
         <div className="divide-y divide-border">
           {pageItems.length === 0 ? (
-            <div className="p-10 text-center text-muted text-sm">{t("table.empty")}</div>
+            <EmptyState message={t("table.empty")} bare />
           ) : (
             pageItems.map((tx) => (
               <TransactionRow
