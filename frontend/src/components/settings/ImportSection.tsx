@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import CsvImportPanel from "../CsvImport";
 import SpiirImportPanel from "../SpiirImport";
 import Button from "../ui/Button";
-import Card from "../ui/Card";
+import SettingsSection from "./SettingsSection";
 import Checkbox from "../ui/Checkbox";
 import { detectDuplicatePairs, filterVisiblePairs } from "../../lib/duplicates";
 import { getDismissedPairs } from "../../lib/settings";
@@ -30,12 +30,11 @@ export default function ImportSection({ highlightedHash }: { highlightedHash: st
 
   return (
     <>
-      <Card
+      <SettingsSection
         id="spiir"
-        className={`p-5 mb-4 transition-shadow duration-300 ${highlightedHash === "#spiir" ? "ring-2 ring-accent" : ""}`}
+        highlightedHash={highlightedHash}
+        title={t("settings:import.title")}
       >
-        <h2 className="text-sm font-semibold text-text mb-3">{t("settings:import.title")}</h2>
-
         <div className="flex gap-4 mb-4">
           <Checkbox
             type="radio"
@@ -62,11 +61,12 @@ export default function ImportSection({ highlightedHash }: { highlightedHash: st
         ) : (
           <CsvImportPanel />
         )}
-      </Card>
+      </SettingsSection>
 
-      <Card className="p-5 mb-4">
-        <h2 className="text-sm font-semibold text-text mb-1">{t("settings:duplicates.title")}</h2>
-        <p className="text-xs text-muted mb-3">{t("settings:duplicates.description")}</p>
+      <SettingsSection
+        title={t("settings:duplicates.title")}
+        description={t("settings:duplicates.description")}
+      >
         <div className="flex items-center gap-3 flex-wrap">
           <Button loading={checkingDuplicates} onClick={() => void runDuplicateCheck()}>
             {checkingDuplicates
@@ -87,7 +87,7 @@ export default function ImportSection({ highlightedHash }: { highlightedHash: st
               </div>
             ))}
         </div>
-      </Card>
+      </SettingsSection>
     </>
   );
 }

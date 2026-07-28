@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
-import Card from "../ui/Card";
+import SettingsSection from "./SettingsSection";
 
 type Theme = "dark" | "light";
 
@@ -37,8 +37,7 @@ export default function AppearanceSection() {
   }
 
   return (
-    <Card className="p-5 mb-4">
-      <h2 className="text-sm font-semibold text-text mb-4">{t("appearance.title")}</h2>
+    <SettingsSection title={t("appearance.title")}>
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm text-text">{t("appearance.theme")}</span>
         <div className="inline-flex rounded-lg border border-border bg-surface-2 p-0.5">
@@ -79,6 +78,6 @@ export default function AppearanceSection() {
           </button>
         </div>
       </div>
-    </Card>
+    </SettingsSection>
   );
 }

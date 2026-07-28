@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import Button from "../ui/Button";
-import Card from "../ui/Card";
+import SettingsSection from "./SettingsSection";
 import Checkbox from "../ui/Checkbox";
 import { DownloadIcon, UploadIcon } from "../ui/icons";
 import Modal from "../ui/Modal";
@@ -193,13 +193,12 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
 
   return (
     <>
-      <Card
+      <SettingsSection
         id="backup"
-        className={`p-5 mb-4 transition-shadow duration-300 ${highlightedHash === "#backup" ? "ring-2 ring-accent" : ""}`}
+        highlightedHash={highlightedHash}
+        title={t("settings:backup.title")}
+        description={t("settings:backup.description")}
       >
-        <h2 className="text-sm font-semibold text-text mb-1">{t("settings:backup.title")}</h2>
-        <p className="text-xs text-muted mb-3">{t("settings:backup.description")}</p>
-
         <div className="space-y-4">
           <div className="flex gap-4">
             <Checkbox
@@ -318,7 +317,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
             </div>
           ) : null}
         </div>
-      </Card>
+      </SettingsSection>
 
       {dialog && (
         <PassphraseDialog

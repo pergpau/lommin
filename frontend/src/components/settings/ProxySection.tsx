@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "../ui/Button";
-import Card from "../ui/Card";
+import SettingsSection from "./SettingsSection";
 import Input from "../ui/Input";
 import { useSnackbar } from "../ui/Snackbar";
 import { getSetting, setSetting } from "../../lib/settings";
@@ -29,10 +29,10 @@ export default function ProxySection() {
   }, [proxyUrl, showSnackbar, t]);
 
   return (
-    <Card className="p-5 mb-4">
-      <h2 className="text-sm font-semibold text-text mb-1">{t("settings:proxy.title")}</h2>
-      <p className="text-xs text-muted mb-3">{t("settings:proxy.description")}</p>
-
+    <SettingsSection
+      title={t("settings:proxy.title")}
+      description={t("settings:proxy.description")}
+    >
       <div className="mb-4 border border-warning/20 bg-warning/5 rounded-lg p-3">
         <p className="text-xs text-muted leading-relaxed">{t("settings:proxy.warning")}</p>
       </div>
@@ -47,6 +47,6 @@ export default function ProxySection() {
       <Button loading={saving} onClick={saveProxy}>
         {t("common:actions.save")}
       </Button>
-    </Card>
+    </SettingsSection>
   );
 }

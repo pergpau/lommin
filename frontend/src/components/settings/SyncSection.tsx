@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "../ui/Button";
-import Card from "../ui/Card";
+import SettingsSection from "./SettingsSection";
 import Input from "../ui/Input";
 import { useSnackbar } from "../ui/Snackbar";
 import { getSetting, setSetting } from "../../lib/settings";
@@ -29,9 +29,7 @@ export default function SyncSection() {
   }, [lookbackDays, showSnackbar, t]);
 
   return (
-    <Card className="p-5 mb-4">
-      <h2 className="text-sm font-semibold text-text mb-1">{t("settings:sync.title")}</h2>
-      <p className="text-xs text-muted mb-3">{t("settings:sync.description")}</p>
+    <SettingsSection title={t("settings:sync.title")} description={t("settings:sync.description")}>
       <div className="flex gap-2">
         <Input
           label={t("settings:sync.lookbackLabel")}
@@ -48,6 +46,6 @@ export default function SyncSection() {
           </Button>
         </div>
       </div>
-    </Card>
+    </SettingsSection>
   );
 }

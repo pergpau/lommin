@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import Button from "../ui/Button";
-import Card from "../ui/Card";
+import SettingsSection from "./SettingsSection";
 import Modal from "../ui/Modal";
 import { useSnackbar } from "../ui/Snackbar";
 import { clearKey } from "../../lib/auth";
@@ -65,8 +65,7 @@ export default function DangerZone() {
 
   return (
     <>
-      <Card className="p-5 border-negative/10">
-        <h2 className="text-sm font-semibold text-text mb-1">{t("settings:danger.title")}</h2>
+      <SettingsSection title={t("settings:danger.title")} className="border-negative/10">
         <div className="flex gap-2 flex-wrap">
           <Button variant="danger" loading={wiping} onClick={wipeTransactions}>
             {t("settings:danger.deleteTransactions")}
@@ -78,7 +77,7 @@ export default function DangerZone() {
             {t("settings:danger.deleteAll")}
           </Button>
         </div>
-      </Card>
+      </SettingsSection>
 
       {wipeAllDialog && (
         <Modal onClose={() => setWipeAllDialog(false)} title={t("settings:danger.wipeAllTitle")}>
