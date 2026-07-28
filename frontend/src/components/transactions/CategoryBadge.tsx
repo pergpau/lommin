@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
+import { resolveCategory, TINT } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
 
 interface CategoryBadgeProps {
@@ -10,10 +10,9 @@ interface CategoryBadgeProps {
 
 export default function CategoryBadge({ categoryId, onClick }: CategoryBadgeProps) {
   const { t } = useTranslation(["transactions", "categories"]);
-  const subCat = categoryId != null ? SUB_CATEGORY_MAP[categoryId] : undefined;
-  const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
+  const resolved = resolveCategory(categoryId);
 
-  if (!subCat || !mainCat) {
+  if (!resolved) {
     return (
       <button
         onClick={onClick}
@@ -27,20 +26,18 @@ export default function CategoryBadge({ categoryId, onClick }: CategoryBadgeProp
     );
   }
 
+  const { sub, main, color } = resolved;
   return (
     <button
       onClick={onClick}
       className="flex flex-col items-center gap-0.5 w-14 shrink-0 group"
-      title={`${t("categories:main." + mainCat.id)} › ${t("categories:sub." + subCat.id)}`}
+      title={`${t("categories:main." + main.id)} › ${t("categories:sub." + sub.id)}`}
     >
       <div
         className="w-8 h-8 rounded-lg flex items-center justify-center transition-opacity group-hover:opacity-80"
-        style={{ backgroundColor: mainCat.color + "22", color: mainCat.color, padding: "7px" }}
+        style={{ backgroundColor: color + TINT.bg, color, padding: "7px" }}
       >
-        <FontAwesomeIcon
-          icon={getCategoryIcon(subCat.id)}
-          style={{ width: "100%", height: "100%" }}
-        />
+        <FontAwesomeIcon icon={getCategoryIcon(sub.id)} style={{ width: "100%", height: "100%" }} />
       </div>
     </button>
   );

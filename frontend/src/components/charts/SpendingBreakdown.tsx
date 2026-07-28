@@ -4,8 +4,9 @@ import type { TFunction } from "i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faQuestion } from "@fortawesome/free-solid-svg-icons";
-import { MAIN_CATEGORIES, MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
+import { MAIN_CATEGORIES, MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP, TINT } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
+import CategoryChip from "../transactions/CategoryChip";
 import type { Transaction } from "../../lib/data";
 import { fmtAmount } from "../../lib/format";
 import TransactionTable from "../transactions/TransactionTable";
@@ -254,14 +255,9 @@ export default function SpendingBreakdown({
         </button>
         <div
           className="flex items-center gap-2 mb-4 px-4 py-3 rounded-xl"
-          style={{ backgroundColor: m.color + "12" }}
+          style={{ backgroundColor: m.color + TINT.row }}
         >
-          <span
-            className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
-            style={{ backgroundColor: m.color + "22", color: m.color }}
-          >
-            <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
-          </span>
+          <CategoryChip icon={s.icon} color={m.color} />
           <span className="text-sm font-medium text-text flex-1">{getSubName(subId, t)}</span>
           <span className="text-sm font-medium text-text tabular-nums mono">
             {fmtAmount(filteredTotal, undefined, 0)} kr
@@ -335,14 +331,9 @@ export default function SpendingBreakdown({
         <div className="card overflow-hidden mb-6">
           <div
             className="px-4 py-3 border-b border-border flex items-center gap-2"
-            style={{ backgroundColor: m.color + "12" }}
+            style={{ backgroundColor: m.color + TINT.row }}
           >
-            <span
-              className="w-6 h-6 rounded-md flex items-center justify-center"
-              style={{ backgroundColor: m.color + "22", color: m.color }}
-            >
-              <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
-            </span>
+            <CategoryChip icon={m.icon} color={m.color} size="sm" />
             <span className="text-sm font-medium text-text flex-1">{getMainName(mainId, t)}</span>
             <span className="text-sm font-medium text-text tabular-nums mono">
               {fmtAmount(subTotal, undefined, 0)} kr
@@ -356,9 +347,11 @@ export default function SpendingBreakdown({
                 <button
                   key={subId}
                   className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
-                  style={{ backgroundColor: m.color + "12" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = m.color + "25")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = m.color + "12")}
+                  style={{ backgroundColor: m.color + TINT.row }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = m.color + TINT.rowHover)
+                  }
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = m.color + TINT.row)}
                   onClick={() =>
                     setView({
                       level: "txns",
@@ -368,12 +361,7 @@ export default function SpendingBreakdown({
                     })
                   }
                 >
-                  <span
-                    className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
-                    style={{ backgroundColor: m.color + "22", color: m.color }}
-                  >
-                    <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
-                  </span>
+                  <CategoryChip icon={s.icon} color={m.color} />
                   <span className="text-sm text-text flex-1 truncate">{getSubName(subId, t)}</span>
                   <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
                     {count > 0 ? `${pct.toFixed(0)}%` : ""}
@@ -419,17 +407,12 @@ export default function SpendingBreakdown({
         <button
           key={mainId}
           className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
-          style={{ backgroundColor: m.color + "12" }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = m.color + "25")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = m.color + "12")}
+          style={{ backgroundColor: m.color + TINT.row }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = m.color + TINT.rowHover)}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = m.color + TINT.row)}
           onClick={() => setView({ level: "sub", mainId })}
         >
-          <span
-            className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
-            style={{ backgroundColor: m.color + "22", color: m.color }}
-          >
-            <FontAwesomeIcon icon={m.icon} className="w-3.5 h-3.5" />
-          </span>
+          <CategoryChip icon={m.icon} color={m.color} />
           <span className="text-sm text-text flex-1 truncate">{getMainName(mainId, t)}</span>
           <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
             {count > 0 ? `${pct.toFixed(0)}%` : ""}
@@ -451,21 +434,16 @@ export default function SpendingBreakdown({
         <button
           key={String(subId)}
           className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
-          style={{ backgroundColor: rowColor + "12" }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = rowColor + "25")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = rowColor + "12")}
+          style={{ backgroundColor: rowColor + TINT.row }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = rowColor + TINT.rowHover)}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = rowColor + TINT.row)}
           onClick={() =>
             isUncat
               ? setView({ level: "sub", mainId })
               : setView({ level: "txns", mainId, subId, ...(excluded ? { excluded: true } : {}) })
           }
         >
-          <span
-            className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
-            style={{ backgroundColor: rowColor + "22", color: rowColor }}
-          >
-            <FontAwesomeIcon icon={s.icon} className="w-3.5 h-3.5" />
-          </span>
+          <CategoryChip icon={s.icon} color={rowColor} />
           <span className="text-sm text-text flex-1 truncate">{getSubName(subId, t)}</span>
           <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
             {count > 0 ? `${pct.toFixed(0)}%` : ""}

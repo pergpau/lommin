@@ -189,6 +189,36 @@ export const MAIN_CATEGORY_MAP: Record<number, MainCategory> = Object.fromEntrie
   MAIN_CATEGORIES.map((m) => [m.id, m]),
 );
 
+/**
+ * Hex alpha suffixes for tinting a category's colour. Appended to the 6-digit
+ * colour, so `color + TINT.bg` yields an 8-digit #rrggbbaa.
+ */
+export const TINT = {
+  /** Icon swatch background. */
+  bg: "22",
+  /** Swatch/pill border. */
+  border: "44",
+  /** Row background at rest. */
+  row: "12",
+  /** Row background on hover. */
+  rowHover: "25",
+} as const;
+
+export interface ResolvedCategory {
+  sub: SubCategory;
+  main: MainCategory;
+  color: string;
+}
+
+/** Resolves a sub-category id to its sub-category, main category and colour. */
+export function resolveCategory(categoryId: number | undefined): ResolvedCategory | undefined {
+  const sub = categoryId != null ? SUB_CATEGORY_MAP[categoryId] : undefined;
+  if (!sub) return undefined;
+  const main = MAIN_CATEGORY_MAP[sub.mainCategoryId];
+  if (!main) return undefined;
+  return { sub, main, color: main.color };
+}
+
 export const TYPE_LABELS: Record<CategoryType, string> = {
   income: "Inntekt",
   expense: "Utgift",

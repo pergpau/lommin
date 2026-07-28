@@ -2,12 +2,7 @@ import { faCheck, faPencil, faTrash, faXmark } from "@fortawesome/free-solid-svg
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  MAIN_CATEGORY_MAP,
-  SUB_CATEGORY_MAP,
-  type MainCategory,
-  type SubCategory,
-} from "../../lib/categories";
+import { resolveCategory, TINT, type MainCategory, type SubCategory } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
 import { amountClass, effectiveDate, fmtAmount, fmtDate, statusLabel } from "../../lib/format";
 import {
@@ -45,8 +40,9 @@ export default function TransactionDetail({
   useEffect(() => {
     void getAccounts().then((all) => setAccount(all.find((a) => a.uid === tx.accountUid)));
   }, [tx.accountUid]);
-  const subCat = tx.categoryId != null ? SUB_CATEGORY_MAP[tx.categoryId] : undefined;
-  const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
+  const resolved = resolveCategory(tx.categoryId);
+  const subCat = resolved?.sub;
+  const mainCat = resolved?.main;
 
   const sheetRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -425,8 +421,8 @@ function CategoryPill({
 
   if (subCat && mainCat) {
     const style = {
-      backgroundColor: mainCat.color + "22",
-      borderColor: mainCat.color + "44",
+      backgroundColor: mainCat.color + TINT.bg,
+      borderColor: mainCat.color + TINT.border,
       color: mainCat.color,
     };
     const label = t("categories:sub." + subCat.id);
