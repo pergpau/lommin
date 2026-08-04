@@ -4,15 +4,20 @@ import type { TFunction } from "i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faQuestion } from "@fortawesome/free-solid-svg-icons";
-import { MAIN_CATEGORIES, MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP, TINT } from "../../lib/categories";
+import { MAIN_CATEGORIES, MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
-import CategoryChip from "../transactions/CategoryChip";
+import CategoryRow from "./CategoryRow";
 import type { Transaction } from "../../lib/data";
-import { fmtAmount } from "../../lib/format";
 import EmptyState from "../ui/EmptyState";
 import TransactionTable from "../transactions/TransactionTable";
 
 type SectionType = "expense" | "income" | "saving";
+
+const UNCATEGORIZED_COLOR = "#9ca3af";
+
+function pctOf(total: number, sectionTotal: number): number {
+  return sectionTotal > 0 ? (total / sectionTotal) * 100 : 0;
+}
 
 type MainId = number | "uncategorized" | "uncategorized-income";
 type SubId = number | "uncategorized";
@@ -53,7 +58,7 @@ function mainType(mainId: MainId): SectionType {
 
 function mainMeta(mainId: MainId): { icon: IconDefinition; color: string } {
   if (mainId === "uncategorized" || mainId === "uncategorized-income")
-    return { icon: faQuestion, color: "#9ca3af" };
+    return { icon: faQuestion, color: UNCATEGORIZED_COLOR };
   const cat = MAIN_CATEGORY_MAP[mainId as number];
   return { icon: getCategoryIcon(cat.id), color: cat.color };
 }
@@ -250,16 +255,14 @@ export default function SpendingBreakdown({
           </span>{" "}
           {getMainName(mainId, t)}
         </button>
-        <div
-          className="flex items-center gap-2 mb-4 px-4 py-3 rounded-xl"
-          style={{ backgroundColor: m.color + TINT.row }}
-        >
-          <CategoryChip icon={s.icon} color={m.color} />
-          <span className="text-sm font-medium text-text flex-1">{getSubName(subId, t)}</span>
-          <span className="text-sm font-medium text-text tabular-nums mono">
-            {fmtAmount(filteredTotal, undefined, 0)} kr
-          </span>
-        </div>
+        <CategoryRow
+          header
+          className="mb-4 rounded-xl"
+          icon={s.icon}
+          color={m.color}
+          name={getSubName(subId, t)}
+          amount={filteredTotal}
+        />
         <TransactionTable
           transactions={filtered}
           subtitle={subtitle}
@@ -326,49 +329,34 @@ export default function SpendingBreakdown({
           </button>
         </div>
         <div className="card overflow-hidden mb-6">
-          <div
-            className="px-4 py-3 border-b border-border flex items-center gap-2"
-            style={{ backgroundColor: m.color + TINT.row }}
-          >
-            <CategoryChip icon={m.icon} color={m.color} size="sm" />
-            <span className="text-sm font-medium text-text flex-1">{getMainName(mainId, t)}</span>
-            <span className="text-sm font-medium text-text tabular-nums mono">
-              {fmtAmount(subTotal, undefined, 0)} kr
-            </span>
-          </div>
+          <CategoryRow
+            header
+            className="border-b border-border"
+            icon={m.icon}
+            color={m.color}
+            chipSize="sm"
+            name={getMainName(mainId, t)}
+            amount={subTotal}
+          />
           <div className="divide-y divide-border">
-            {subRows.map(({ subId, total, count }) => {
-              const s = subMeta(subId);
-              const pct = subTotal > 0 ? (total / subTotal) * 100 : 0;
-              return (
-                <button
-                  key={subId}
-                  className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
-                  style={{ backgroundColor: m.color + TINT.row }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = m.color + TINT.rowHover)
-                  }
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = m.color + TINT.row)}
-                  onClick={() =>
-                    setView({
-                      level: "txns",
-                      mainId,
-                      subId,
-                      ...(excluded ? { excluded: true } : {}),
-                    })
-                  }
-                >
-                  <CategoryChip icon={s.icon} color={m.color} />
-                  <span className="text-sm text-text flex-1 truncate">{getSubName(subId, t)}</span>
-                  <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
-                    {count > 0 ? `${pct.toFixed(0)}%` : ""}
-                  </span>
-                  <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
-                    {fmtAmount(total, undefined, 0)} kr
-                  </span>
-                </button>
-              );
-            })}
+            {subRows.map(({ subId, total, count }) => (
+              <CategoryRow
+                key={subId}
+                icon={subMeta(subId).icon}
+                color={m.color}
+                name={getSubName(subId, t)}
+                amount={total}
+                pct={count > 0 ? pctOf(total, subTotal) : undefined}
+                onClick={() =>
+                  setView({
+                    level: "txns",
+                    mainId,
+                    subId,
+                    ...(excluded ? { excluded: true } : {}),
+                  })
+                }
+              />
+            ))}
           </div>
         </div>
         <TransactionTable
@@ -399,58 +387,36 @@ export default function SpendingBreakdown({
     const sectionTotal = rows.reduce((sum, r) => sum + r.total, 0);
     return rows.map(({ mainId, total, count }) => {
       const m = mainMeta(mainId);
-      const pct = sectionTotal > 0 ? (total / sectionTotal) * 100 : 0;
       return (
-        <button
+        <CategoryRow
           key={mainId}
-          className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
-          style={{ backgroundColor: m.color + TINT.row }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = m.color + TINT.rowHover)}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = m.color + TINT.row)}
+          icon={m.icon}
+          color={m.color}
+          name={getMainName(mainId, t)}
+          amount={total}
+          pct={count > 0 ? pctOf(total, sectionTotal) : undefined}
           onClick={() => setView({ level: "sub", mainId })}
-        >
-          <CategoryChip icon={m.icon} color={m.color} />
-          <span className="text-sm text-text flex-1 truncate">{getMainName(mainId, t)}</span>
-          <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
-            {count > 0 ? `${pct.toFixed(0)}%` : ""}
-          </span>
-          <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
-            {fmtAmount(total, undefined, 0)} kr
-          </span>
-        </button>
+        />
       );
     });
   }
 
   function renderSubRows(rows: SubRow[], color: string, sectionTotal: number, excluded?: boolean) {
-    return rows.map(({ subId, total, count, mainId, isUncat }) => {
-      const s = subMeta(subId);
-      const pct = sectionTotal > 0 ? (total / sectionTotal) * 100 : 0;
-      const rowColor = isUncat ? "#9ca3af" : color;
-      return (
-        <button
-          key={String(subId)}
-          className="w-full px-4 py-3 flex items-center gap-3 transition-colors text-left"
-          style={{ backgroundColor: rowColor + TINT.row }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = rowColor + TINT.rowHover)}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = rowColor + TINT.row)}
-          onClick={() =>
-            isUncat
-              ? setView({ level: "sub", mainId })
-              : setView({ level: "txns", mainId, subId, ...(excluded ? { excluded: true } : {}) })
-          }
-        >
-          <CategoryChip icon={s.icon} color={rowColor} />
-          <span className="text-sm text-text flex-1 truncate">{getSubName(subId, t)}</span>
-          <span className="text-xs text-muted tabular-nums mono shrink-0 w-10 text-right">
-            {count > 0 ? `${pct.toFixed(0)}%` : ""}
-          </span>
-          <span className="text-sm font-medium text-text tabular-nums mono shrink-0 text-right w-28">
-            {fmtAmount(total, undefined, 0)} kr
-          </span>
-        </button>
-      );
-    });
+    return rows.map(({ subId, total, count, mainId, isUncat }) => (
+      <CategoryRow
+        key={String(subId)}
+        icon={subMeta(subId).icon}
+        color={isUncat ? UNCATEGORIZED_COLOR : color}
+        name={getSubName(subId, t)}
+        amount={total}
+        pct={count > 0 ? pctOf(total, sectionTotal) : undefined}
+        onClick={() =>
+          isUncat
+            ? setView({ level: "sub", mainId })
+            : setView({ level: "txns", mainId, subId, ...(excluded ? { excluded: true } : {}) })
+        }
+      />
+    ));
   }
 
   const visibleExpenseRows = showAll ? expenseRows : expenseRows.filter((r) => r.count > 0);
