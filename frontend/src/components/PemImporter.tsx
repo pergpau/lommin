@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { importPemKey } from "../lib/auth";
 import Alert from "./ui/Alert";
 import Button from "./ui/Button";
+import Spinner from "./ui/Spinner";
 import Tabs from "./ui/Tabs";
 import { FileUpIcon } from "./ui/icons";
 
@@ -63,6 +64,8 @@ export default function PemImporter({ onImported }: Props) {
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
+              // Clear the value so picking the same file twice still fires onChange.
+              e.target.value = "";
               if (f) onFile(f);
             }}
           />
@@ -90,8 +93,8 @@ export default function PemImporter({ onImported }: Props) {
             onClick={() => inputRef.current?.click()}
           >
             {state === "loading" ? (
-              <div className="flex flex-col items-center gap-2">
-                <div className="animate-spin w-5 h-5 border-2 border-accent/20 border-t-accent rounded-full" />
+              <div className="flex flex-col items-center gap-2 text-accent">
+                <Spinner size={20} />
                 <span className="text-muted text-xs">{t("pemImporter.importing")}</span>
               </div>
             ) : (

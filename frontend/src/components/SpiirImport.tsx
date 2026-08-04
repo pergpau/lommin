@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MAX_IMPORT_BYTES } from "../constants";
 import { getAccounts, importAll, type Account } from "../lib/data";
@@ -10,6 +10,7 @@ import {
   type SpiirAccount,
 } from "../lib/spiirImport";
 import Button from "./ui/Button";
+import FilePickerButton from "./ui/FilePickerButton";
 import { UploadIcon } from "./ui/icons";
 import { useSnackbar } from "./ui/Snackbar";
 
@@ -18,8 +19,6 @@ type Props = { onSuccess?: () => void };
 export default function SpiirImportPanel({ onSuccess }: Props) {
   const { t } = useTranslation("components");
   const { showSnackbar } = useSnackbar();
-  const spiirFileRef = useRef<HTMLInputElement>(null);
-  const spiirZipRef = useRef<HTMLInputElement>(null);
   const [spiirMode, setSpiirMode] = useState<"csv" | "zip">("csv");
   const [spiirStep, setSpiirStep] = useState<"idle" | "mapping" | "importing">("idle");
   const [spiirText, setSpiirText] = useState("");
@@ -29,9 +28,7 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
   const [accountMap, setAccountMap] = useState<Record<string, string>>({});
 
   const onSpiirFileChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
+    async (file: File) => {
       if (file.size > MAX_IMPORT_BYTES) {
         showSnackbar(t("spiirImport.fileTooLarge"), "error");
         return;
@@ -51,15 +48,12 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
       setExistingAccounts(existing);
       setAccountMap(initMap);
       setSpiirStep("mapping");
-      if (spiirFileRef.current) spiirFileRef.current.value = "";
     },
     [showSnackbar, t],
   );
 
   const onSpiirZipChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
+    async (file: File) => {
       if (file.size > MAX_IMPORT_BYTES) {
         showSnackbar(t("spiirImport.fileTooLarge"), "error");
         return;
@@ -96,8 +90,6 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
         setSpiirStep("mapping");
       } catch (err) {
         showSnackbar(err instanceof Error ? err.message : t("spiirImport.unreadableZip"), "error");
-      } finally {
-        if (spiirZipRef.current) spiirZipRef.current.value = "";
       }
     },
     [showSnackbar, t],
@@ -133,32 +125,20 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
       <p className="text-xs text-muted mb-4">{t("spiirImport.description")}</p>
 
       {spiirStep === "idle" && (
-        <>
-          <input
-            ref={spiirFileRef}
-            type="file"
+        <div className="flex gap-2">
+          <FilePickerButton
+            variant="ghost"
             accept=".csv"
-            className="hidden"
-            onChange={onSpiirFileChange}
-          />
-          <input
-            ref={spiirZipRef}
-            type="file"
-            accept=".zip"
-            className="hidden"
-            onChange={onSpiirZipChange}
-          />
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => spiirFileRef.current?.click()}>
-              <UploadIcon size={13} />
-              {t("spiirImport.csvButton")}
-            </Button>
-            <Button onClick={() => spiirZipRef.current?.click()}>
-              <UploadIcon size={13} />
-              {t("spiirImport.zipButton")}
-            </Button>
-          </div>
-        </>
+            onFile={(file) => void onSpiirFileChange(file)}
+          >
+            <UploadIcon size={13} />
+            {t("spiirImport.csvButton")}
+          </FilePickerButton>
+          <FilePickerButton accept=".zip" onFile={(file) => void onSpiirZipChange(file)}>
+            <UploadIcon size={13} />
+            {t("spiirImport.zipButton")}
+          </FilePickerButton>
+        </div>
       )}
 
       {(spiirStep === "mapping" || spiirStep === "importing") && (

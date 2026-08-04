@@ -1,9 +1,10 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import Button from "./ui/Button";
+import FilePickerButton from "./ui/FilePickerButton";
 import { useSnackbar } from "./ui/Snackbar";
 import {
   buildCsvTransactions,
@@ -32,7 +33,6 @@ export default function CsvImportPanel() {
   const { t } = useTranslation("components");
   const { showSnackbar } = useSnackbar();
   const navigate = useNavigate();
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<Step>("idle");
   const [drafts, setDrafts] = useState<CsvTransactionDraft[]>([]);
@@ -41,10 +41,7 @@ export default function CsvImportPanel() {
   const [choice, setChoice] = useState<AccountChoice>({ kind: "new", name: "" });
 
   const onFileChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      if (fileRef.current) fileRef.current.value = "";
+    async (file: File) => {
       if (file.size > MAX_IMPORT_BYTES) {
         showSnackbar(t("csvImport.fileTooLarge"), "error");
         return;
@@ -143,19 +140,10 @@ export default function CsvImportPanel() {
       </ul>
 
       {step === "idle" && (
-        <>
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".csv"
-            className="hidden"
-            onChange={onFileChange}
-          />
-          <Button onClick={() => fileRef.current?.click()}>
-            <FontAwesomeIcon icon={faUpload} className="mr-1.5" />
-            {t("csvImport.uploadButton")}
-          </Button>
-        </>
+        <FilePickerButton accept=".csv" onFile={(file) => void onFileChange(file)}>
+          <FontAwesomeIcon icon={faUpload} className="mr-1.5" />
+          {t("csvImport.uploadButton")}
+        </FilePickerButton>
       )}
 
       {(step === "preview" || step === "importing") && (
