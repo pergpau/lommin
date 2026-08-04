@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 let stack: symbol[] = [];
 let lockCount = 0;
 let prevBodyOverflow = "";
+let prevBodyPaddingRight = "";
 
 export function useOverlayLayer(onEscape: () => void) {
   const idRef = useRef<symbol | null>(null);
@@ -16,9 +17,19 @@ export function useOverlayLayer(onEscape: () => void) {
   useEffect(() => {
     const id = idRef.current!;
     stack.push(id);
-    if (lockCount === 0) prevBodyOverflow = document.body.style.overflow;
+    if (lockCount === 0) {
+      prevBodyOverflow = document.body.style.overflow;
+      prevBodyPaddingRight = document.body.style.paddingRight;
+      // Hiding a classic (space-taking) scrollbar hands its width back to the
+      // layout, shifting the page under the overlay. Measure the width actually
+      // reclaimed and pad it back — 0 with overlay scrollbars, so this is inert
+      // on platforms that don't have the problem.
+      const widthBefore = document.documentElement.clientWidth;
+      document.body.style.overflow = "hidden";
+      const gutter = document.documentElement.clientWidth - widthBefore;
+      if (gutter > 0) document.body.style.paddingRight = `${gutter}px`;
+    }
     lockCount++;
-    document.body.style.overflow = "hidden";
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
@@ -30,7 +41,10 @@ export function useOverlayLayer(onEscape: () => void) {
       document.removeEventListener("keydown", onKeyDown);
       stack = stack.filter((s) => s !== id);
       lockCount--;
-      if (lockCount === 0) document.body.style.overflow = prevBodyOverflow;
+      if (lockCount === 0) {
+        document.body.style.overflow = prevBodyOverflow;
+        document.body.style.paddingRight = prevBodyPaddingRight;
+      }
     };
   }, []);
 }
