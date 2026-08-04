@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { getLocale } from "../lib/i18n";
+import Button from "./ui/Button";
 import Modal from "./ui/Modal";
+import ModalActions from "./ui/ModalActions";
 
 interface Props {
   days: number;
@@ -39,20 +41,12 @@ export default function ResyncModal({ days, onDaysChange, onConfirm, onCancel }:
           <span>90</span>
         </div>
       </div>
-      <div className="flex gap-2 justify-end">
-        <button
-          className="px-3 py-1.5 text-sm text-muted hover:text-text transition-colors"
-          onClick={onCancel}
-        >
+      <ModalActions>
+        <Button variant="ghost" onClick={onCancel}>
           {t("resync.cancel")}
-        </button>
-        <button
-          className="px-3 py-1.5 text-sm font-medium bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors"
-          onClick={onConfirm}
-        >
-          {t("resync.action")}
-        </button>
-      </div>
+        </Button>
+        <Button onClick={onConfirm}>{t("resync.action")}</Button>
+      </ModalActions>
     </Modal>
   );
 }

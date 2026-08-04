@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "./ui/Button";
 import Modal from "./ui/Modal";
+import ModalActions from "./ui/ModalActions";
 import { clearDriveToken, persistDriveToken, setDriveAccountEmail } from "../lib/settings";
 import { signInWithGoogle } from "../lib/googleDrive";
 
@@ -48,7 +49,7 @@ export default function DriveReconnectModal() {
     <Modal onClose={dismiss} title={t("driveReconnect.title")}>
       <p className="text-xs text-muted mb-4">{t("driveReconnect.body")}</p>
       {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
-      <div className="flex gap-2 justify-end">
+      <ModalActions>
         <Button variant="ghost" onClick={dismiss}>
           {t("actions.cancel")}
         </Button>
@@ -57,7 +58,7 @@ export default function DriveReconnectModal() {
             {t("driveReconnect.reconnect")}
           </Button>
         )}
-      </div>
+      </ModalActions>
     </Modal>
   );
 }

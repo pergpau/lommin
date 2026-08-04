@@ -6,7 +6,9 @@ import { getCategoryIcon } from "../../lib/categoryIcons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { effectiveDate, fmtAmount, fmtDate } from "../../lib/format";
 import type { SuggestionsState } from "../../hooks/useSimilarSuggestions";
+import Button from "../ui/Button";
 import Modal from "../ui/Modal";
+import ModalActions from "../ui/ModalActions";
 
 /**
  * Renders the suggestions modal when there is state to show; renders nothing otherwise.
@@ -137,18 +139,18 @@ export default function SimilarTransactionsModal({
       </div>
 
       {/* Footer */}
-      <div className="flex justify-end gap-2 px-5 py-4 border-t border-border">
-        <button className="btn-ghost text-xs px-3 py-1.5" onClick={onClose}>
+      <ModalActions bordered className="px-5 py-4">
+        <Button variant="ghost" size="sm" onClick={onClose}>
           {t("transactions:similarSuggestions.skip")}
-        </button>
-        <button
-          className="btn-primary text-xs px-3 py-1.5"
+        </Button>
+        <Button
+          size="sm"
           disabled={selectedIds.size === 0}
           onClick={() => onApply([...selectedIds])}
         >
           {t("transactions:similarSuggestions.apply", { count: selectedIds.size })}
-        </button>
-      </div>
+        </Button>
+      </ModalActions>
     </Modal>
   );
 }

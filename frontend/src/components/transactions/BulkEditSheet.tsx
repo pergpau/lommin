@@ -16,6 +16,8 @@ import { getCategoryIcon } from "../../lib/categoryIcons";
 import type { Transaction } from "../../lib/data";
 import { effectiveDate, fmtDate } from "../../lib/format";
 import BottomSheet from "../ui/BottomSheet";
+import Button from "../ui/Button";
+import ModalActions from "../ui/ModalActions";
 import CategoryPicker from "./CategoryPicker";
 
 // A field is present here only when the user actually changed it. The `value`
@@ -220,28 +222,27 @@ export default function BulkEditSheet({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-border shrink-0 flex items-center justify-between">
-          <button
-            className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-            onClick={onDelete}
-          >
-            <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
-            {t("transactions:bulk.delete")}
-          </button>
-          <div className="flex items-center gap-2">
-            <button className="btn-ghost text-sm px-3 py-2" onClick={onClose}>
-              {t("transactions:bulk.cancel")}
-            </button>
+        <ModalActions
+          bordered
+          className="px-4 py-3"
+          leading={
             <button
-              className="text-sm px-4 py-2 rounded-lg bg-accent hover:bg-accent-dim text-white font-medium flex items-center gap-2 transition-colors disabled:opacity-40 disabled:pointer-events-none"
-              onClick={handleSave}
-              disabled={!anyDirty}
+              className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+              onClick={onDelete}
             >
-              <FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5" />
-              {t("transactions:bulk.save")}
+              <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+              {t("transactions:bulk.delete")}
             </button>
-          </div>
-        </div>
+          }
+        >
+          <Button variant="ghost" className="px-3" onClick={onClose}>
+            {t("transactions:bulk.cancel")}
+          </Button>
+          <Button onClick={handleSave} disabled={!anyDirty}>
+            <FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5" />
+            {t("transactions:bulk.save")}
+          </Button>
+        </ModalActions>
       </BottomSheet>
 
       {/* Hidden input driving the date field. */}

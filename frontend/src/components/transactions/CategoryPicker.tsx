@@ -9,6 +9,8 @@ import {
 } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
 import BottomSheet from "../ui/BottomSheet";
+import Button from "../ui/Button";
+import ModalActions from "../ui/ModalActions";
 
 interface CategoryPickerProps {
   currentCategoryId?: number;
@@ -167,21 +169,26 @@ export default function CategoryPicker({
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-border shrink-0 flex justify-between items-center">
-        {currentCategoryId != null ? (
-          <button
-            className="text-xs text-muted hover:text-red-400 transition-colors"
-            onClick={() => onSelect(undefined)}
-          >
-            {t("transactions:categoryPicker.removeCategory")}
-          </button>
-        ) : (
-          <span />
-        )}
-        <button className="btn-ghost text-xs px-3 py-1.5" onClick={onClose}>
+      <ModalActions
+        bordered
+        className="px-4 py-3"
+        leading={
+          currentCategoryId != null ? (
+            <button
+              className="text-xs text-muted hover:text-red-400 transition-colors"
+              onClick={() => onSelect(undefined)}
+            >
+              {t("transactions:categoryPicker.removeCategory")}
+            </button>
+          ) : (
+            <span />
+          )
+        }
+      >
+        <Button variant="ghost" size="sm" onClick={onClose}>
           {t("transactions:categoryPicker.cancel")}
-        </button>
-      </div>
+        </Button>
+      </ModalActions>
     </BottomSheet>
   );
 }
