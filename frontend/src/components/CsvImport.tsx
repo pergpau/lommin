@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import Button from "./ui/Button";
 import FilePickerButton from "./ui/FilePickerButton";
+import Select from "./ui/Select";
 import { useSnackbar } from "./ui/Snackbar";
 import {
   buildCsvTransactions,
@@ -166,8 +167,7 @@ export default function CsvImportPanel() {
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-xs text-muted">{t("csvImport.accountLabel")}</span>
 
-              <select
-                className="text-xs border border-border rounded px-2 py-1.5 bg-surface text-text"
+              <Select
                 value={choice.kind === "existing" ? choice.uid : "__new__"}
                 onChange={(e) => {
                   if (e.target.value === "__new__") {
@@ -184,7 +184,7 @@ export default function CsvImportPanel() {
                     {acc.name ?? acc.uid}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
 
             {choice.kind === "new" && (

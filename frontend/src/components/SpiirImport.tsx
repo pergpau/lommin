@@ -11,6 +11,7 @@ import {
 } from "../lib/spiirImport";
 import Button from "./ui/Button";
 import FilePickerButton from "./ui/FilePickerButton";
+import Select from "./ui/Select";
 import { UploadIcon } from "./ui/icons";
 import { useSnackbar } from "./ui/Snackbar";
 
@@ -152,8 +153,7 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
                     {[sa.bankName, sa.bban, sa.currency].filter(Boolean).join(" · ")}
                   </div>
                 </div>
-                <select
-                  className="text-xs border border-border rounded px-2 py-1.5 bg-surface text-text"
+                <Select
                   value={accountMap[sa.accountId] ?? `spiir::${sa.accountId}`}
                   onChange={(e) => setAccountMap((m) => ({ ...m, [sa.accountId]: e.target.value }))}
                   disabled={spiirStep === "importing"}
@@ -164,7 +164,7 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
                       {acc.name ?? acc.uid}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
             ))}
           </div>

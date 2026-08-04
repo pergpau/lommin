@@ -6,6 +6,7 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import { CheckIcon } from "../components/ui/icons";
 import LoadingScreen from "../components/ui/LoadingScreen";
+import Select from "../components/ui/Select";
 import Spinner from "../components/ui/Spinner";
 import { useSnackbar } from "../components/ui/Snackbar";
 import { SESSION_VALID_DAYS } from "../constants";
@@ -356,8 +357,8 @@ export default function Connect() {
 
       <Card className="p-4 mb-4">
         <label className="label">{t("countryLabel")}</label>
-        <select
-          className="input bg-surface-2"
+        <Select
+          size="md"
           value={country}
           onChange={(e) => {
             setCountry(e.target.value);
@@ -371,7 +372,7 @@ export default function Connect() {
               {t("countries." + code)}
             </option>
           ))}
-        </select>
+        </Select>
       </Card>
 
       <Card className="p-4 mb-4">
