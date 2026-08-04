@@ -11,6 +11,7 @@ import LoadingScreen from "../components/ui/LoadingScreen";
 import PassphraseDialog from "../components/ui/PassphraseDialog";
 import { useSnackbar } from "../components/ui/Snackbar";
 import Spinner from "../components/ui/Spinner";
+import Tabs from "../components/ui/Tabs";
 import WarningBanner from "../components/ui/WarningBanner";
 import {
   GoogleDriveIcon,
@@ -463,21 +464,14 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="flex justify-between sm:justify-start gap-1 mb-6 border-b border-border">
-        {TABS.map((tabKey) => (
-          <button
-            key={tabKey}
-            className={`flex-1 sm:flex-none text-center px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              tab === tabKey
-                ? "border-accent text-accent"
-                : "border-transparent text-muted hover:text-text"
-            }`}
-            onClick={() => setTab(tabKey)}
-          >
-            {t("tabs." + tabKey)}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        fill
+        className="mb-6"
+        tabs={TABS}
+        active={tab}
+        onChange={setTab}
+        label={(tabKey) => t("tabs." + tabKey)}
+      />
 
       <div
         ref={swipeRef}

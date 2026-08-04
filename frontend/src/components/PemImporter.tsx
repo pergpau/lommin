@@ -3,16 +3,19 @@ import { useTranslation } from "react-i18next";
 import { importPemKey } from "../lib/auth";
 import Alert from "./ui/Alert";
 import Button from "./ui/Button";
+import Tabs from "./ui/Tabs";
 import { FileUpIcon } from "./ui/icons";
 
 interface Props {
   onImported: (key: CryptoKey, appId: string) => void;
 }
 
+const PEM_TABS = ["file", "paste"] as const;
+
 export default function PemImporter({ onImported }: Props) {
   const { t } = useTranslation("components");
   const inputRef = useRef<HTMLInputElement>(null);
-  const [tab, setTab] = useState<"file" | "paste">("file");
+  const [tab, setTab] = useState<(typeof PEM_TABS)[number]>("file");
   const [dragging, setDragging] = useState(false);
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
@@ -43,21 +46,13 @@ export default function PemImporter({ onImported }: Props) {
 
   return (
     <div>
-      <div className="flex gap-1 mb-4 border-b border-border">
-        {(["file", "paste"] as const).map((tab_) => (
-          <button
-            key={tab_}
-            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              tab === tab_
-                ? "border-accent text-accent"
-                : "border-transparent text-muted hover:text-text"
-            }`}
-            onClick={() => setTab(tab_)}
-          >
-            {tab_ === "file" ? t("pemImporter.tabFile") : t("pemImporter.tabPaste")}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        className="mb-4"
+        tabs={PEM_TABS}
+        active={tab}
+        onChange={setTab}
+        label={(tab_) => (tab_ === "file" ? t("pemImporter.tabFile") : t("pemImporter.tabPaste"))}
+      />
 
       {tab === "file" && (
         <>
