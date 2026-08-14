@@ -41,8 +41,14 @@ html.dark {
     box-sizing: border-box;
   }
 
-  html {
-    scrollbar-gutter: stable;
+  /* Touch platforms use overlay scrollbars that take no layout space, and
+     reserving a gutter there forces the classic space-taking kind instead —
+     a permanently visible scrollbar that narrows the page. Overlay scrollbars
+     also can't cause the shift this guards against, so scope it to pointers. */
+  @media (pointer: fine) {
+    html {
+      scrollbar-gutter: stable;
+    }
   }
 
   body {
