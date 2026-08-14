@@ -170,16 +170,26 @@ export async function signInWithGoogle(
   return { token, expiresIn, email: await fetchAccountEmail(token) };
 }
 
+// Two failure modes that need opposite fixes, so they must stay distinguishable:
+// "oauth-error" means Google answered and refused (its own code — login_required,
+// interaction_required, consent_required — i.e. the iframe reached Google but
+// carried no usable session, typically because the browser partitions or blocks
+// its cookies there). "timeout" means the callback never posted at all, which
+// points at the iframe or the callback being blocked from rendering.
+export type SilentReauthResult =
+  | { ok: true; token: string; expiresIn: number; email: string | null }
+  | { ok: false; reason: "oauth-error" | "timeout"; error?: string };
+
 // Silent renewal: re-run the same auth request with prompt=none in a hidden
 // iframe instead of a popup. If the browser still has an active Google
 // session and consent was already granted, Google responds with a fresh
-// token with no visible UI. Never throws — any failure (no active session,
-// consent revoked, ambiguous multi-account session, timeout) resolves to
-// null, which callers treat as "fall back to the visible reconnect flow".
+// token with no visible UI. Never throws — every failure resolves to an
+// ok:false result, which callers treat as "fall back to the visible
+// reconnect flow".
 export async function silentReauth(
   clientId: string,
   loginHint?: string | null,
-): Promise<{ token: string; expiresIn: number; email: string | null } | null> {
+): Promise<SilentReauthResult> {
   const requestId = crypto.randomUUID();
   const url = buildAuthUrl(clientId, requestId, {
     prompt: "none",
@@ -198,12 +208,16 @@ export async function silentReauth(
   iframe.src = url;
   document.body.appendChild(iframe);
 
+  type Outcome =
+    | { token: string; expiresIn: number }
+    | { reason: "oauth-error" | "timeout"; error?: string };
+
   try {
-    const result = await new Promise<{ token: string; expiresIn: number } | null>((resolve) => {
+    const result = await new Promise<Outcome>((resolve) => {
       const channel = new BroadcastChannel(GOOGLE_OAUTH_CHANNEL);
       let done = false;
 
-      const finish = (v: { token: string; expiresIn: number } | null) => {
+      const finish = (v: Outcome) => {
         if (done) return;
         done = true;
         clearTimeout(timer);
@@ -211,16 +225,20 @@ export async function silentReauth(
         resolve(v);
       };
 
-      const timer = setTimeout(() => finish(null), SILENT_REAUTH_TIMEOUT_MS);
+      const timer = setTimeout(() => finish({ reason: "timeout" }), SILENT_REAUTH_TIMEOUT_MS);
 
       channel.onmessage = (e: MessageEvent<OAuthMessage>) => {
         const parsed = parseOAuthMessage(e.data, requestId);
         if (!parsed) return;
-        finish(parsed.ok ? { token: parsed.token, expiresIn: parsed.expiresIn } : null);
+        finish(
+          parsed.ok
+            ? { token: parsed.token, expiresIn: parsed.expiresIn }
+            : { reason: "oauth-error", error: parsed.error },
+        );
       };
     });
-    if (!result) return null;
-    return { ...result, email: await fetchAccountEmail(result.token) };
+    if (!("token" in result)) return { ok: false, ...result };
+    return { ok: true, ...result, email: await fetchAccountEmail(result.token) };
   } finally {
     iframe.remove();
   }

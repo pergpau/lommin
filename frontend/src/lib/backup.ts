@@ -85,16 +85,36 @@ const fileTarget: BackupTarget = {
   },
 };
 
+// Why the last silent renewal failed, carried on the reconnect event so the
+// modal can show it. Diagnostic only: an "oauth-error" of login_required means
+// the iframe reached Google but had no usable session (the browser partitioned
+// or blocked its cookies there), while "timeout" means the callback never came
+// back at all (something blocked the frame itself). The two need opposite fixes.
+let _lastReauthFailure: { reason: string; error?: string } | null = null;
+
+function dispatchAuthExpired(): void {
+  window.dispatchEvent(
+    new CustomEvent("lommin:drive-auth-expired", { detail: _lastReauthFailure }),
+  );
+}
+
 // Attempts a silent (no popup, no user interaction) token renewal using the
 // last-known account as a login_hint. Returns the fresh token, or null if
 // silent renewal isn't possible (no active Google session, revoked consent,
 // ambiguous multi-account session, etc.) — callers fall back to the visible
 // reconnect modal in that case.
 async function trySilentReauth(): Promise<string | null> {
-  if (!GOOGLE_CLIENT_ID) return null;
+  if (!GOOGLE_CLIENT_ID) {
+    _lastReauthFailure = { reason: "no-client-id" };
+    return null;
+  }
   const email = await getDriveAccountEmail();
   const result = await silentReauth(GOOGLE_CLIENT_ID, email);
-  if (!result) return null;
+  if (!result.ok) {
+    _lastReauthFailure = { reason: result.reason, error: result.error };
+    return null;
+  }
+  _lastReauthFailure = null;
   await persistDriveToken(result.token, result.expiresIn);
   if (result.email) await setDriveAccountEmail(result.email);
   window.dispatchEvent(new Event("lommin:drive-token-updated"));
@@ -115,12 +135,12 @@ async function withDriveErrors<T>(fn: (token: string) => Promise<T>): Promise<T>
         } catch (e2) {
           if (!(e2 instanceof DriveAuthError)) throw e2;
           void clearDriveToken();
-          window.dispatchEvent(new Event("lommin:drive-auth-expired"));
+          dispatchAuthExpired();
           throw new BackupError("drive-auth", e2.message, { cause: e2 });
         }
       }
       void clearDriveToken();
-      window.dispatchEvent(new Event("lommin:drive-auth-expired"));
+      dispatchAuthExpired();
       throw new BackupError("drive-auth", e.message, { cause: e });
     }
     throw e;
@@ -359,7 +379,7 @@ export async function assessDriveSync(): Promise<SyncAssessment> {
   if (action === "reauth-needed") {
     const fresh = await trySilentReauth();
     if (!fresh) {
-      window.dispatchEvent(new Event("lommin:drive-auth-expired"));
+      dispatchAuthExpired();
       return { action: "reauth-needed" };
     }
     token = { has: true, had: true };

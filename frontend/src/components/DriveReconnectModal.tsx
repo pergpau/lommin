@@ -13,9 +13,15 @@ export default function DriveReconnectModal() {
   const [open, setOpen] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Diagnostic: why the silent renewal that preceded this modal failed.
+  const [reason, setReason] = useState<string | null>(null);
 
   useEffect(() => {
-    const handle = () => setOpen(true);
+    const handle = (e: Event) => {
+      const detail = (e as CustomEvent<{ reason: string; error?: string } | null>).detail;
+      setReason(detail ? (detail.error ?? detail.reason) : null);
+      setOpen(true);
+    };
     window.addEventListener("lommin:drive-auth-expired", handle);
     return () => window.removeEventListener("lommin:drive-auth-expired", handle);
   }, []);
@@ -48,6 +54,7 @@ export default function DriveReconnectModal() {
   return (
     <Modal onClose={dismiss} title={t("driveReconnect.title")}>
       <p className="text-xs text-muted mb-4">{t("driveReconnect.body")}</p>
+      {reason && <p className="mono text-xs text-muted/70 mb-3">{reason}</p>}
       {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
       <ModalActions>
         <Button variant="ghost" onClick={dismiss}>
