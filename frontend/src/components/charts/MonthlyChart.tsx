@@ -248,7 +248,7 @@ export default function MonthlyChart({
 
         <div
           {...stripProps}
-          className="flex-1 overflow-x-auto no-scrollbar overscroll-x-contain select-none cursor-grab active:cursor-grabbing"
+          className="flex-1 overflow-x-auto overscroll-x-contain select-none cursor-grab active:cursor-grabbing"
         >
           {mode === "month" ? (
             <div className="flex gap-3">
