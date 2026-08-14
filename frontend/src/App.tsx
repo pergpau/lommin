@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import DebugLayout from "./components/DebugLayout";
 import DriveReconnectModal from "./components/DriveReconnectModal";
 import DriveRestoreWarningModal from "./components/DriveRestoreWarningModal";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -79,6 +80,7 @@ function AppContent() {
 
   return (
     <>
+      {new URLSearchParams(window.location.search).get("debug") === "layout" && <DebugLayout />}
       {!DEMO_ONLY && !isOAuthCallbackContext() && <DriveReconnectModal />}
       {!DEMO_ONLY && pendingRestore && (
         <DriveRestoreWarningModal
