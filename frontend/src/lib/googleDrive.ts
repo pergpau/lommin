@@ -14,6 +14,25 @@ export function isOAuthCallbackContext(): boolean {
   return !!window.opener || window.location.pathname === "/oauth/google";
 }
 
+// An auth flow owns the tab's attention while it runs: the popup is waiting on
+// the user, and the frame is mid-handshake. Background work that could start a
+// competing flow — or worse, navigate the tab out from under an open popup —
+// has to stand down until it finishes.
+let _authFlowsInFlight = 0;
+
+export function isAuthFlowInFlight(): boolean {
+  return _authFlowsInFlight > 0;
+}
+
+async function duringAuthFlow<T>(fn: () => Promise<T>): Promise<T> {
+  _authFlowsInFlight += 1;
+  try {
+    return await fn();
+  } finally {
+    _authFlowsInFlight -= 1;
+  }
+}
+
 export class DriveAuthError extends Error {
   constructor() {
     super("Tilgangstokenet er utløpt. Koble til Google Drive på nytt.");
@@ -113,7 +132,7 @@ function parseOAuthMessage(
   return { ok: true, token: data.access_token!, expiresIn: data.expires_in ?? 3600 };
 }
 
-async function fetchAccountEmail(token: string): Promise<string | null> {
+export async function fetchAccountEmail(token: string): Promise<string | null> {
   try {
     const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
       headers: { Authorization: `Bearer ${token}` },
@@ -126,7 +145,13 @@ async function fetchAccountEmail(token: string): Promise<string | null> {
   }
 }
 
-export async function signInWithGoogle(
+export function signInWithGoogle(
+  clientId: string,
+): Promise<{ token: string; expiresIn: number; email: string | null }> {
+  return duringAuthFlow(() => runSignInPopup(clientId));
+}
+
+async function runSignInPopup(
   clientId: string,
 ): Promise<{ token: string; expiresIn: number; email: string | null }> {
   const requestId = crypto.randomUUID();
@@ -186,7 +211,14 @@ export type SilentReauthResult =
 // token with no visible UI. Never throws — every failure resolves to an
 // ok:false result, which callers treat as "fall back to the visible
 // reconnect flow".
-export async function silentReauth(
+export function silentReauth(
+  clientId: string,
+  loginHint?: string | null,
+): Promise<SilentReauthResult> {
+  return duringAuthFlow(() => runSilentReauthFrame(clientId, loginHint));
+}
+
+async function runSilentReauthFrame(
   clientId: string,
   loginHint?: string | null,
 ): Promise<SilentReauthResult> {
@@ -242,6 +274,111 @@ export async function silentReauth(
   } finally {
     iframe.remove();
   }
+}
+
+// ---------------------------------------------------------------------------
+// Top-level redirect reauth
+//
+// The hidden iframe above can only renew silently while the browser lets
+// accounts.google.com read its own cookies inside a cross-site frame. Where it
+// doesn't, Google answers interaction_required for a session it would happily
+// honour at top level. So the fallback is the same prompt=none request run as a
+// full-page navigation: the tab goes to Google, bounces straight back to
+// /oauth/google with a token in the fragment, and OAuthCallback restores the
+// route. No user interaction, at the cost of a reload.
+//
+// Three pieces of stored state keep that from becoming a redirect loop or a
+// pointless round trip:
+//   - the pending entry (sessionStorage, per tab) marks a redirect in flight
+//     and carries the route to come back to;
+//   - the retry stamp throttles attempts, and is pushed far out when Google
+//     refuses, so a genuinely interaction-needing account falls through to the
+//     reconnect modal instead of bouncing the tab;
+//   - the frame-blocked stamp remembers that the iframe strategy is dead in
+//     this browser, so later renewals skip straight to the redirect instead of
+//     waiting out its timeout first.
+
+const PENDING_REDIRECT_KEY = "lommin:reauth-redirect";
+const REDIRECT_RETRY_AFTER_KEY = "lommin:reauth-redirect-after";
+const FRAME_BLOCKED_KEY = "lommin:silent-frame-blocked";
+
+const REDIRECT_MIN_INTERVAL_MS = 2 * 60_000;
+const REDIRECT_REFUSED_COOLDOWN_MS = 6 * 60 * 60_000;
+const FRAME_BLOCKED_TTL_MS = 7 * 24 * 60 * 60_000;
+const PENDING_REDIRECT_TTL_MS = 60_000;
+
+export type PendingRedirectReauth = { state: string; returnTo: string; startedAt: number };
+
+function readStamp(key: string): number | null {
+  const raw = localStorage.getItem(key);
+  const n = raw ? Number(raw) : NaN;
+  return Number.isFinite(n) ? n : null;
+}
+
+export function isFrameSilentBlocked(): boolean {
+  const at = readStamp(FRAME_BLOCKED_KEY);
+  return at !== null && Date.now() - at < FRAME_BLOCKED_TTL_MS;
+}
+
+export function markFrameSilentBlocked(): void {
+  localStorage.setItem(FRAME_BLOCKED_KEY, String(Date.now()));
+}
+
+export function readPendingRedirectReauth(): PendingRedirectReauth | null {
+  const raw = sessionStorage.getItem(PENDING_REDIRECT_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as PendingRedirectReauth;
+    if (typeof parsed?.state !== "string" || typeof parsed?.returnTo !== "string") return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function clearPendingRedirectReauth(): void {
+  sessionStorage.removeItem(PENDING_REDIRECT_KEY);
+}
+
+// Pushes the next attempt out. Called with the long cooldown when Google
+// refuses at top level too — at that point only the visible flow can help.
+export function blockRedirectReauth(ms: number = REDIRECT_REFUSED_COOLDOWN_MS): void {
+  localStorage.setItem(REDIRECT_RETRY_AFTER_KEY, String(Date.now() + ms));
+}
+
+export function allowRedirectReauth(): void {
+  localStorage.removeItem(REDIRECT_RETRY_AFTER_KEY);
+}
+
+export function canRedirectReauth(): boolean {
+  if (isOAuthCallbackContext() || window.parent !== window) return false;
+  // Navigating now would tear down the tab that owns an open consent popup.
+  if (isAuthFlowInFlight()) return false;
+  const pending = readPendingRedirectReauth();
+  if (pending && Date.now() - pending.startedAt < PENDING_REDIRECT_TTL_MS) return false;
+  const after = readStamp(REDIRECT_RETRY_AFTER_KEY);
+  return after === null || Date.now() >= after;
+}
+
+// Navigates the tab away — nothing after this call runs.
+export function startRedirectReauth(clientId: string, loginHint?: string | null): void {
+  const requestId = crypto.randomUUID();
+  const pending: PendingRedirectReauth = {
+    state: requestId,
+    returnTo: `${window.location.pathname}${window.location.search}`,
+    startedAt: Date.now(),
+  };
+  sessionStorage.setItem(PENDING_REDIRECT_KEY, JSON.stringify(pending));
+  // Throttle before leaving, not on the way back: if the round trip never
+  // completes, the stamp is the only thing standing between a broken redirect
+  // and an endlessly bouncing tab.
+  blockRedirectReauth(REDIRECT_MIN_INTERVAL_MS);
+  window.location.assign(
+    buildAuthUrl(clientId, requestId, {
+      prompt: "none",
+      ...(loginHint ? { login_hint: loginHint } : {}),
+    }),
+  );
 }
 
 export async function saveBackupToDrive(

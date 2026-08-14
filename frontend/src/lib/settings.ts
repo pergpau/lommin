@@ -251,6 +251,29 @@ export async function clearDriveToken(): Promise<void> {
   });
 }
 
+// Retires a token only if it is still the stored one, in a single transaction,
+// and reports whether it did. A 401 says "this token is dead", not "Drive is
+// disconnected" — and by the time it lands, a concurrent renewal may already
+// have stored a good token. Clearing unconditionally would throw that away and
+// send the user to the reconnect modal with a perfectly valid token in hand.
+export async function clearDriveTokenIfCurrent(token: string): Promise<boolean> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    let cleared = false;
+    const tx = db.transaction(STORE, "readwrite");
+    const store = tx.objectStore(STORE);
+    const req = store.get("driveAccessToken");
+    req.onsuccess = () => {
+      if ((req.result?.v as string | undefined) !== token) return;
+      cleared = true;
+      store.delete("driveAccessToken");
+      store.delete("driveTokenExpiry");
+    };
+    tx.oncomplete = () => resolve(cleared);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 // Kept independent of the token lifecycle (not cleared by clearDriveToken) —
 // it's the login_hint used by the *next* silent reauth attempt, so it must
 // outlive the token it was captured alongside. Only an explicit "Disconnect"

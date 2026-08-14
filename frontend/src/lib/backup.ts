@@ -5,15 +5,19 @@
 
 import { loadEncryptedFile, saveEncryptedFile } from "./cryptoFile";
 import {
+  canRedirectReauth,
   DriveAuthError,
   getDriveBackupModifiedTime,
+  isFrameSilentBlocked,
   loadBackupFromDrive,
+  markFrameSilentBlocked,
   saveBackupToDrive,
   silentReauth,
+  startRedirectReauth,
 } from "./googleDrive";
 import {
   type AppSettings,
-  clearDriveToken,
+  clearDriveTokenIfCurrent,
   getAllSettings,
   getDriveAccountEmail,
   getDriveToken,
@@ -98,27 +102,68 @@ function dispatchAuthExpired(): void {
   );
 }
 
+let _reauthInFlight: Promise<string | null> | null = null;
+
 // Attempts a silent (no popup, no user interaction) token renewal using the
 // last-known account as a login_hint. Returns the fresh token, or null if
 // silent renewal isn't possible (no active Google session, revoked consent,
 // ambiguous multi-account session, etc.) — callers fall back to the visible
 // reconnect modal in that case.
-async function trySilentReauth(): Promise<string | null> {
+//
+// allowRedirect opens the second strategy: when the hidden frame can't renew,
+// the same request is retried as a full-page navigation, which does not return
+// here — the tab leaves and comes back through OAuthCallback. Only callers
+// running with nothing in flight may allow it; a redirect fired mid-save would
+// abandon the save.
+//
+// Deduped: an autosave and a background assessment can want a fresh token at
+// the same moment, and two concurrent renewals mean two frames racing for one
+// stored token. A joiner inherits the running attempt's redirect permission,
+// which can only be narrower than its own — the next assessment reopens it.
+function trySilentReauth(opts: { allowRedirect?: boolean } = {}): Promise<string | null> {
+  _reauthInFlight ??= runSilentReauth(opts).finally(() => {
+    _reauthInFlight = null;
+  });
+  return _reauthInFlight;
+}
+
+async function runSilentReauth({ allowRedirect = false } = {}): Promise<string | null> {
   if (!GOOGLE_CLIENT_ID) {
     _lastReauthFailure = { reason: "no-client-id" };
     return null;
   }
   const email = await getDriveAccountEmail();
-  const result = await silentReauth(GOOGLE_CLIENT_ID, email);
-  if (!result.ok) {
+
+  if (isFrameSilentBlocked()) {
+    _lastReauthFailure = { reason: "frame-blocked" };
+  } else {
+    const result = await silentReauth(GOOGLE_CLIENT_ID, email);
+    if (result.ok) {
+      _lastReauthFailure = null;
+      await persistDriveToken(result.token, result.expiresIn);
+      if (result.email) await setDriveAccountEmail(result.email);
+      window.dispatchEvent(new Event("lommin:drive-token-updated"));
+      return result.token;
+    }
     _lastReauthFailure = { reason: result.reason, error: result.error };
-    return null;
+    // Google answered and refused a session it may well honour at top level:
+    // the frame is the problem, not the session, and it will stay the problem
+    // until the browser changes its mind about cookies there.
+    if (result.reason === "oauth-error") markFrameSilentBlocked();
   }
-  _lastReauthFailure = null;
-  await persistDriveToken(result.token, result.expiresIn);
-  if (result.email) await setDriveAccountEmail(result.email);
-  window.dispatchEvent(new Event("lommin:drive-token-updated"));
-  return result.token;
+
+  if (allowRedirect && canRedirectReauth()) {
+    startRedirectReauth(GOOGLE_CLIENT_ID, email);
+  }
+  return null;
+}
+
+// Drops a token that Drive rejected and asks for a reconnect — but only if it
+// was still the current one. If it wasn't, something renewed underneath this
+// request; the request still failed, so it still throws, but the modal would be
+// asking the user to fix something that is already fixed.
+async function retireToken(token: string): Promise<void> {
+  if (await clearDriveTokenIfCurrent(token)) dispatchAuthExpired();
 }
 
 async function withDriveErrors<T>(fn: (token: string) => Promise<T>): Promise<T> {
@@ -134,13 +179,11 @@ async function withDriveErrors<T>(fn: (token: string) => Promise<T>): Promise<T>
           return await fn(fresh);
         } catch (e2) {
           if (!(e2 instanceof DriveAuthError)) throw e2;
-          void clearDriveToken();
-          dispatchAuthExpired();
+          await retireToken(fresh);
           throw new BackupError("drive-auth", e2.message, { cause: e2 });
         }
       }
-      void clearDriveToken();
-      dispatchAuthExpired();
+      await retireToken(stored.token);
       throw new BackupError("drive-auth", e.message, { cause: e });
     }
     throw e;
@@ -377,7 +420,9 @@ export async function assessDriveSync(): Promise<SyncAssessment> {
   // Decide without the remote timestamp first, so gated states skip the fetch.
   let action = decideSyncAction(settings, token, null);
   if (action === "reauth-needed") {
-    const fresh = await trySilentReauth();
+    // The background assessment is the one place with nothing in flight, so
+    // it's the one caller allowed to hand the tab to the redirect fallback.
+    const fresh = await trySilentReauth({ allowRedirect: true });
     if (!fresh) {
       dispatchAuthExpired();
       return { action: "reauth-needed" };

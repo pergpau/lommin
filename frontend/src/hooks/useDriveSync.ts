@@ -9,7 +9,7 @@ import {
   type RestorePlan,
   triggerAutosave,
 } from "../lib/backup";
-import { isOAuthCallbackContext } from "../lib/googleDrive";
+import { isAuthFlowInFlight, isOAuthCallbackContext } from "../lib/googleDrive";
 
 export function useDriveSync() {
   const { showSnackbar, hideSnackbar } = useSnackbar();
@@ -30,6 +30,9 @@ export function useDriveSync() {
 
   const attemptSync = useCallback(async () => {
     if (isOAuthCallbackContext()) return;
+    // Focus returning from an open consent popup fires visibilitychange; that
+    // must not start a second renewal racing the one the user is completing.
+    if (isAuthFlowInFlight()) return;
     if (inFlight.current || pendingRef.current) return;
     inFlight.current = true;
 

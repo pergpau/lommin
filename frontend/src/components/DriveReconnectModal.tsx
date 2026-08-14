@@ -4,7 +4,7 @@ import Button from "./ui/Button";
 import Modal from "./ui/Modal";
 import ModalActions from "./ui/ModalActions";
 import { clearDriveToken, persistDriveToken, setDriveAccountEmail } from "../lib/settings";
-import { signInWithGoogle } from "../lib/googleDrive";
+import { allowRedirectReauth, signInWithGoogle } from "../lib/googleDrive";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
@@ -40,6 +40,10 @@ export default function DriveReconnectModal() {
       const { token, expiresIn, email } = await signInWithGoogle(GOOGLE_CLIENT_ID);
       await persistDriveToken(token, expiresIn);
       if (email) await setDriveAccountEmail(email);
+      // A fresh interactive grant means whatever made the automatic paths back
+      // off is over; let the next expiry try them again instead of coming
+      // straight back here.
+      allowRedirectReauth();
       window.dispatchEvent(new Event("lommin:drive-token-updated"));
       setOpen(false);
     } catch (e) {
