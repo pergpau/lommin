@@ -17,7 +17,13 @@ import {
   ProxyNetworkError,
   type BankEntry,
 } from "../lib/enableBanking";
-import { getAccounts, saveAccount, type Account, type AccountSource } from "../lib/data";
+import {
+  findMatchingAccount,
+  getAccounts,
+  saveAccount,
+  type Account,
+  type AccountSource,
+} from "../lib/data";
 import { syncAccounts } from "../lib/sync";
 
 const COUNTRY_CODES = ["NO", "SE", "FI", "DK", "GB", "DE", "FR", "NL"] as const;
@@ -159,15 +165,7 @@ export default function Connect() {
         const existing = await getAccounts();
         const saved: Account[] = [];
         for (const acc of accounts) {
-          const normBban = (s: string) => s.replace(/\D/g, "");
-          const match = existing.find(
-            (e) =>
-              (acc.identificationHash &&
-                e.identificationHash &&
-                acc.identificationHash === e.identificationHash) ||
-              (acc.iban && e.iban && acc.iban === e.iban) ||
-              (acc.bban && e.bban && normBban(acc.bban) === normBban(e.bban)),
-          );
+          const match = findMatchingAccount(existing, acc);
           const ebSource: AccountSource = { type: "enableBanking", sourceId: acc.uid, sessionId };
           let record: Account;
           if (match) {

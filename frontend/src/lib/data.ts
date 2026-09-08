@@ -7,7 +7,12 @@ import { setSetting } from "./settings";
 import * as store from "./store";
 
 export type { Account, AccountSource, SyncCursor, Transaction } from "./types";
-export { getEnableBankingSource, makeTransactionId, normalizeForMatch } from "./types";
+export {
+  findMatchingAccount,
+  getEnableBankingSource,
+  makeTransactionId,
+  normalizeForMatch,
+} from "./types";
 
 function markAndSchedule(): void {
   void setSetting("lastDataModifiedAt", Date.now());

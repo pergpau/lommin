@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MAX_IMPORT_BYTES } from "../constants";
-import { getAccounts, importAll, type Account } from "../lib/data";
+import { findMatchingAccount, getAccounts, importAll, type Account } from "../lib/data";
 import {
   buildImportPayload,
   buildImportPayloadFromZip,
@@ -69,13 +69,11 @@ export default function SpiirImportPanel({ onSuccess }: Props) {
         const existing = await getAccounts();
         const initMap: Record<string, string> = {};
         for (const a of parsed) {
-          const normBban = (s: string) => s.replace(/\D/g, "");
-          const match = existing.find(
-            (acc) =>
-              (a.iban && acc.iban && a.iban === acc.iban) ||
-              (a.bban && acc.bban && normBban(a.bban) === normBban(acc.bban)) ||
-              acc.sources.some((s) => s.type === "spiir" && s.sourceId === a.accountId),
-          );
+          const match = findMatchingAccount(existing, {
+            iban: a.iban,
+            bban: a.bban,
+            source: { type: "spiir", sourceId: a.accountId },
+          });
           initMap[a.accountId] = match ? match.uid : `spiir::${a.accountId}`;
         }
         const sorted = [...parsed].sort((a, b) => {
