@@ -21,6 +21,7 @@ import BulkEditSheet, { type BulkEditChanges } from "./BulkEditSheet";
 import CategoryPicker from "./CategoryPicker";
 import { SimilarSuggestions } from "./SimilarTransactionsModal";
 import TransactionDetail from "./TransactionDetail";
+import type { NewTransactions } from "../../hooks/useSyncState";
 import TransactionRow from "./TransactionRow";
 
 type TransactionTableProps = {
@@ -29,6 +30,7 @@ type TransactionTableProps = {
   subtitle?: string;
   onCategoryChange?: (transactionId: string, categoryId: number | undefined) => Promise<void>;
   onMutated?: () => void;
+  newTx?: NewTransactions;
 };
 
 export default function TransactionTable({
@@ -37,6 +39,7 @@ export default function TransactionTable({
   subtitle,
   onCategoryChange,
   onMutated,
+  newTx,
 }: TransactionTableProps) {
   const { t } = useTranslation("transactions");
   const [page, setPage] = useState(0);
@@ -209,6 +212,7 @@ export default function TransactionTable({
                 ownershipShare={tx.share}
                 selectMode={selectMode}
                 selected={selectedIds.has(tx.id)}
+                newSince={newTx?.ids.has(tx.id) ? newTx.at : undefined}
                 onToggleSelect={() => toggleSelect(tx.id)}
                 onLongPress={canSelect ? () => enterSelectMode(tx.id) : undefined}
               />

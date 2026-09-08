@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
 import type { Transaction } from "../../lib/data";
 import { amountClass, effectiveDate, fmtAmount, fmtDate } from "../../lib/format";
+import { NEW_HIGHLIGHT_MS } from "../../hooks/useSyncState";
 import CategoryBadge from "./CategoryBadge";
 
 type TransactionRowProps = {
@@ -12,6 +13,8 @@ type TransactionRowProps = {
   ownershipShare?: number;
   selectMode?: boolean;
   selected?: boolean;
+  // When set, the row fades from the selected tint to normal, anchored to this timestamp.
+  newSince?: number;
   onToggleSelect?: () => void;
   onLongPress?: () => void;
 };
@@ -43,6 +46,7 @@ export default function TransactionRow({
   ownershipShare,
   selectMode = false,
   selected = false,
+  newSince,
   onToggleSelect,
   onLongPress,
 }: TransactionRowProps) {
@@ -50,6 +54,13 @@ export default function TransactionRow({
   const subCat = tx.categoryId != null ? SUB_CATEGORY_MAP[tx.categoryId] : undefined;
   const mainCat = subCat ? MAIN_CATEGORY_MAP[subCat.mainCategoryId] : undefined;
   const sharePct = ownershipShare != null ? Math.round(ownershipShare * 100) : undefined;
+  const newStyle =
+    newSince != null && !selected
+      ? {
+          animation: `row-new-fade ${NEW_HIGHLIGHT_MS}ms linear forwards`,
+          animationDelay: `${newSince - Date.now()}ms`,
+        }
+      : undefined;
 
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startPos = useRef<{ x: number; y: number } | null>(null);
@@ -96,6 +107,7 @@ export default function TransactionRow({
       className={`relative px-4 py-3 flex items-center gap-3 transition-colors cursor-pointer ${
         selected ? "bg-accent/10 hover:bg-accent/15" : "hover:bg-surface-2"
       }`}
+      style={newStyle}
       onClick={handleActivate}
       role="button"
       tabIndex={0}

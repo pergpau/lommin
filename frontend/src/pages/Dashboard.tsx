@@ -59,6 +59,7 @@ export default function Dashboard() {
     failedAccounts,
     sessionExpiredUids,
     syncingAccountUids,
+    newTx,
     run: runSync,
   } = useSyncState();
   const { showSnackbar } = useSnackbar();
@@ -456,7 +457,12 @@ export default function Dashboard() {
         )}
 
         {tab === "transactions" && (
-          <TransactionsTab transactions={recent} subtitle={periodSubtitle} refresh={refresh} />
+          <TransactionsTab
+            transactions={recent}
+            subtitle={periodSubtitle}
+            refresh={refresh}
+            newTx={newTx}
+          />
         )}
       </div>
 

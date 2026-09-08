@@ -74,7 +74,7 @@ async function fetchAccountData(
 }
 
 export interface SyncResult {
-  inserted: number;
+  insertedIds: string[];
   errors: Array<{
     uid: string;
     label: string;
@@ -90,7 +90,7 @@ export async function syncAccounts(
   onProgress?: (msg: string) => void,
   forcedDateFrom?: string,
 ): Promise<SyncResult> {
-  let inserted = 0;
+  const insertedIds: string[] = [];
   const errors: SyncResult["errors"] = [];
 
   const results = await Promise.all(
@@ -150,7 +150,7 @@ export async function syncAccounts(
       categoryId:
         tx.categoryId ?? guessCategory(tx, creditorHistory, bbanHistory, transferIds, ownBbans),
     }));
-    inserted += await upsertTransactions(categorized);
+    insertedIds.push(...(await upsertTransactions(categorized)));
 
     if (balance !== undefined) {
       await saveAccount({ ...acc, balance, balanceFetchedAt: Date.now() });
@@ -169,5 +169,5 @@ export async function syncAccounts(
   const allTxns = await getAllTransactions();
   await tagTransferCategory(detectTransfers(allTxns));
 
-  return { inserted, errors };
+  return { insertedIds, errors };
 }

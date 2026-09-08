@@ -96,6 +96,7 @@ export default function AccountPage() {
     error: syncError,
     failedAccounts,
     sessionExpiredUids,
+    newTx,
     run: runSync,
   } = useSyncState();
   const accountError = failedAccounts.get(uid ?? "");
@@ -367,6 +368,7 @@ export default function AccountPage() {
           refresh();
         }}
         onMutated={refresh}
+        newTx={newTx}
       />
 
       {resyncModal && (

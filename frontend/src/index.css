@@ -136,6 +136,16 @@ html.theme-switching * {
   background: rgb(var(--c-accent) / 0.05) !important;
 }
 
+/* ── Newly synced row highlight (duration set inline from NEW_HIGHLIGHT_MS) ── */
+@keyframes row-new-fade {
+  from {
+    background-color: rgb(var(--c-accent) / 0.1);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
 /* ── Success checkmark animation ─────────────────────────── */
 @keyframes check-pop {
   0% {

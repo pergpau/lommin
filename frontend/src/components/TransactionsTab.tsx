@@ -3,14 +3,16 @@ import TransactionTable from "./transactions/TransactionTable";
 import EmptyState from "./ui/EmptyState";
 import type { ViewTransaction } from "../lib/transactionView";
 import { setCategoryId } from "../lib/data";
+import type { NewTransactions } from "../hooks/useSyncState";
 
 interface Props {
   transactions: ViewTransaction[];
   subtitle?: string;
   refresh: () => void;
+  newTx?: NewTransactions;
 }
 
-export default function TransactionsTab({ transactions, subtitle, refresh }: Props) {
+export default function TransactionsTab({ transactions, subtitle, refresh, newTx }: Props) {
   const { t } = useTranslation("dashboard");
 
   if (transactions.length === 0) {
@@ -26,6 +28,7 @@ export default function TransactionsTab({ transactions, subtitle, refresh }: Pro
         refresh();
       }}
       onMutated={refresh}
+      newTx={newTx}
     />
   );
 }

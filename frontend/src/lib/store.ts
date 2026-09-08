@@ -77,8 +77,8 @@ function txSoftKey(t: Transaction): string {
   return `${t.accountUid}|${t.transactionDate}|${t.amount.toFixed(2)}|${desc}`;
 }
 
-export async function upsertTransactions(txns: Transaction[]): Promise<number> {
-  if (txns.length === 0) return 0;
+export async function upsertTransactions(txns: Transaction[]): Promise<string[]> {
+  if (txns.length === 0) return [];
   const d = await db();
 
   // Build a cross-source dedup index: soft-key → existing transaction ID.
@@ -93,7 +93,7 @@ export async function upsertTransactions(txns: Transaction[]): Promise<number> {
     }
   }
 
-  let inserted = 0;
+  const inserted: string[] = [];
   const tx = d.transaction("transactions", "readwrite");
   for (const t of txns) {
     const existing = await tx.store.get(t.id);
@@ -120,7 +120,7 @@ export async function upsertTransactions(txns: Transaction[]): Promise<number> {
           comment: softMatch.comment,
         });
       } else {
-        inserted++;
+        inserted.push(t.id);
         await tx.store.put(t);
       }
     }

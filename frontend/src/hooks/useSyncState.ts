@@ -1,8 +1,17 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { Account } from "../lib/data";
 import { ProxyNetworkError } from "../lib/enableBanking";
 import i18n from "../lib/i18n";
-import type { Account } from "../lib/data";
 import { syncAccounts } from "../lib/sync";
+
+export const NEW_HIGHLIGHT_MS = 10_000;
+
+export interface NewTransactions {
+  ids: Set<string>;
+  at: number;
+}
+
+const EMPTY_NEW: NewTransactions = { ids: new Set(), at: 0 };
 
 export function useSyncState() {
   const [syncing, setSyncing] = useState(false);
@@ -12,6 +21,16 @@ export function useSyncState() {
   const [failedAccounts, setFailedAccounts] = useState<Map<string, string>>(new Map());
   const [sessionExpiredUids, setSessionExpiredUids] = useState<Set<string>>(new Set());
   const [syncingAccountUids, setSyncingAccountUids] = useState<Set<string>>(new Set());
+  // Transactions inserted by the latest sync, kept for NEW_HIGHLIGHT_MS so rows can be
+  // highlighted. `at` anchors the fade so rows that mount late join it mid-way.
+  const [newTx, setNewTx] = useState<NewTransactions>(EMPTY_NEW);
+  const newTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (newTimer.current) clearTimeout(newTimer.current);
+    },
+    [],
+  );
 
   const run = useCallback(
     async (
@@ -27,10 +46,17 @@ export function useSyncState() {
       setSessionExpiredUids(new Set());
       setSyncingAccountUids(new Set(accounts.map((a) => a.uid)));
       try {
-        const { inserted, errors } = await syncAccounts(accounts, setSyncProgress, forcedDateFrom);
+        const { insertedIds, errors } = await syncAccounts(
+          accounts,
+          setSyncProgress,
+          forcedDateFrom,
+        );
         setSyncingAccountUids(new Set());
         setSyncProgress("");
-        setSyncMsg(i18n.t("dashboard:snackbar.syncResult", { count: inserted }));
+        setSyncMsg(i18n.t("dashboard:snackbar.syncResult", { count: insertedIds.length }));
+        setNewTx({ ids: new Set(insertedIds), at: Date.now() });
+        if (newTimer.current) clearTimeout(newTimer.current);
+        newTimer.current = setTimeout(() => setNewTx(EMPTY_NEW), NEW_HIGHLIGHT_MS);
         if (errors.length > 0) {
           setFailedAccounts(
             new Map(
@@ -76,6 +102,7 @@ export function useSyncState() {
     failedAccounts,
     sessionExpiredUids,
     syncingAccountUids,
+    newTx,
     run,
   };
 }
