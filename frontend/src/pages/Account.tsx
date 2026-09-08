@@ -6,7 +6,6 @@ import {
   disconnectAccount,
   resetAccountSync,
   saveAccount,
-  setCategoryId,
   type Account,
 } from "../lib/data";
 import { getSetting } from "../lib/settings";
@@ -313,10 +312,6 @@ export default function AccountPage() {
       <TransactionTable
         transactions={filtered}
         subtitle={selectedMonth ? periodLabel(selectedMonth) : undefined}
-        onCategoryChange={async (txId, catId) => {
-          await setCategoryId(txId, catId);
-          refresh();
-        }}
         onMutated={refresh}
         newTx={newTx}
       />

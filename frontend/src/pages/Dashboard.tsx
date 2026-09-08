@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import AccountsTab from "../components/AccountsTab";
-import TransactionsTab from "../components/TransactionsTab";
 import MonthlyChart, { type ChartMode } from "../components/charts/MonthlyChart";
 import SpendingBreakdown from "../components/charts/SpendingBreakdown";
+import TransactionTable from "../components/transactions/TransactionTable";
 import Button from "../components/ui/Button";
 import DropdownMenu, { DropdownItem, dropdownItemClass } from "../components/ui/DropdownMenu";
 import LoadingScreen from "../components/ui/LoadingScreen";
@@ -33,7 +33,6 @@ import {
   clearTransactions,
   getAllTransactions,
   getEnableBankingSource,
-  setCategoryId,
 } from "../lib/data";
 import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
 import { getAllSettings, getDismissedPairs, hasSetting } from "../lib/settings";
@@ -393,10 +392,6 @@ export default function Dashboard() {
           <SpendingBreakdown
             breakdown={breakdown}
             subtitle={periodSubtitle}
-            onCategoryChange={async (txId, catId) => {
-              await setCategoryId(txId, catId);
-              refresh();
-            }}
             onMutated={refresh}
             goBackRef={categoryGoBackRef}
           />
@@ -415,10 +410,11 @@ export default function Dashboard() {
         )}
 
         {tab === "transactions" && (
-          <TransactionsTab
+          <TransactionTable
             transactions={recent}
             subtitle={periodSubtitle}
-            refresh={refresh}
+            emptyMessage={t("noTransactionsThisMonth")}
+            onMutated={refresh}
             newTx={newTx}
           />
         )}

@@ -7,7 +7,7 @@ import DeleteConfirmModal from "../ui/DeleteConfirmModal";
 import { amountClass, effectiveDate, fmtAmount, fmtDate } from "../../lib/format";
 import { SUB_CATEGORY_MAP } from "../../lib/categories";
 import { pairKey } from "../../lib/duplicates";
-import type { Transaction } from "../../lib/data";
+import { setCategoryId, type Transaction } from "../../lib/data";
 import { useSimilarSuggestions } from "../../hooks/useSimilarSuggestions";
 import CategoryBadge from "./CategoryBadge";
 import CategoryPicker from "./CategoryPicker";
@@ -16,7 +16,6 @@ import TransactionDetail from "./TransactionDetail";
 
 interface DuplicatesListProps {
   pairs: [Transaction, Transaction][];
-  onCategoryChange: (txId: string, categoryId: number | undefined) => Promise<void>;
   onDelete: (txId: string) => Promise<void>;
   onDismissPair: (key: string) => Promise<void>;
   onMutated?: () => void;
@@ -24,7 +23,6 @@ interface DuplicatesListProps {
 
 export default function DuplicatesList({
   pairs,
-  onCategoryChange,
   onDelete,
   onDismissPair,
   onMutated,
@@ -47,7 +45,8 @@ export default function DuplicatesList({
   async function handleCategorySelect(categoryId: number | undefined) {
     if (!pickerFor) return;
     const tx = pickerFor;
-    await onCategoryChange(tx.id, categoryId);
+    await setCategoryId(tx.id, categoryId);
+    onMutated?.();
     setPickerFor(null);
     await checkForSimilar(tx, categoryId);
   }

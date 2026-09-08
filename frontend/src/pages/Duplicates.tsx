@@ -4,7 +4,7 @@ import Button from "../components/ui/Button";
 import DuplicatesList from "../components/transactions/DuplicatesList";
 import LoadingScreen from "../components/ui/LoadingScreen";
 import { detectDuplicatePairs, filterVisiblePairs, pairKey } from "../lib/duplicates";
-import { deleteTransaction, setCategoryId } from "../lib/data";
+import { deleteTransaction } from "../lib/data";
 import { addDismissedPair, dismissAllPairs, getDismissedPairs } from "../lib/settings";
 import { getAllTransactions, type Transaction } from "../lib/data";
 
@@ -60,10 +60,6 @@ export default function Duplicates() {
       </div>
       <DuplicatesList
         pairs={visiblePairs}
-        onCategoryChange={async (txId, catId) => {
-          await setCategoryId(txId, catId);
-          await reload();
-        }}
         onDelete={async (txId) => {
           await deleteTransaction(txId);
           await reload();

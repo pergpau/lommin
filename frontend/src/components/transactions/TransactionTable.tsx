@@ -11,6 +11,7 @@ import {
   batchSetComment,
   batchSetCustomDate,
   batchSetExcludeFromCalculations,
+  setCategoryId,
 } from "../../lib/data";
 import { effectiveDate, fmtDate } from "../../lib/format";
 import EmptyState from "../ui/EmptyState";
@@ -28,7 +29,9 @@ type TransactionTableProps = {
   transactions: (Transaction & { share?: number })[];
   pageSize?: number;
   subtitle?: string;
-  onCategoryChange?: (transactionId: string, categoryId: number | undefined) => Promise<void>;
+  emptyMessage?: string;
+  // When set, rows become editable (category picker, bulk select, detail edits)
+  // and this is called after every write.
   onMutated?: () => void;
   newTx?: NewTransactions;
 };
@@ -37,7 +40,7 @@ export default function TransactionTable({
   transactions,
   pageSize = PAGE_SIZE,
   subtitle,
-  onCategoryChange,
+  emptyMessage,
   onMutated,
   newTx,
 }: TransactionTableProps) {
@@ -51,7 +54,7 @@ export default function TransactionTable({
     useSimilarSuggestions(onMutated);
   const detailFor = detailForId ? (transactions.find((tx) => tx.id === detailForId) ?? null) : null;
 
-  const canSelect = !!onMutated;
+  const editable = !!onMutated;
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
@@ -90,9 +93,10 @@ export default function TransactionTable({
   const someSelected = selectedFilteredCount > 0;
 
   async function handleCategorySelect(categoryId: number | undefined) {
-    if (!pickerFor || !onCategoryChange) return;
+    if (!pickerFor || !editable) return;
     const tx = pickerFor;
-    await onCategoryChange(tx.id, categoryId);
+    await setCategoryId(tx.id, categoryId);
+    onMutated?.();
     setPickerFor(null);
     await checkForSimilar(tx, categoryId);
   }
@@ -147,7 +151,7 @@ export default function TransactionTable({
   }
 
   if (transactions.length === 0) {
-    return <EmptyState message={t("table.empty")} />;
+    return <EmptyState message={emptyMessage ?? t("table.empty")} />;
   }
 
   return (
@@ -182,7 +186,7 @@ export default function TransactionTable({
               />
             </label>
           )}
-          {canSelect && (
+          {editable && (
             <button
               className={
                 "shrink-0 hidden sm:flex w-8 h-8 items-center justify-center rounded-md text-xs transition-colors " +
@@ -208,13 +212,13 @@ export default function TransactionTable({
                 key={tx.id}
                 transaction={tx}
                 onClick={() => setDetailForId(tx.id)}
-                onCategoryClick={onCategoryChange ? () => setPickerFor(tx) : undefined}
+                onCategoryClick={editable ? () => setPickerFor(tx) : undefined}
                 ownershipShare={tx.share}
                 selectMode={selectMode}
                 selected={selectedIds.has(tx.id)}
                 newSince={newTx?.ids.has(tx.id) ? newTx.at : undefined}
                 onToggleSelect={() => toggleSelect(tx.id)}
-                onLongPress={canSelect ? () => enterSelectMode(tx.id) : undefined}
+                onLongPress={editable ? () => enterSelectMode(tx.id) : undefined}
               />
             ))
           )}
@@ -270,13 +274,7 @@ export default function TransactionTable({
         <TransactionDetail
           transaction={detailFor}
           onClose={() => setDetailForId(null)}
-          onOpenCategoryPicker={
-            onCategoryChange
-              ? (tx) => {
-                  setPickerFor(tx);
-                }
-              : undefined
-          }
+          onOpenCategoryPicker={editable ? (tx) => setPickerFor(tx) : undefined}
           onMutated={onMutated}
         />
       )}

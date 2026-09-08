@@ -25,7 +25,6 @@ type View =
 interface Props {
   breakdown: Breakdown;
   subtitle?: string;
-  onCategoryChange?: (txId: string, catId: number | undefined) => Promise<void>;
   onMutated?: () => void;
   goBackRef?: React.MutableRefObject<(() => boolean) | null>;
 }
@@ -56,13 +55,7 @@ function getSubName(subId: SubId, t: TFunction): string {
   return t("categories:sub." + sub.id);
 }
 
-export default function SpendingBreakdown({
-  breakdown,
-  subtitle,
-  onCategoryChange,
-  onMutated,
-  goBackRef,
-}: Props) {
+export default function SpendingBreakdown({ breakdown, subtitle, onMutated, goBackRef }: Props) {
   const { t } = useTranslation(["charts", "categories"]);
   const [view, setView] = useState<View>({ level: "main" });
   const [showAll, setShowAll] = useState(false);
@@ -116,12 +109,7 @@ export default function SpendingBreakdown({
           name={getSubName(subId, t)}
           amount={total}
         />
-        <TransactionTable
-          transactions={transactions}
-          subtitle={subtitle}
-          onCategoryChange={onCategoryChange}
-          onMutated={onMutated}
-        />
+        <TransactionTable transactions={transactions} subtitle={subtitle} onMutated={onMutated} />
       </div>
     );
   }
@@ -147,12 +135,7 @@ export default function SpendingBreakdown({
               {t("charts:breakdown.uncategorized")}
             </span>
           </div>
-          <TransactionTable
-            transactions={subTxns}
-            subtitle={subtitle}
-            onCategoryChange={onCategoryChange}
-            onMutated={onMutated}
-          />
+          <TransactionTable transactions={subTxns} subtitle={subtitle} onMutated={onMutated} />
         </div>
       );
     }
@@ -205,12 +188,7 @@ export default function SpendingBreakdown({
             ))}
           </div>
         </div>
-        <TransactionTable
-          transactions={subTxns}
-          subtitle={subtitle}
-          onCategoryChange={onCategoryChange}
-          onMutated={onMutated}
-        />
+        <TransactionTable transactions={subTxns} subtitle={subtitle} onMutated={onMutated} />
       </div>
     );
   }
