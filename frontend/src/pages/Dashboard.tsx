@@ -22,12 +22,12 @@ import {
 } from "../components/ui/icons";
 import { DEMO_ONLY } from "../constants";
 import { useAccounts } from "../hooks/useAccounts";
+import { useAppMode } from "../hooks/useAppMode";
 import { useSuccessFlash } from "../hooks/useSuccessFlash";
 import { useSwipe } from "../hooks/useSwipe";
-import { useSyncState } from "../hooks/useSyncState";
+import { useSyncFeedback } from "../hooks/useSyncFeedback";
 import { useTransactions } from "../hooks/useTransactions";
-import { loadKey } from "../lib/auth";
-import { addSaveListener, BackupError, saveBackup, triggerAutosave } from "../lib/backup";
+import { addSaveListener, BackupError, saveBackup } from "../lib/backup";
 import {
   clearAccounts,
   clearTransactions,
@@ -35,7 +35,6 @@ import {
   getEnableBankingSource,
   setCategoryId,
 } from "../lib/data";
-import { isDemoMode } from "../lib/demoData";
 import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
 import { getAllSettings, getDismissedPairs, hasSetting } from "../lib/settings";
 import { buildView, periodLabel } from "../lib/transactionView";
@@ -53,58 +52,37 @@ export default function Dashboard() {
   const { transactions, loading: txLoading, refresh } = useTransactions();
   const {
     syncing,
-    syncProgress,
-    syncMsg,
-    error,
+    syncSuccess,
     failedAccounts,
     sessionExpiredUids,
     syncingAccountUids,
     newTx,
-    run: runSync,
-  } = useSyncState();
+    sync,
+  } = useSyncFeedback({
+    onSynced: () => {
+      reload();
+      refresh();
+    },
+  });
   const { showSnackbar } = useSnackbar();
-  const [hasKey, setHasKey] = useState(true);
+  const { isDemo, connectTarget } = useAppMode();
   const [backupMethod, setBackupMethod] = useState<"drive" | "file">("file");
   const [hasBackupMethod, setHasBackupMethod] = useState(false);
   const [usePassphrase, setUsePassphrase] = useState(false);
   const [dashBackupSaving, setDashBackupSaving] = useState(false);
   const [dashDialog, setDashDialog] = useState(false);
-  const [isDemo, setIsDemo] = useState(false);
   const [exitingDemo, setExitingDemo] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
   useEffect(() => addSaveListener(setAutoSaving), []);
-  const doAutosave = useCallback(() => void triggerAutosave(), []);
   const { success: saveSuccess, flash: saveFlash } = useSuccessFlash();
-  const { success: syncSuccess, flash: syncFlash } = useSuccessFlash();
 
   useEffect(() => {
-    loadKey().then((kv) => setHasKey(!!kv));
     getAllSettings().then((s) => {
       setBackupMethod(s.backupMethod);
       setUsePassphrase(s.usePassphrase);
     });
-    isDemoMode().then(setIsDemo);
     hasSetting("backupMethod").then(setHasBackupMethod);
   }, []);
-
-  useEffect(() => {
-    if (syncProgress) showSnackbar(syncProgress, "info", null);
-  }, [syncProgress, showSnackbar]);
-
-  useEffect(() => {
-    if (syncMsg) showSnackbar(syncMsg, "ok");
-  }, [syncMsg, showSnackbar]);
-
-  useEffect(() => {
-    if (error) showSnackbar(error, "error");
-  }, [error, showSnackbar]);
-
-  useEffect(() => {
-    if (failedAccounts.size > 0) {
-      const firstMsg = [...failedAccounts.values()][0];
-      showSnackbar(firstMsg, "error");
-    }
-  }, [failedAccounts, showSnackbar]);
 
   const handleQuickSaveClick = useCallback(() => {
     if (!hasBackupMethod) {
@@ -154,7 +132,6 @@ export default function Dashboard() {
     navigate("/onboarding");
   }, [navigate]);
 
-  const connectTarget = hasKey ? "/connect" : "/settings#pem";
   const BackupIcon = backupMethod === "drive" ? GoogleDriveIcon : HardDriveIcon;
   const hasLiveAccounts = accounts.some((acc) => !!getEnableBankingSource(acc));
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
@@ -204,6 +181,11 @@ export default function Dashboard() {
     const visible = filterVisiblePairs(detectDuplicatePairs(all), new Set(dismissed));
     if (visible.length > 0) setShowDuplicatesBanner(true);
   }, []);
+
+  const syncAll = useCallback(
+    () => sync(accounts, { onSuccess: () => void checkAndShowDuplicatesBanner() }),
+    [sync, accounts, checkAndShowDuplicatesBanner],
+  );
 
   useEffect(() => {
     if (!location.state?.checkDuplicates) return;
@@ -308,21 +290,7 @@ export default function Dashboard() {
             {t("actions.save")}
           </Button>
           {hasLiveAccounts && (
-            <Button
-              loading={syncing}
-              success={syncSuccess}
-              onClick={() =>
-                runSync(accounts, (hadErrors) => {
-                  reload();
-                  refresh();
-                  if (!hadErrors) {
-                    void doAutosave();
-                    syncFlash();
-                    void checkAndShowDuplicatesBanner();
-                  }
-                })
-              }
-            >
+            <Button loading={syncing} success={syncSuccess} onClick={syncAll}>
               <RefreshCwIcon size={14} />
               {t("actions.sync")}
             </Button>
@@ -335,17 +303,7 @@ export default function Dashboard() {
             <button
               className="p-1.5 rounded text-muted hover:text-text hover:bg-surface-2 disabled:opacity-40 transition-colors"
               disabled={syncing}
-              onClick={() =>
-                runSync(accounts, (hadErrors) => {
-                  reload();
-                  refresh();
-                  if (!hadErrors) {
-                    void doAutosave();
-                    syncFlash();
-                    void checkAndShowDuplicatesBanner();
-                  }
-                })
-              }
+              onClick={syncAll}
               aria-label={syncing ? t("actions.syncing") : t("actions.sync")}
             >
               {syncing ? <Spinner size={18} /> : <RefreshCwIcon size={18} />}

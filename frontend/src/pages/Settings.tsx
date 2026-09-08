@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
+import { useAppMode } from "../hooks/useAppMode";
 import AppearanceSection from "../components/settings/AppearanceSection";
 import BackupSection from "../components/settings/BackupSection";
 import DangerZone from "../components/settings/DangerZone";
@@ -8,20 +9,15 @@ import ImportSection from "../components/settings/ImportSection";
 import KeySection from "../components/settings/KeySection";
 import SyncSection from "../components/settings/SyncSection";
 import { DEMO_ONLY } from "../constants";
-import { isDemoMode } from "../lib/demoData";
 
 export default function Settings() {
   const { t } = useTranslation("settings");
   const { hash } = useLocation();
-  const [isDemo, setIsDemo] = useState<boolean | null>(null);
+  const { isDemo, loading } = useAppMode();
   const [highlightedHash, setHighlightedHash] = useState<string | null>(null);
 
   useEffect(() => {
-    isDemoMode().then(setIsDemo);
-  }, []);
-
-  useEffect(() => {
-    if (!hash || isDemo === null || isDemo) return;
+    if (!hash || loading || isDemo) return;
     const el = document.querySelector(hash);
     if (el) {
       const top = el.getBoundingClientRect().top + window.scrollY - 72;
@@ -30,9 +26,9 @@ export default function Settings() {
     setHighlightedHash(hash);
     const timer = setTimeout(() => setHighlightedHash(null), 1200);
     return () => clearTimeout(timer);
-  }, [hash, isDemo]);
+  }, [hash, loading, isDemo]);
 
-  if (isDemo === null && !DEMO_ONLY) return null;
+  if (loading && !DEMO_ONLY) return null;
 
   // Demo mode (runtime or the demo-only build): expose just appearance
   // (theme + language), nothing else.

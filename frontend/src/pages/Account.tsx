@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { triggerAutosave } from "../lib/backup";
 import {
   deleteAccount,
   disconnectAccount,
@@ -14,23 +13,20 @@ import { getSetting } from "../lib/settings";
 import { accountLabel } from "../lib/format";
 import { buildView, periodLabel } from "../lib/transactionView";
 import { useAccounts } from "../hooks/useAccounts";
+import { useAppMode } from "../hooks/useAppMode";
 import { useTransactions } from "../hooks/useTransactions";
-import { useSyncState } from "../hooks/useSyncState";
-import { useSuccessFlash } from "../hooks/useSuccessFlash";
+import { useSyncFeedback } from "../hooks/useSyncFeedback";
 import LoadingScreen from "../components/ui/LoadingScreen";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Checkbox from "../components/ui/Checkbox";
 import DropdownMenu, { DropdownItem } from "../components/ui/DropdownMenu";
-import { useSnackbar } from "../components/ui/Snackbar";
 import MonthlyChart, { type ChartMode } from "../components/charts/MonthlyChart";
 import TransactionTable from "../components/transactions/TransactionTable";
 import ResyncModal from "../components/ResyncModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear } from "@fortawesome/free-solid-svg-icons";
 import { ArrowLeftIcon, RefreshCwIcon } from "../components/ui/icons";
-import { isDemoMode } from "../lib/demoData";
-import { loadKey } from "../lib/auth";
 
 function ShareSlider({
   account,
@@ -89,45 +85,17 @@ export default function AccountPage() {
   const navigate = useNavigate();
   const { accounts, loading: accountsLoading, reload } = useAccounts();
   const { transactions: all, loading: txLoading, refresh } = useTransactions(uid);
-  const {
-    syncing,
-    syncProgress,
-    syncMsg,
-    error: syncError,
-    failedAccounts,
-    sessionExpiredUids,
-    newTx,
-    run: runSync,
-  } = useSyncState();
-  const accountError = failedAccounts.get(uid ?? "");
+  const { syncing, syncSuccess, sessionExpiredUids, newTx, sync } = useSyncFeedback({
+    accountUid: uid,
+    onSynced: () => {
+      reload();
+      refresh();
+    },
+  });
   const isSessionExpired = sessionExpiredUids.has(uid ?? "");
-  const { showSnackbar } = useSnackbar();
   const [selectedMonth, setSelectedMonth] = useState("");
   const [chartMode, setChartMode] = useState<ChartMode>("month");
-  const [isDemo, setIsDemo] = useState(false);
-  const [hasKey, setHasKey] = useState(true);
-  const { success: syncSuccess, flash: syncFlash } = useSuccessFlash();
-
-  useEffect(() => {
-    void isDemoMode().then(setIsDemo);
-    void loadKey().then((kv) => setHasKey(!!kv));
-  }, []);
-
-  useEffect(() => {
-    if (syncProgress) showSnackbar(syncProgress, "info", null);
-  }, [syncProgress, showSnackbar]);
-
-  useEffect(() => {
-    if (syncMsg) showSnackbar(syncMsg, "ok");
-  }, [syncMsg, showSnackbar]);
-
-  useEffect(() => {
-    if (syncError) showSnackbar(syncError, "error");
-  }, [syncError, showSnackbar]);
-
-  useEffect(() => {
-    if (accountError) showSnackbar(accountError, "error");
-  }, [accountError, showSnackbar]);
+  const { isDemo, hasKey } = useAppMode();
 
   const loading = accountsLoading || txLoading;
 
@@ -169,16 +137,8 @@ export default function AccountPage() {
     const d = new Date();
     d.setDate(d.getDate() - resyncDays);
     const dateFrom = d.toISOString().split("T")[0];
-    void runSync(
-      [account],
-      (hadErrors) => {
-        reload();
-        refresh();
-        if (!hadErrors) void triggerAutosave();
-      },
-      dateFrom,
-    );
-  }, [account, resyncDays, runSync, reload, refresh]);
+    void sync([account], { dateFrom });
+  }, [account, resyncDays, sync]);
 
   const disconnectBank = useCallback(async () => {
     if (!uid || !confirm(t("confirm.disconnectAccount"))) return;
@@ -255,17 +215,7 @@ export default function AccountPage() {
               loading={syncing}
               success={syncSuccess}
               disabled={!account}
-              onClick={() =>
-                account &&
-                runSync([account], (hadErrors) => {
-                  reload();
-                  refresh();
-                  if (!hadErrors) {
-                    void triggerAutosave();
-                    syncFlash();
-                  }
-                })
-              }
+              onClick={() => account && sync([account])}
             >
               <RefreshCwIcon size={12} />
               {t("sync")}
