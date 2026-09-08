@@ -15,13 +15,9 @@ function useIsMobile() {
   return mobile;
 }
 
-export type MonthBar = {
-  key: string;
-  label: string;
-  income: number;
-  expenses: number;
-  saving: number;
-};
+import type { MonthBar } from "../../lib/transactionView";
+
+export type { MonthBar };
 
 export type ChartMode = "month" | "year";
 

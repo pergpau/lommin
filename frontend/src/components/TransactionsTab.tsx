@@ -1,17 +1,16 @@
 import { useTranslation } from "react-i18next";
 import TransactionTable from "./transactions/TransactionTable";
 import EmptyState from "./ui/EmptyState";
-import type { Transaction } from "../lib/data";
+import type { ViewTransaction } from "../lib/transactionView";
 import { setCategoryId } from "../lib/data";
 
 interface Props {
-  transactions: Transaction[];
+  transactions: ViewTransaction[];
   subtitle?: string;
   refresh: () => void;
-  shareMap?: Map<string, number>;
 }
 
-export default function TransactionsTab({ transactions, subtitle, refresh, shareMap }: Props) {
+export default function TransactionsTab({ transactions, subtitle, refresh }: Props) {
   const { t } = useTranslation("dashboard");
 
   if (transactions.length === 0) {
@@ -27,7 +26,6 @@ export default function TransactionsTab({ transactions, subtitle, refresh, share
         refresh();
       }}
       onMutated={refresh}
-      shareMap={shareMap}
     />
   );
 }

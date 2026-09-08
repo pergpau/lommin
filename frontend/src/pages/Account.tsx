@@ -11,9 +11,8 @@ import {
   type Account,
 } from "../lib/data";
 import { getSetting } from "../lib/settings";
-import { accountLabel, effectiveDate } from "../lib/format";
-import { getLocale } from "../lib/i18n";
-import { buildMonthlyData, buildYearlyData } from "../lib/transactionAggregation";
+import { accountLabel } from "../lib/format";
+import { buildView, periodLabel } from "../lib/transactionView";
 import { useAccounts } from "../hooks/useAccounts";
 import { useTransactions } from "../hooks/useTransactions";
 import { useSyncState } from "../hooks/useSyncState";
@@ -24,7 +23,7 @@ import Button from "../components/ui/Button";
 import Checkbox from "../components/ui/Checkbox";
 import DropdownMenu, { DropdownItem } from "../components/ui/DropdownMenu";
 import { useSnackbar } from "../components/ui/Snackbar";
-import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
+import MonthlyChart, { type ChartMode } from "../components/charts/MonthlyChart";
 import TransactionTable from "../components/transactions/TransactionTable";
 import ResyncModal from "../components/ResyncModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -133,27 +132,16 @@ export default function AccountPage() {
 
   const account = accounts.find((a) => a.uid === uid) ?? null;
 
-  const sorted = useMemo(
-    () => [...all].sort((a, b) => (effectiveDate(b) ?? "").localeCompare(effectiveDate(a) ?? "")),
-    [all],
+  const txView = useMemo(
+    () => buildView({ accounts: account ? [account] : [], transactions: all, mode: "full" }),
+    [account, all],
   );
 
-  const monthlyData = useMemo<MonthBar[]>(() => buildMonthlyData(sorted), [sorted]);
-  const yearlyData = useMemo<MonthBar[]>(() => buildYearlyData(sorted), [sorted]);
-
-  const chartData = chartMode === "month" ? monthlyData : yearlyData;
+  const chartData = chartMode === "month" ? txView.monthly : txView.yearly;
 
   const filtered = useMemo(
-    () =>
-      selectedMonth
-        ? sorted.filter((tx) => {
-            const date = effectiveDate(tx) ?? "";
-            return chartMode === "year"
-              ? date.slice(0, 4) === selectedMonth
-              : date.slice(0, 7) === selectedMonth;
-          })
-        : sorted,
-    [selectedMonth, sorted, chartMode],
+    () => txView.transactionsIn(selectedMonth || null),
+    [txView, selectedMonth],
   );
 
   const [resyncModal, setResyncModal] = useState(false);
@@ -373,16 +361,7 @@ export default function AccountPage() {
 
       <TransactionTable
         transactions={filtered}
-        subtitle={
-          selectedMonth
-            ? chartMode === "year"
-              ? selectedMonth
-              : new Date(selectedMonth + "-15").toLocaleDateString(getLocale(), {
-                  month: "long",
-                  year: "numeric",
-                })
-            : undefined
-        }
+        subtitle={selectedMonth ? periodLabel(selectedMonth) : undefined}
         onCategoryChange={async (txId, catId) => {
           await setCategoryId(txId, catId);
           refresh();

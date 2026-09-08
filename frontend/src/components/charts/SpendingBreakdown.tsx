@@ -1,17 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faQuestion } from "@fortawesome/free-solid-svg-icons";
-import { MAIN_CATEGORIES, MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
+import { MAIN_CATEGORY_MAP, SUB_CATEGORY_MAP } from "../../lib/categories";
 import { getCategoryIcon } from "../../lib/categoryIcons";
 import CategoryRow from "./CategoryRow";
-import type { Transaction } from "../../lib/data";
+import type { Breakdown, MainId, SubId, SubRow } from "../../lib/transactionView";
 import EmptyState from "../ui/EmptyState";
 import TransactionTable from "../transactions/TransactionTable";
-
-type SectionType = "expense" | "income" | "saving";
 
 const UNCATEGORIZED_COLOR = "#9ca3af";
 
@@ -19,41 +17,17 @@ function pctOf(total: number, sectionTotal: number): number {
   return sectionTotal > 0 ? (total / sectionTotal) * 100 : 0;
 }
 
-type MainId = number | "uncategorized" | "uncategorized-income";
-type SubId = number | "uncategorized";
-
 type View =
   | { level: "main" }
   | { level: "sub"; mainId: MainId; excluded?: boolean }
   | { level: "txns"; mainId: MainId; subId: SubId; excluded?: boolean };
 
 interface Props {
-  transactions: Transaction[];
+  breakdown: Breakdown;
   subtitle?: string;
   onCategoryChange?: (txId: string, catId: number | undefined) => Promise<void>;
   onMutated?: () => void;
   goBackRef?: React.MutableRefObject<(() => boolean) | null>;
-  shareMap?: Map<string, number>;
-}
-
-function isEligible(t: Transaction): boolean {
-  if (t.excludeFromCalculations) return false;
-  if (t.categoryId != null && SUB_CATEGORY_MAP[t.categoryId]?.type === "exclude") return false;
-  return true;
-}
-
-function mainIdOf(t: Transaction): MainId {
-  if (t.categoryId == null) return t.amount > 0 ? "uncategorized-income" : "uncategorized";
-  const sub = SUB_CATEGORY_MAP[t.categoryId];
-  return sub ? sub.mainCategoryId : "uncategorized";
-}
-
-function mainType(mainId: MainId): SectionType {
-  if (mainId === "uncategorized") return "expense";
-  if (mainId === "uncategorized-income") return "income";
-  const cat = MAIN_CATEGORY_MAP[mainId as number];
-  const firstType = cat?.subCategories.find((s) => s.type !== "exclude")?.type;
-  return firstType === "income" || firstType === "saving" ? firstType : "expense";
 }
 
 function mainMeta(mainId: MainId): { icon: IconDefinition; color: string } {
@@ -82,52 +56,16 @@ function getSubName(subId: SubId, t: TFunction): string {
   return t("categories:sub." + sub.id);
 }
 
-type SubRow = { subId: SubId; total: number; count: number; mainId: MainId; isUncat?: boolean };
-
-function buildSubRows(
-  pool: Transaction[],
-  mainId: number,
-  sign: 1 | -1,
-  amountOf: (tx: Transaction) => number = (tx) => tx.amount,
-): SubRow[] {
-  const subMap = new Map<number, number>();
-  const subCountMap = new Map<number, number>();
-  for (const tx of pool) {
-    if (mainIdOf(tx) === mainId && tx.categoryId != null) {
-      subMap.set(tx.categoryId, (subMap.get(tx.categoryId) ?? 0) + sign * amountOf(tx));
-      subCountMap.set(tx.categoryId, (subCountMap.get(tx.categoryId) ?? 0) + 1);
-    }
-  }
-  const cat = MAIN_CATEGORY_MAP[mainId];
-  return cat
-    ? cat.subCategories.map((s) => ({
-        subId: s.id as SubId,
-        total: subMap.get(s.id) ?? 0,
-        count: subCountMap.get(s.id) ?? 0,
-        mainId: mainId as MainId,
-      }))
-    : [];
-}
-
 export default function SpendingBreakdown({
-  transactions,
+  breakdown,
   subtitle,
   onCategoryChange,
   onMutated,
   goBackRef,
-  shareMap,
 }: Props) {
   const { t } = useTranslation(["charts", "categories"]);
   const [view, setView] = useState<View>({ level: "main" });
   const [showAll, setShowAll] = useState(false);
-
-  const amountOf = useCallback(
-    (tx: Transaction) => {
-      const share = shareMap?.get(tx.accountUid);
-      return share != null ? tx.amount * share : tx.amount;
-    },
-    [shareMap],
-  );
 
   const goBack = useCallback((): boolean => {
     if (view.level === "txns") {
@@ -148,101 +86,16 @@ export default function SpendingBreakdown({
     };
   }, [goBackRef, goBack]);
 
-  const eligible = useMemo(() => transactions.filter(isEligible), [transactions]);
-
-  // For transaction lists inside a category drill-down we want to show extraordinary
-  // transactions too — they're excluded from totals/charts but still belong to a category.
-  const nonExcluded = useMemo(
-    () =>
-      transactions.filter(
-        (t) => !(t.categoryId != null && SUB_CATEGORY_MAP[t.categoryId]?.type === "exclude"),
-      ),
-    [transactions],
-  );
-
-  const excludedPool = useMemo(
-    () =>
-      transactions.filter(
-        (tx) => tx.categoryId != null && SUB_CATEGORY_MAP[tx.categoryId]?.type === "exclude",
-      ),
-    [transactions],
-  );
-
-  const mainRows = useMemo(() => {
-    const map = new Map<MainId, number>();
-    const countMap = new Map<MainId, number>();
-    for (const tx of eligible) {
-      const id = mainIdOf(tx);
-      const amt = amountOf(tx);
-      const delta = mainType(id) === "income" ? amt : -amt;
-      map.set(id, (map.get(id) ?? 0) + delta);
-      countMap.set(id, (countMap.get(id) ?? 0) + 1);
-    }
-    const rows: { mainId: MainId; total: number; count: number }[] = MAIN_CATEGORIES.filter((cat) =>
-      cat.subCategories.some((s) => s.type !== "exclude"),
-    ).map((cat) => ({
-      mainId: cat.id as MainId,
-      total: map.get(cat.id) ?? 0,
-      count: countMap.get(cat.id) ?? 0,
-    }));
-    if (countMap.has("uncategorized"))
-      rows.push({
-        mainId: "uncategorized",
-        total: map.get("uncategorized")!,
-        count: countMap.get("uncategorized")!,
-      });
-    if (countMap.has("uncategorized-income"))
-      rows.push({
-        mainId: "uncategorized-income",
-        total: map.get("uncategorized-income")!,
-        count: countMap.get("uncategorized-income")!,
-      });
-    return rows;
-  }, [eligible, amountOf]);
-
-  const inntektSubRows = useMemo(() => {
-    const rows = buildSubRows(eligible, 11, 1, amountOf);
-    const uncatTxns = eligible.filter((tx) => mainIdOf(tx) === "uncategorized-income");
-    const uncatTotal = uncatTxns.reduce((sum, tx) => sum + amountOf(tx), 0);
-    if (uncatTxns.length > 0)
-      rows.push({
-        subId: "uncategorized",
-        total: uncatTotal,
-        count: uncatTxns.length,
-        mainId: "uncategorized-income",
-        isUncat: true,
-      });
-    return rows.sort((a, b) => b.total - a.total);
-  }, [eligible, amountOf]);
-
-  const sparingSubRows = useMemo(
-    () => buildSubRows(eligible, 20, -1, amountOf).sort((a, b) => b.total - a.total),
-    [eligible, amountOf],
-  );
-
-  const excludedSubRows = useMemo(
-    () => buildSubRows(excludedPool, 10, -1, amountOf).sort((a, b) => b.total - a.total),
-    [excludedPool, amountOf],
-  );
-
-  if (eligible.length === 0 && excludedPool.length === 0) {
+  if (breakdown.isEmpty) {
     return <EmptyState message={t("charts:breakdown.noTransactions")} />;
   }
 
   // ── Level 2: transaction list ──
   if (view.level === "txns") {
     const { mainId, subId, excluded } = view;
-    const pool = excluded ? excludedPool : nonExcluded;
     const m = mainMeta(mainId);
     const s = subMeta(subId);
-    const filtered = pool.filter((tx) =>
-      subId === "uncategorized" ? !tx.categoryId : tx.categoryId === (subId as number),
-    );
-    const subType = subId !== "uncategorized" ? SUB_CATEGORY_MAP[subId as number]?.type : undefined;
-    const filteredTotal = filtered.reduce(
-      (sum, tx) => sum + (subType === "income" ? amountOf(tx) : -amountOf(tx)),
-      0,
-    );
+    const { transactions, total } = breakdown.transactionsFor({ mainId, subId, excluded });
     return (
       <div>
         <button
@@ -261,14 +114,13 @@ export default function SpendingBreakdown({
           icon={s.icon}
           color={m.color}
           name={getSubName(subId, t)}
-          amount={filteredTotal}
+          amount={total}
         />
         <TransactionTable
-          transactions={filtered}
+          transactions={transactions}
           subtitle={subtitle}
           onCategoryChange={onCategoryChange}
           onMutated={onMutated}
-          shareMap={shareMap}
         />
       </div>
     );
@@ -277,11 +129,10 @@ export default function SpendingBreakdown({
   // ── Level 1: sub-category breakdown ──
   if (view.level === "sub") {
     const { mainId, excluded } = view;
-    const pool = excluded ? excludedPool : nonExcluded;
     const m = mainMeta(mainId);
+    const { transactions: subTxns } = breakdown.transactionsFor({ mainId, excluded });
 
     if (mainId === "uncategorized" || mainId === "uncategorized-income") {
-      const filtered = pool.filter((tx) => mainIdOf(tx) === mainId);
       return (
         <div>
           <button
@@ -297,21 +148,16 @@ export default function SpendingBreakdown({
             </span>
           </div>
           <TransactionTable
-            transactions={filtered}
+            transactions={subTxns}
             subtitle={subtitle}
             onCategoryChange={onCategoryChange}
             onMutated={onMutated}
-            shareMap={shareMap}
           />
         </div>
       );
     }
 
-    const subTxns = pool.filter((tx) => mainIdOf(tx) === mainId);
-    const sign = mainType(mainId) === "income" ? 1 : -1;
-    const allSubRows = buildSubRows(pool, mainId as number, sign, amountOf).sort(
-      (a, b) => b.total - a.total,
-    );
+    const allSubRows = breakdown.subRowsFor(mainId, excluded);
     const subRows = showAll ? allSubRows : allSubRows.filter((r) => r.count > 0);
     const subTotal = allSubRows.reduce((sum, r) => sum + r.total, 0);
 
@@ -364,16 +210,13 @@ export default function SpendingBreakdown({
           subtitle={subtitle}
           onCategoryChange={onCategoryChange}
           onMutated={onMutated}
-          shareMap={shareMap}
         />
       </div>
     );
   }
 
   // ── Level 0: main category breakdown ──
-  const expenseRows = mainRows
-    .filter((r) => mainType(r.mainId) === "expense")
-    .sort((a, b) => b.total - a.total);
+  const { expenseRows, incomeRows, savingRows, excludedRows } = breakdown;
 
   function pillClass(active: boolean) {
     return `text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors ${
@@ -420,24 +263,22 @@ export default function SpendingBreakdown({
   }
 
   const visibleExpenseRows = showAll ? expenseRows : expenseRows.filter((r) => r.count > 0);
-  const visibleIncomeRows = showAll ? inntektSubRows : inntektSubRows.filter((r) => r.count > 0);
-  const visibleSparingSubs = showAll ? sparingSubRows : sparingSubRows.filter((r) => r.count > 0);
-  const visibleExcludedSubs = showAll
-    ? excludedSubRows
-    : excludedSubRows.filter((r) => r.count > 0);
+  const visibleIncomeRows = showAll ? incomeRows : incomeRows.filter((r) => r.count > 0);
+  const visibleSavingRows = showAll ? savingRows : savingRows.filter((r) => r.count > 0);
+  const visibleExcludedRows = showAll ? excludedRows : excludedRows.filter((r) => r.count > 0);
 
-  const incomeSectionTotal = inntektSubRows.reduce((sum, r) => sum + r.total, 0);
-  const sparingSectionTotal = sparingSubRows.reduce((sum, r) => sum + r.total, 0);
-  const excludedSectionTotal = excludedSubRows.reduce((sum, r) => sum + r.total, 0);
+  const incomeSectionTotal = incomeRows.reduce((sum, r) => sum + r.total, 0);
+  const savingSectionTotal = savingRows.reduce((sum, r) => sum + r.total, 0);
+  const excludedSectionTotal = excludedRows.reduce((sum, r) => sum + r.total, 0);
 
-  const inntektColor = MAIN_CATEGORY_MAP[11]?.color ?? "#16a34a";
-  const sparingColor = MAIN_CATEGORY_MAP[20]?.color ?? "#8b3eb8";
+  const incomeColor = MAIN_CATEGORY_MAP[11]?.color ?? "#16a34a";
+  const savingColor = MAIN_CATEGORY_MAP[20]?.color ?? "#8b3eb8";
   const excludedColor = MAIN_CATEGORY_MAP[10]?.color ?? "#6b7280";
 
   const hasExpense = showAll || expenseRows.some((r) => r.count > 0);
-  const hasIncome = showAll || inntektSubRows.some((r) => r.count > 0);
-  const hasSaving = showAll || sparingSubRows.some((r) => r.count > 0);
-  const hasExcluded = showAll || excludedSubRows.some((r) => r.count > 0);
+  const hasIncome = showAll || incomeRows.some((r) => r.count > 0);
+  const hasSaving = showAll || savingRows.some((r) => r.count > 0);
+  const hasExcluded = showAll || excludedRows.some((r) => r.count > 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -466,7 +307,7 @@ export default function SpendingBreakdown({
           </div>
           <div className="card overflow-hidden">
             <div className="divide-y divide-border">
-              {renderSubRows(visibleIncomeRows, inntektColor, incomeSectionTotal)}
+              {renderSubRows(visibleIncomeRows, incomeColor, incomeSectionTotal)}
             </div>
           </div>
         </div>
@@ -481,7 +322,7 @@ export default function SpendingBreakdown({
           </div>
           <div className="card overflow-hidden">
             <div className="divide-y divide-border">
-              {renderSubRows(visibleSparingSubs, sparingColor, sparingSectionTotal)}
+              {renderSubRows(visibleSavingRows, savingColor, savingSectionTotal)}
             </div>
           </div>
         </div>
@@ -496,7 +337,7 @@ export default function SpendingBreakdown({
           </div>
           <div className="card overflow-hidden">
             <div className="divide-y divide-border">
-              {renderSubRows(visibleExcludedSubs, excludedColor, excludedSectionTotal, true)}
+              {renderSubRows(visibleExcludedRows, excludedColor, excludedSectionTotal, true)}
             </div>
           </div>
         </div>

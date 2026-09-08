@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import AccountsTab from "../components/AccountsTab";
 import TransactionsTab from "../components/TransactionsTab";
-import MonthlyChart, { type ChartMode, type MonthBar } from "../components/charts/MonthlyChart";
+import MonthlyChart, { type ChartMode } from "../components/charts/MonthlyChart";
 import SpendingBreakdown from "../components/charts/SpendingBreakdown";
 import Button from "../components/ui/Button";
 import DropdownMenu, { DropdownItem, dropdownItemClass } from "../components/ui/DropdownMenu";
@@ -37,10 +37,8 @@ import {
 } from "../lib/data";
 import { isDemoMode } from "../lib/demoData";
 import { detectDuplicatePairs, filterVisiblePairs } from "../lib/duplicates";
-import { effectiveDate } from "../lib/format";
-import { getLocale } from "../lib/i18n";
 import { getAllSettings, getDismissedPairs, hasSetting } from "../lib/settings";
-import { buildMonthlyData, buildYearlyData } from "../lib/transactionAggregation";
+import { buildView, periodLabel } from "../lib/transactionView";
 
 type Tab = "categories" | "accounts" | "transactions";
 const TABS: Tab[] = ["categories", "transactions", "accounts"];
@@ -212,19 +210,7 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const shareMap = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const acc of accounts) {
-      if (acc.ownershipShare != null) map.set(acc.uid, acc.ownershipShare);
-    }
-    return map;
-  }, [accounts]);
-
-  const sharedAccounts = useMemo(
-    () => accounts.filter((acc) => acc.ownershipShare != null),
-    [accounts],
-  );
-  const hasShared = sharedAccounts.length > 0;
+  const hasShared = accounts.some((acc) => acc.ownershipShare != null);
   const paramView = searchParams.get("view");
   const view: DashboardView =
     hasShared &&
@@ -248,61 +234,20 @@ export default function Dashboard() {
     [setSearchParams],
   );
 
-  const scopedAccounts = view === "shared" ? sharedAccounts : accounts;
-  const scopedTransactions = useMemo(() => {
-    if (view !== "shared") return transactions;
-    const sharedUids = new Set(sharedAccounts.map((acc) => acc.uid));
-    return transactions.filter((tx) => sharedUids.has(tx.accountUid));
-  }, [transactions, view, sharedAccounts]);
-
-  const scaledTransactions = useMemo(() => {
-    if (shareMap.size === 0) return transactions;
-    return transactions.map((tx) => {
-      const share = shareMap.get(tx.accountUid);
-      if (share == null) return tx;
-      return { ...tx, amount: tx.amount * share };
-    });
-  }, [transactions, shareMap]);
-
-  const chartTransactions = view === "shared" ? scopedTransactions : scaledTransactions;
-  const monthlyData = useMemo<MonthBar[]>(
-    () => buildMonthlyData(chartTransactions),
-    [chartTransactions],
-  );
-  const yearlyData = useMemo<MonthBar[]>(
-    () => buildYearlyData(chartTransactions),
-    [chartTransactions],
+  const txView = useMemo(
+    () => buildView({ accounts, transactions, mode: view }),
+    [accounts, transactions, view],
   );
 
-  const chartData = chartMode === "month" ? monthlyData : yearlyData;
+  const chartData = chartMode === "month" ? txView.monthly : txView.yearly;
   const activeMonth =
     chartData.find((m) => m.key === selectedMonth)?.key ??
     chartData[chartData.length - 1]?.key ??
     null;
 
-  const txByAccount = useMemo(() => {
-    const map = new Map<string, typeof transactions>();
-    for (const tx of scopedTransactions) {
-      const list = map.get(tx.accountUid) ?? [];
-      list.push(tx);
-      map.set(tx.accountUid, list);
-    }
-    return map;
-  }, [scopedTransactions]);
-
-  const recent = useMemo(
-    () =>
-      [...scopedTransactions]
-        .filter((tx) => {
-          if (!activeMonth) return true;
-          const date = effectiveDate(tx);
-          return date ? date.startsWith(activeMonth) : false;
-        })
-        .sort((a, b) => (effectiveDate(b) ?? "").localeCompare(effectiveDate(a) ?? "")),
-    [scopedTransactions, activeMonth],
-  );
-
-  const selectedMonthBar = chartData.find((m) => m.key === activeMonth);
+  const recent = useMemo(() => txView.transactionsIn(activeMonth), [txView, activeMonth]);
+  const breakdown = useMemo(() => txView.breakdownIn(activeMonth), [txView, activeMonth]);
+  const periodSubtitle = activeMonth ? periodLabel(activeMonth) : undefined;
 
   if (loading) {
     return <LoadingScreen />;
@@ -342,7 +287,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-xl font-semibold">{t("title")}</h1>
           <p className="text-muted text-sm mt-0.5">
-            {t("subtitle", { count: scopedAccounts.length, txCount: scopedTransactions.length })}
+            {t("subtitle", { count: txView.accounts.length, txCount: txView.transactions.length })}
           </p>
         </div>
         {/* Desktop actions */}
@@ -487,31 +432,21 @@ export default function Dashboard() {
       >
         {tab === "categories" && (
           <SpendingBreakdown
-            transactions={recent}
-            subtitle={
-              selectedMonthBar
-                ? chartMode === "year"
-                  ? selectedMonthBar.key
-                  : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), {
-                      month: "long",
-                      year: "numeric",
-                    })
-                : undefined
-            }
+            breakdown={breakdown}
+            subtitle={periodSubtitle}
             onCategoryChange={async (txId, catId) => {
               await setCategoryId(txId, catId);
               refresh();
             }}
             onMutated={refresh}
             goBackRef={categoryGoBackRef}
-            shareMap={view === "personal" ? shareMap : undefined}
           />
         )}
 
         {tab === "accounts" && (
           <AccountsTab
-            accounts={scopedAccounts}
-            txByAccount={txByAccount}
+            accounts={txView.accounts}
+            txByAccount={txView.byAccount}
             syncingAccountUids={syncingAccountUids}
             failedAccounts={failedAccounts}
             sessionExpiredUids={sessionExpiredUids}
@@ -521,21 +456,7 @@ export default function Dashboard() {
         )}
 
         {tab === "transactions" && (
-          <TransactionsTab
-            transactions={recent}
-            subtitle={
-              selectedMonthBar
-                ? chartMode === "year"
-                  ? selectedMonthBar.key
-                  : new Date(selectedMonthBar.key + "-15").toLocaleDateString(getLocale(), {
-                      month: "long",
-                      year: "numeric",
-                    })
-                : undefined
-            }
-            refresh={refresh}
-            shareMap={view === "personal" ? shareMap : undefined}
-          />
+          <TransactionsTab transactions={recent} subtitle={periodSubtitle} refresh={refresh} />
         )}
       </div>
 

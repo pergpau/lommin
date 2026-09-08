@@ -54,32 +54,32 @@ The app is a React 19 SPA with React Router v7, Tailwind CSS, and no state manag
 
 ### `src/lib/` — core logic
 
-| File                        | Responsibility                                                                                                                           |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `auth.ts`                   | PEM parsing, RS256 JWT minting, CryptoKey import + IndexedDB persistence (keystore)                                                      |
-| `enableBanking.ts`          | Enable Banking API client; routes all calls through the proxy                                                                            |
-| `types.ts`                  | Data type definitions (`Account`, `Transaction`, `SyncCursor`) and pure helpers                                                          |
-| `store.ts`                  | IndexedDB CRUD for accounts, transactions, sync cursors — **do not import directly**                                                     |
-| `data.ts`                   | Public data interface: all writes (with autosave), reads, and type re-exports                                                            |
-| `settings.ts`               | IndexedDB CRUD for app settings (proxy URL, lookback days, backup method, Drive token, etc.)                                             |
-| `cryptoFile.ts`             | AES-GCM encrypted file export/import via File System Access API (PBKDF2 key derivation)                                                  |
-| `sync.ts`                   | Orchestrates a full sync: paginated transaction fetch → upsert → cursor update                                                           |
-| `format.ts`                 | Number/date formatting helpers                                                                                                           |
-| `categories.ts`             | Norwegian category taxonomy (`MAIN_CATEGORIES`); `CategoryType`: income/expense/saving/exclude                                           |
-| `categoryIcons.ts`          | Maps category IDs to Font Awesome icons                                                                                                  |
-| `autoCategorize.ts`         | Guesses category from `bankTransactionCode` (BTC rules) and description patterns                                                         |
-| `backup.ts`                 | The backup pipeline: `saveBackup`/`loadBackup`/`applyRestore`, debounced Drive autosave, `assessDriveSync`, `BackupError` classification |
-| `googleDrive.ts`            | Google Drive backup/restore using `drive.appdata` scope; `DriveAuthError` for token expiry                                               |
-| `spiirImport.ts`            | Parse Spiir ZIP export → Accounts + Transactions; maps Spiir category IDs to own IDs                                                     |
-| `csvImport.ts`              | Parse generic CSV export → transaction drafts, with auto-categorization via `autoCategorize.ts`                                          |
-| `transfers.ts`              | `detectTransfers()` — greedy same-amount opposite-sign matcher across accounts (±3 days)                                                 |
-| `duplicates.ts`             | Heuristics to flag likely-duplicate transactions (same-day/near-day, food-category, etc.)                                                |
-| `similarTransactions.ts`    | `findSimilarUncategorized()` — finds other uncategorized transactions matching by creditor, bban pair, or auto-categorize rule           |
-| `transactionAggregation.ts` | `txSection()` and related helpers — classifies/aggregates transactions into income/expense/saving for charts                             |
-| `i18n.ts`                   | i18next setup; Norwegian (`nb`) + English (`en`); auto-detects browser language                                                          |
-| `theme.ts`                  | Dark/light theme toggle; persisted in `localStorage`; `ThemeContext`                                                                     |
-| `validate.ts`               | Runtime validation guards for external data (API responses, import files); no Zod dependency                                             |
-| `demoData.ts`               | Seeds two demo accounts with synthetic transactions for the demo onboarding flow                                                         |
+| File                     | Responsibility                                                                                                                                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `auth.ts`                | PEM parsing, RS256 JWT minting, CryptoKey import + IndexedDB persistence (keystore)                                                                                                                                      |
+| `enableBanking.ts`       | Enable Banking API client; routes all calls through the proxy                                                                                                                                                            |
+| `types.ts`               | Data type definitions (`Account`, `Transaction`, `SyncCursor`) and pure helpers                                                                                                                                          |
+| `store.ts`               | IndexedDB CRUD for accounts, transactions, sync cursors — **do not import directly**                                                                                                                                     |
+| `data.ts`                | Public data interface: all writes (with autosave), reads, and type re-exports                                                                                                                                            |
+| `settings.ts`            | IndexedDB CRUD for app settings (proxy URL, lookback days, backup method, Drive token, etc.)                                                                                                                             |
+| `cryptoFile.ts`          | AES-GCM encrypted file export/import via File System Access API (PBKDF2 key derivation)                                                                                                                                  |
+| `sync.ts`                | Orchestrates a full sync: paginated transaction fetch → upsert → cursor update                                                                                                                                           |
+| `format.ts`              | Number/date formatting helpers                                                                                                                                                                                           |
+| `categories.ts`          | Norwegian category taxonomy (`MAIN_CATEGORIES`); `CategoryType`: income/expense/saving/exclude                                                                                                                           |
+| `categoryIcons.ts`       | Maps category IDs to Font Awesome icons                                                                                                                                                                                  |
+| `autoCategorize.ts`      | Guesses category from `bankTransactionCode` (BTC rules) and description patterns                                                                                                                                         |
+| `backup.ts`              | The backup pipeline: `saveBackup`/`loadBackup`/`applyRestore`, debounced Drive autosave, `assessDriveSync`, `BackupError` classification                                                                                 |
+| `googleDrive.ts`         | Google Drive backup/restore using `drive.appdata` scope; `DriveAuthError` for token expiry                                                                                                                               |
+| `spiirImport.ts`         | Parse Spiir ZIP export → Accounts + Transactions; maps Spiir category IDs to own IDs                                                                                                                                     |
+| `csvImport.ts`           | Parse generic CSV export → transaction drafts, with auto-categorization via `autoCategorize.ts`                                                                                                                          |
+| `transfers.ts`           | `detectTransfers()` — greedy same-amount opposite-sign matcher across accounts (±3 days)                                                                                                                                 |
+| `duplicates.ts`          | Heuristics to flag likely-duplicate transactions (same-day/near-day, food-category, etc.)                                                                                                                                |
+| `similarTransactions.ts` | `findSimilarUncategorized()` — finds other uncategorized transactions matching by creditor, bban pair, or auto-categorize rule                                                                                           |
+| `transactionView.ts`     | `buildView(accounts, transactions, mode)` — the Transaction view: scopes by perspective (`personal`/`shared`/`full`), scales by ownership share, applies the exclusion rule, builds bars, breakdown and per-period lists |
+| `i18n.ts`                | i18next setup; Norwegian (`nb`) + English (`en`); auto-detects browser language                                                                                                                                          |
+| `theme.ts`               | Dark/light theme toggle; persisted in `localStorage`; `ThemeContext`                                                                                                                                                     |
+| `validate.ts`            | Runtime validation guards for external data (API responses, import files); no Zod dependency                                                                                                                             |
+| `demoData.ts`            | Seeds two demo accounts with synthetic transactions for the demo onboarding flow                                                                                                                                         |
 
 ### `src/hooks/` — data hooks for pages
 
@@ -120,7 +120,7 @@ Import all data operations from `src/lib/data.ts` — never import `store.ts` di
 
 ### Testing
 
-Unit tests use Vitest (`npm run test`). Test files live alongside source: `*.test.ts`. Existing tests: `auth.test.ts`, `autoCategorize.test.ts`, `backup.test.ts`, `cryptoFile.test.ts`, `csvImport.test.ts`, `similarTransactions.test.ts`, `spiirImport.test.ts`, `store.test.ts`, `transactionAggregation.test.ts`, `transfers.test.ts`, `validate.test.ts`.
+Unit tests use Vitest (`npm run test`). Test files live alongside source: `*.test.ts`. Existing tests: `auth.test.ts`, `autoCategorize.test.ts`, `backup.test.ts`, `cryptoFile.test.ts`, `csvImport.test.ts`, `similarTransactions.test.ts`, `spiirImport.test.ts`, `store.test.ts`, `transactionView.test.ts`, `transfers.test.ts`, `validate.test.ts`.
 
 Do not start the dev server or drive the app in a browser to test changes — the user does this themselves. Rely on `npm run build`, `npm run lint`, and `npm run test` to verify correctness.
 
