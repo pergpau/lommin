@@ -7,6 +7,7 @@ import { loadEncryptedFile, saveEncryptedFile } from "./cryptoFile";
 import {
   canRedirectReauth,
   DriveAuthError,
+  readPendingRedirectReauth,
   getDriveBackupModifiedTime,
   isFrameSilentBlocked,
   loadBackupFromDrive,
@@ -424,7 +425,7 @@ export async function assessDriveSync(): Promise<SyncAssessment> {
     // it's the one caller allowed to hand the tab to the redirect fallback.
     const fresh = await trySilentReauth({ allowRedirect: true });
     if (!fresh) {
-      dispatchAuthExpired();
+      if (!readPendingRedirectReauth()) dispatchAuthExpired();
       return { action: "reauth-needed" };
     }
     token = { has: true, had: true };
