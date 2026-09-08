@@ -32,6 +32,7 @@ import {
   setLastBackupHash,
   setSetting,
 } from "./settings";
+import i18n from "./i18n";
 import { exportAll, getAllTransactions, importAll } from "./store";
 
 export type BackupErrorKind =
@@ -61,6 +62,26 @@ export function classifyBackupError(e: unknown, passphraseProvided: boolean): Ba
     return passphraseProvided ? "wrong-passphrase" : "passphrase-required";
   if ((e as Error | null)?.name === "AbortError") return "cancelled";
   return "unknown";
+}
+
+export function backupErrorKind(e: unknown): BackupErrorKind {
+  return e instanceof BackupError ? e.kind : "unknown";
+}
+
+// User-facing text for a failed save or restore. Passphrase problems get a
+// fixed message (overridable per kind when a screen has a more specific hint);
+// everything else shows the error's own text, or `fallback` when it has none.
+export function backupErrorMessage(
+  e: unknown,
+  fallback: string,
+  overrides?: Partial<Record<BackupErrorKind, string>>,
+): string {
+  const kind = backupErrorKind(e);
+  const override = overrides?.[kind];
+  if (override) return override;
+  if (kind === "wrong-passphrase") return i18n.t("common:backupErrors.wrongPassword");
+  if (kind === "passphrase-required") return i18n.t("common:backupErrors.encrypted");
+  return e instanceof Error && e.message ? e.message : fallback;
 }
 
 function toBackupError(e: unknown, passphraseProvided: boolean): BackupError {

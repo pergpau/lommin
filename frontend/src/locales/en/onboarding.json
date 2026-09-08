@@ -93,8 +93,6 @@
       "loadButton": "Load from Drive"
     },
     "errors": {
-      "wrongPassword": "Wrong password.",
-      "encrypted": "File is encrypted with a password.",
       "connectFailed": "Connection failed",
       "loadDriveFailed": "Failed to load from Google Drive",
       "restoreFailed": "Failed to restore backup"

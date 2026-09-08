@@ -27,7 +27,7 @@ import { useSuccessFlash } from "../hooks/useSuccessFlash";
 import { useSwipe } from "../hooks/useSwipe";
 import { useSyncFeedback } from "../hooks/useSyncFeedback";
 import { useTransactions } from "../hooks/useTransactions";
-import { addSaveListener, BackupError, saveBackup } from "../lib/backup";
+import { addSaveListener, backupErrorKind, backupErrorMessage, saveBackup } from "../lib/backup";
 import {
   clearAccounts,
   clearTransactions,
@@ -108,14 +108,11 @@ export default function Dashboard() {
         );
         saveFlash();
       } catch (e) {
-        const kind = e instanceof BackupError ? e.kind : "unknown";
+        const kind = backupErrorKind(e);
         if (kind === "drive-not-connected") {
           navigate("/settings#backup");
         } else if (kind !== "cancelled") {
-          showSnackbar(
-            e instanceof Error && e.message ? e.message : t("snackbar.saveFailed"),
-            "error",
-          );
+          showSnackbar(backupErrorMessage(e, t("snackbar.saveFailed")), "error");
         }
       } finally {
         setDashBackupSaving(false);

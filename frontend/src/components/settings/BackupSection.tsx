@@ -11,7 +11,8 @@ import Spinner from "../ui/Spinner";
 import { useSnackbar } from "../ui/Snackbar";
 import {
   applyRestore,
-  BackupError,
+  backupErrorKind,
+  backupErrorMessage,
   loadBackup,
   type RestorePlan,
   saveBackup,
@@ -69,12 +70,10 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
   }, []);
 
   const backupErrorText = useCallback(
-    (e: unknown, fallback: string): string => {
-      const kind = e instanceof BackupError ? e.kind : "unknown";
-      if (kind === "wrong-passphrase") return t("settings:snackbar.wrongPassword");
-      if (kind === "passphrase-required") return t("settings:snackbar.encryptedFile");
-      return e instanceof Error && e.message ? e.message : fallback;
-    },
+    (e: unknown, fallback: string): string =>
+      backupErrorMessage(e, fallback, {
+        "passphrase-required": t("settings:snackbar.encryptedFile"),
+      }),
     [t],
   );
 
@@ -90,7 +89,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
           "ok",
         );
       } catch (e) {
-        const kind = e instanceof BackupError ? e.kind : "unknown";
+        const kind = backupErrorKind(e);
         if (kind === "drive-auth") setDriveToken(null);
         if (kind !== "cancelled")
           showSnackbar(backupErrorText(e, t("settings:snackbar.saveFailed")), "error");
@@ -111,7 +110,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
         showSnackbar(t("settings:snackbar.restoreSuccess"), "ok");
         navigate("/dashboard", { state: { checkDuplicates: true } });
       } catch (e) {
-        if (!(e instanceof BackupError && e.kind === "cancelled"))
+        if (backupErrorKind(e) !== "cancelled")
           showSnackbar(backupErrorText(e, t("settings:snackbar.loadFailed")), "error");
       } finally {
         setSyncing(null);
@@ -142,7 +141,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
         setRestorePreview({ loading: false, plan });
       } catch (e) {
         setRestorePreview(null);
-        if (e instanceof BackupError && e.kind === "drive-auth") setDriveToken(null);
+        if (backupErrorKind(e) === "drive-auth") setDriveToken(null);
         showSnackbar(backupErrorText(e, t("settings:snackbar.loadFailed")), "error");
       }
     },

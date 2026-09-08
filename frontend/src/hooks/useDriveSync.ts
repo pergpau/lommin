@@ -4,7 +4,7 @@ import { useSnackbar } from "../components/ui/Snackbar";
 import {
   applyRestore,
   assessDriveSync,
-  BackupError,
+  backupErrorKind,
   loadBackup,
   type RestorePlan,
   triggerAutosave,
@@ -59,7 +59,7 @@ export function useDriveSync() {
     } catch (e) {
       // drive-auth: the backup module already cleared the token and fired
       // the reconnect event; the reconnect modal takes it from here.
-      if (!(e instanceof BackupError && e.kind === "drive-auth")) {
+      if (backupErrorKind(e) !== "drive-auth") {
         showSnackbar(t("sync.error"), "error");
       }
     } finally {

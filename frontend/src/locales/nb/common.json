@@ -36,6 +36,10 @@
     "reconnect": "Koble til igjen",
     "error": "Tilkoblingen mislyktes"
   },
+  "backupErrors": {
+    "wrongPassword": "Feil passord.",
+    "encrypted": "Filen er kryptert med passord."
+  },
   "shared": "Delt {{pct}}%",
   "dialog": {
     "passwordLabel": "Passord (valgfritt)",

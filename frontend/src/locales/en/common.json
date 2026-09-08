@@ -36,6 +36,10 @@
     "reconnect": "Reconnect",
     "error": "Connection failed"
   },
+  "backupErrors": {
+    "wrongPassword": "Wrong password.",
+    "encrypted": "File is encrypted with a password."
+  },
   "shared": "Shared {{pct}}%",
   "dialog": {
     "passwordLabel": "Password (optional)",

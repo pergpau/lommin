@@ -109,7 +109,6 @@
     "savedToFile": "Backup saved.",
     "restoreSuccess": "Data restored from backup.",
     "driveRestoreSuccess": "Data restored from Google Drive.",
-    "wrongPassword": "Wrong password.",
     "encryptedFile": "File is encrypted with a password. Enable \"Use password\" and try again.",
     "loadFailed": "Load failed",
     "connectFailed": "Connection failed",

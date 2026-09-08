@@ -93,8 +93,6 @@
       "loadButton": "Last fra Drive"
     },
     "errors": {
-      "wrongPassword": "Feil passord.",
-      "encrypted": "Filen er kryptert med passord.",
       "connectFailed": "Tilkobling feilet",
       "loadDriveFailed": "Klarte ikke å laste fra Google Drive",
       "restoreFailed": "Klarte ikke å gjenopprette sikkerhetskopien"

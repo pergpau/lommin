@@ -19,7 +19,7 @@ import {
 } from "../components/ui/icons";
 import Input from "../components/ui/Input";
 import { loadKey, saveKey } from "../lib/auth";
-import { applyRestore, BackupError, loadBackup } from "../lib/backup";
+import { applyRestore, backupErrorKind, backupErrorMessage, loadBackup } from "../lib/backup";
 import { getAccounts } from "../lib/data";
 import { seedDemoData } from "../lib/demoData";
 import { connectDrive } from "../lib/googleDrive";
@@ -379,21 +379,12 @@ function StepRestoreFile({ navigate }: { navigate: ReturnType<typeof useNavigate
       setFileMsg(t("restore.restored", { count: inserted }));
       setTimeout(() => navigate("/dashboard", { state: { checkDuplicates: true } }), 1000);
     } catch (e) {
-      const kind = e instanceof BackupError ? e.kind : "unknown";
-      if (kind === "cancelled") {
+      if (backupErrorKind(e) === "cancelled") {
         setFileState("idle");
         return;
       }
       setFileState("error");
-      setFileMsg(
-        kind === "wrong-passphrase"
-          ? t("restore.errors.wrongPassword")
-          : kind === "passphrase-required"
-            ? t("restore.errors.encrypted")
-            : e instanceof Error && e.message
-              ? e.message
-              : t("restore.errors.restoreFailed"),
-      );
+      setFileMsg(backupErrorMessage(e, t("restore.errors.restoreFailed")));
     }
   }, [passphrase, navigate, t]);
 
@@ -462,18 +453,10 @@ function StepRestoreDrive({ navigate }: { navigate: ReturnType<typeof useNavigat
       setDriveMsg(t("restore.restored", { count: inserted }));
       setTimeout(() => navigate("/dashboard", { state: { checkDuplicates: true } }), 1000);
     } catch (e) {
-      const kind = e instanceof BackupError ? e.kind : "unknown";
+      const kind = backupErrorKind(e);
       if (kind === "drive-auth" || kind === "drive-not-connected") setDriveToken(null);
       setDriveState("error");
-      setDriveMsg(
-        kind === "wrong-passphrase"
-          ? t("restore.errors.wrongPassword")
-          : kind === "passphrase-required"
-            ? t("restore.errors.encrypted")
-            : e instanceof Error && e.message
-              ? e.message
-              : t("restore.errors.loadDriveFailed"),
-      );
+      setDriveMsg(backupErrorMessage(e, t("restore.errors.loadDriveFailed")));
     }
   }, [driveToken, drivePassphrase, navigate, t]);
 

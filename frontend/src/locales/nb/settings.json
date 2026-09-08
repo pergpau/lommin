@@ -109,7 +109,6 @@
     "savedToFile": "Sikkerhetskopi lagret.",
     "restoreSuccess": "Data hentet fra sikkerhetskopi.",
     "driveRestoreSuccess": "Data hentet fra Google Drive.",
-    "wrongPassword": "Feil passord.",
     "encryptedFile": "Filen er kryptert med passord. Huk av «Bruk passord» og prøv igjen.",
     "loadFailed": "Lasting feilet",
     "connectFailed": "Tilkobling feilet",
