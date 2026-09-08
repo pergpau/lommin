@@ -58,7 +58,7 @@ The app is a React 19 SPA with React Router v7, Tailwind CSS, and no state manag
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `auth.ts`                | PEM parsing, RS256 JWT minting, CryptoKey import + IndexedDB persistence (keystore)                                                                                                                                      |
 | `enableBanking.ts`       | Enable Banking API client; routes all calls through the proxy                                                                                                                                                            |
-| `types.ts`               | Data type definitions (`Account`, `Transaction`, `SyncCursor`) and pure helpers                                                                                                                                          |
+| `types.ts`               | Data type definitions (`Account`, `Transaction`, `SyncCursor`) and pure helpers, incl. `findMatchingAccount()` (same account by hash / IBAN / BBAN / source) used by Connect and Spiir import                            |
 | `store.ts`               | IndexedDB CRUD for accounts, transactions, sync cursors — **do not import directly**                                                                                                                                     |
 | `data.ts`                | Public data interface: all writes (with autosave), reads, and type re-exports                                                                                                                                            |
 | `settings.ts`            | IndexedDB CRUD for app settings (proxy URL, lookback days, backup method, Drive token, etc.)                                                                                                                             |
@@ -68,7 +68,7 @@ The app is a React 19 SPA with React Router v7, Tailwind CSS, and no state manag
 | `categories.ts`          | Norwegian category taxonomy (`MAIN_CATEGORIES`); `CategoryType`: income/expense/saving/exclude                                                                                                                           |
 | `categoryIcons.ts`       | Maps category IDs to Font Awesome icons                                                                                                                                                                                  |
 | `autoCategorize.ts`      | Guesses category from `bankTransactionCode` (BTC rules) and description patterns                                                                                                                                         |
-| `backup.ts`              | The backup pipeline: `saveBackup`/`loadBackup`/`applyRestore`, debounced Drive autosave, `assessDriveSync`, `BackupError` classification                                                                                 |
+| `backup.ts`              | The backup pipeline: `saveBackup`/`loadBackup`/`applyRestore`, debounced Drive autosave, `assessDriveSync`, `BackupError` classification, `backupErrorMessage()` for user-facing text                                    |
 | `googleDrive.ts`         | Google Drive backup/restore using `drive.appdata` scope; `DriveAuthError` for token expiry                                                                                                                               |
 | `spiirImport.ts`         | Parse Spiir ZIP export → Accounts + Transactions; maps Spiir category IDs to own IDs                                                                                                                                     |
 | `csvImport.ts`           | Parse generic CSV export → transaction drafts, with auto-categorization via `autoCategorize.ts`                                                                                                                          |
@@ -86,6 +86,8 @@ The app is a React 19 SPA with React Router v7, Tailwind CSS, and no state manag
 - `useAccounts`, `useTransactions`, `useSyncState` — thin wrappers over the IndexedDB store that load data on mount and expose loading/error state
 - `useAsyncData<T>(fetcher, initial, deps)` — generic async data hook with loading/error/reload; prefer this over bespoke hooks
 - `useSuccessFlash(duration?)` — returns `{ success, flash }` for transient success animation state
+- `useSyncFeedback({ onSynced, accountUid? })` — `useSyncState` plus the page plumbing: progress/result snackbars, success flash, reload + autosave after a sync; pages call `sync(accounts, { dateFrom?, onSuccess? })`
+- `useAppMode()` — `{ isDemo, hasKey, connectTarget, loading }`; use instead of calling `loadKey()`/`isDemoMode()` in pages
 - `useDriveSync()` — Drive restore-conflict flow: assesses local vs. remote state, prompts confirm/cancel, applies restore
 - `useSimilarSuggestions()` — bulk-categorize suggestions built on `similarTransactions.ts`
 - `useSwipe(options)` — touch swipe-direction detection (used for swipe-to-navigate/dismiss)
@@ -104,13 +106,17 @@ Additional routes: `/oauth/google` (Google Drive OAuth callback), `/privacy-term
 
 All user-facing strings are in `src/locales/{nb,en}/*.json`. Use `useTranslation()` from `react-i18next`; namespace matches the JSON file name (e.g. `t('key', { ns: 'dashboard' })`).
 
+### Transaction lists own their writes
+
+`TransactionTable`, `DuplicatesList` and `SpendingBreakdown` write category changes (and bulk edits) through `data.ts` themselves. Passing `onMutated` is what makes a list editable; the callback runs after every write so the page can reload. There is no `onCategoryChange` prop.
+
 ### Data access: data.ts is the public interface
 
 Import all data operations from `src/lib/data.ts` — never import `store.ts` directly. `data.ts` wraps every write with debounced autosave (3 s) and re-exports all reads and types. For type-only imports in `src/lib/` files, import from `src/lib/types.ts` to avoid depending on the persistence layer. The only file that may import `store.ts` directly (besides `data.ts`) is `backup.ts`, to avoid a circular dependency.
 
 ### Account and Transaction models
 
-`Account.sources: AccountSource[]` — each account can have multiple sources. `AccountSource.type` is `"enableBanking" | "spiir" | "demo"`. Use `getEnableBankingSource(acc)` to get the Enable Banking source. Spiir and demo accounts have no signing key requirement.
+`Account.sources: AccountSource[]` — each account can have multiple sources. `AccountSource.type` is `"enableBanking" | "spiir" | "demo"`. Use `getEnableBankingSource(acc)` to get the Enable Banking source. Before creating an account from an external source, call `findMatchingAccount(existing, identity)` so the same real-world account is not stored twice. Spiir and demo accounts have no signing key requirement.
 
 `Transaction` additional fields beyond the Enable Banking basics: `categoryId` (number), `excludeFromCalculations` (boolean), `comment` (string), `customDate` (string), `to_bban`, `from_bban`, `matchDescription`.
 
@@ -120,7 +126,7 @@ Import all data operations from `src/lib/data.ts` — never import `store.ts` di
 
 ### Testing
 
-Unit tests use Vitest (`npm run test`). Test files live alongside source: `*.test.ts`. Existing tests: `auth.test.ts`, `autoCategorize.test.ts`, `backup.test.ts`, `cryptoFile.test.ts`, `csvImport.test.ts`, `similarTransactions.test.ts`, `spiirImport.test.ts`, `store.test.ts`, `transactionView.test.ts`, `transfers.test.ts`, `validate.test.ts`.
+Unit tests use Vitest (`npm run test`). Test files live alongside source: `*.test.ts`. Existing tests: `auth.test.ts`, `autoCategorize.test.ts`, `backup.test.ts`, `cryptoFile.test.ts`, `csvImport.test.ts`, `similarTransactions.test.ts`, `spiirImport.test.ts`, `store.test.ts`, `transactionView.test.ts`, `transfers.test.ts`, `types.test.ts`, `validate.test.ts`.
 
 Do not start the dev server or drive the app in a browser to test changes — the user does this themselves. Rely on `npm run build`, `npm run lint`, and `npm run test` to verify correctness.
 
