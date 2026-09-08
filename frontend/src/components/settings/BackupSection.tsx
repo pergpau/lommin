@@ -16,19 +16,16 @@ import {
   type RestorePlan,
   saveBackup,
 } from "../../lib/backup";
-import { signInWithGoogle } from "../../lib/googleDrive";
+import { connectDrive } from "../../lib/googleDrive";
 import {
   clearDriveAccountEmail,
   clearDriveToken,
   getDriveToken,
   getSetting,
   hasSetting,
-  persistDriveToken,
-  setDriveAccountEmail,
   setSetting,
 } from "../../lib/settings";
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+import { GOOGLE_CLIENT_ID } from "../../constants";
 
 export default function BackupSection({ highlightedHash }: { highlightedHash: string | null }) {
   const { t } = useTranslation(["settings", "common"]);
@@ -123,14 +120,11 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
     [showSnackbar, t, navigate, backupErrorText],
   );
 
-  const connectDrive = useCallback(async () => {
+  const handleConnectDrive = useCallback(async () => {
     if (!GOOGLE_CLIENT_ID) return;
     setDriveSyncing("connect");
     try {
-      const { token, expiresIn, email } = await signInWithGoogle(GOOGLE_CLIENT_ID);
-      await persistDriveToken(token, expiresIn);
-      if (email) await setDriveAccountEmail(email);
-      setDriveToken(token);
+      setDriveToken(await connectDrive());
     } catch (e) {
       showSnackbar(e instanceof Error ? e.message : t("settings:snackbar.connectFailed"), "error");
     } finally {
@@ -238,7 +232,7 @@ export default function BackupSection({ highlightedHash }: { highlightedHash: st
                   <span className="mono text-text/70">VITE_GOOGLE_CLIENT_ID</span>
                 </p>
               ) : !driveToken ? (
-                <Button loading={driveSyncing === "connect"} onClick={connectDrive}>
+                <Button loading={driveSyncing === "connect"} onClick={handleConnectDrive}>
                   {t("settings:backup.connectDrive")}
                 </Button>
               ) : (

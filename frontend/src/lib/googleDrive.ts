@@ -1,4 +1,6 @@
+import { GOOGLE_CLIENT_ID } from "../constants";
 import { decryptStore, encryptStore } from "./cryptoFile";
+import { persistDriveToken, setDriveAccountEmail } from "./settings";
 
 const DRIVE_API = "https://www.googleapis.com/drive/v3";
 const DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3";
@@ -149,6 +151,16 @@ export function signInWithGoogle(
   clientId: string,
 ): Promise<{ token: string; expiresIn: number; email: string | null }> {
   return duringAuthFlow(() => runSignInPopup(clientId));
+}
+
+// Interactive sign-in that also persists the token and account email, so
+// callers only manage their own loading and error state. Returns the token.
+export async function connectDrive(): Promise<string> {
+  if (!GOOGLE_CLIENT_ID) throw new Error("Google Drive is not configured");
+  const { token, expiresIn, email } = await signInWithGoogle(GOOGLE_CLIENT_ID);
+  await persistDriveToken(token, expiresIn);
+  if (email) await setDriveAccountEmail(email);
+  return token;
 }
 
 async function runSignInPopup(

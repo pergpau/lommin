@@ -3,10 +3,9 @@ import { useTranslation } from "react-i18next";
 import Button from "./ui/Button";
 import Modal from "./ui/Modal";
 import ModalActions from "./ui/ModalActions";
-import { clearDriveToken, persistDriveToken, setDriveAccountEmail } from "../lib/settings";
-import { allowRedirectReauth, signInWithGoogle } from "../lib/googleDrive";
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+import { GOOGLE_CLIENT_ID } from "../constants";
+import { clearDriveToken } from "../lib/settings";
+import { allowRedirectReauth, connectDrive } from "../lib/googleDrive";
 
 export default function DriveReconnectModal() {
   const { t } = useTranslation("common");
@@ -37,9 +36,7 @@ export default function DriveReconnectModal() {
     setConnecting(true);
     setError(null);
     try {
-      const { token, expiresIn, email } = await signInWithGoogle(GOOGLE_CLIENT_ID);
-      await persistDriveToken(token, expiresIn);
-      if (email) await setDriveAccountEmail(email);
+      await connectDrive();
       // A fresh interactive grant means whatever made the automatic paths back
       // off is over; let the next expiry try them again instead of coming
       // straight back here.

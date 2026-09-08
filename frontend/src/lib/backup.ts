@@ -3,6 +3,7 @@
 // and for the Drive-sync freshness decision. File and Drive are two
 // adapters behind the same BackupTarget seam.
 
+import { GOOGLE_CLIENT_ID } from "../constants";
 import { loadEncryptedFile, saveEncryptedFile } from "./cryptoFile";
 import {
   canRedirectReauth,
@@ -32,8 +33,6 @@ import {
   setSetting,
 } from "./settings";
 import { exportAll, getAllTransactions, importAll } from "./store";
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
 export type BackupErrorKind =
   | "cancelled" // user closed the file picker — UI should stay silent

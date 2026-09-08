@@ -11,3 +11,6 @@ export const CHART_MONTHS = 6;
 export const MAX_IMPORT_BYTES = 50 * 1024 * 1024; // 50 MB
 
 export const DEMO_ONLY = import.meta.env.VITE_DEMO_ONLY === "true";
+
+// Unset when Google Drive backup is not configured for this deployment.
+export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;

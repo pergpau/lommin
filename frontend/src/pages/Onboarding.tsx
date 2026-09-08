@@ -22,16 +22,9 @@ import { loadKey, saveKey } from "../lib/auth";
 import { applyRestore, BackupError, loadBackup } from "../lib/backup";
 import { getAccounts } from "../lib/data";
 import { seedDemoData } from "../lib/demoData";
-import { signInWithGoogle } from "../lib/googleDrive";
-import {
-  DEFAULT_PROXY_URL,
-  getSetting,
-  persistDriveToken,
-  setDriveAccountEmail,
-  setSetting,
-} from "../lib/settings";
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+import { connectDrive } from "../lib/googleDrive";
+import { DEFAULT_PROXY_URL, getSetting, setSetting } from "../lib/settings";
+import { GOOGLE_CLIENT_ID } from "../constants";
 
 type OnboardingStep =
   | { kind: "intro" }
@@ -444,15 +437,12 @@ function StepRestoreDrive({ navigate }: { navigate: ReturnType<typeof useNavigat
   >("idle");
   const [driveMsg, setDriveMsg] = useState("");
 
-  const connectDrive = useCallback(async () => {
+  const handleConnectDrive = useCallback(async () => {
     if (!GOOGLE_CLIENT_ID) return;
     setDriveState("connecting");
     setDriveMsg("");
     try {
-      const { token: tok, expiresIn, email } = await signInWithGoogle(GOOGLE_CLIENT_ID);
-      await persistDriveToken(tok, expiresIn);
-      if (email) await setDriveAccountEmail(email);
-      setDriveToken(tok);
+      setDriveToken(await connectDrive());
       setDriveState("idle");
     } catch (e) {
       setDriveState("error");
@@ -495,7 +485,7 @@ function StepRestoreDrive({ navigate }: { navigate: ReturnType<typeof useNavigat
         <Button
           className="w-full justify-center"
           loading={driveState === "connecting"}
-          onClick={connectDrive}
+          onClick={handleConnectDrive}
         >
           {t("restore.fromDrive.connectButton")}
         </Button>
