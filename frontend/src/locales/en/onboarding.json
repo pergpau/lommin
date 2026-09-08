@@ -75,12 +75,12 @@
   "restore": {
     "title": "Restore",
     "body": "Decrypt and restore accounts and transactions from a previous backup.",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Leave blank if you didn't use a password",
     "fromFile": {
       "title": "From local file",
       "description": "Decrypt a backup file from your device",
       "body": "Decrypt an <enc>.enc</enc> backup from your device.",
-      "passwordLabel": "Password",
-      "passwordPlaceholder": "Leave blank if you didn't use a password",
       "button": "Choose file and restore"
     },
     "fromDrive": {
@@ -88,8 +88,6 @@
       "description": "Download and decrypt your backup from Google Drive",
       "body": "Download and decrypt your backup from Google Drive.",
       "connectButton": "Connect Google Drive",
-      "passwordLabel": "Password",
-      "passwordPlaceholder": "Leave blank if you didn't use a password",
       "loadButton": "Load from Drive"
     },
     "errors": {
