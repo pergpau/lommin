@@ -1,13 +1,6 @@
 import { t } from "i18next";
 import { bbanKey, guessCategory } from "./autoCategorize";
 import {
-  fetchAllTransactions,
-  fetchBalance,
-  ProxyNetworkError,
-  SessionExpiredError,
-} from "./enableBanking";
-import { getSetting } from "./settings";
-import {
   getAccounts,
   getAllTransactions,
   getEnableBankingSource,
@@ -19,12 +12,24 @@ import {
   type Account,
   type Transaction,
 } from "./data";
+import {
+  fetchAllTransactions,
+  fetchBalance,
+  ProxyNetworkError,
+  SessionExpiredError,
+} from "./enableBanking";
+import { getSetting } from "./settings";
 import { detectTransfers } from "./transfers";
 
 function dateFromDaysAgo(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() - days);
   return d.toISOString().split("T")[0];
+}
+
+function hasTransactionId(tx: Transaction): boolean {
+  const id = tx.raw.transaction_id;
+  return typeof id === "string" && id.length > 0;
 }
 
 interface FetchedAccount {
@@ -60,7 +65,7 @@ async function fetchAccountData(
 
   const apiUid = src.sourceId;
   onProgress?.(`${t("actions.syncing")}: ${bankName} (${label})`);
-  const [txns, balance] = await Promise.all([
+  const [fetched, balance] = await Promise.all([
     fetchAllTransactions(
       apiUid,
       dateFrom,
@@ -69,6 +74,7 @@ async function fetchAccountData(
     ),
     fetchBalance(apiUid).catch(() => undefined),
   ]);
+  const txns = fetched.filter(hasTransactionId);
 
   return { acc, txns, balance };
 }
